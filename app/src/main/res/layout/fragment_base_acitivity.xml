@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FAFAFA"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".ui.shedeForms.FragCreateSchedeForm"
+
+    android:fillViewport="true">
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        style="@style/forms"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layout_data"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="60dp"
+            android:hint="@string/inserisce_data"
+            android:singleLine="true"
+            app:boxStrokeWidth="3dp"
+            app:boxStrokeColor="@color/white"
+            app:hintTextColor="@color/black"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/ed_event_data"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:focusable="false"
+                android:imeOptions="actionNext"
+                style="@style/testoForm"
+
+                android:inputType="none"
+                android:singleLine="true"
+                android:textColor="@color/black"
+                android:textColorHint="@color/black" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layout_title"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="31dp"
+            android:hint="Inserisci Nome Sheda"
+            android:singleLine="true"
+            app:boxStrokeWidth="3dp"
+            app:hintTextColor="@color/black"
+            app:layout_constraintEnd_toEndOf="@id/layout_data"
+            app:layout_constraintStart_toStartOf="@id/layout_data"
+            app:layout_constraintTop_toBottomOf="@id/layout_data">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/ed_title"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:imeOptions="actionNext"
+                android:singleLine="true"
+                style="@style/testoForm"
+                android:textColor="@color/black"
+                android:textColorHint="@color/black" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layout_spinner_complete_gruppi_muscolari"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="31dp"
+            android:hint="@string/gruppo_musculare"
+            app:boxStrokeWidth="3dp"
+            android:focusable="false"
+            app:endIconMode="dropdown_menu"
+            app:hintTextColor="@color/black"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/layout_title"
+            app:placeholderText="@string/gruppo_musculare">
+
+            <AutoCompleteTextView
+                android:id="@+id/gruppu_muscolari"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layout_spinner_insita"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="31dp"
+
+            android:hint="@string/insensita"
+            app:boxStrokeWidth="3dp"
+            app:endIconMode="dropdown_menu"
+            app:hintTextColor="@color/black"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/layout_spinner_complete_gruppi_muscolari"
+            app:placeholderText="@string/insensita">
+
+            <AutoCompleteTextView
+                android:id="@+id/ed_intensita"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layout_notes"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="31dp"
+            android:hint="@string/accessori_da_usare_cose_da_non_dimenticate"
+            android:imeOptions="actionDone"
+            android:singleLine="true"
+            app:boxStrokeWidth="3dp"
+            app:hintTextColor="@color/black"
+            app:layout_constraintEnd_toEndOf="@id/layout_spinner_complete_gruppi_muscolari"
+            app:layout_constraintStart_toStartOf="@+id/layout_spinner_complete_gruppi_muscolari"
+            app:layout_constraintTop_toBottomOf="@+id/layout_spinner_insita">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/ed_notes"
+                android:layout_width="match_parent"
+                android:layout_height="312dp"
+                android:gravity="top|start"
+                style="@style/testoForm"
+
+                android:textAlignment="textStart"
+                android:textColor="@color/black"
+                android:textColorHint="@color/black" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_next"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/testoForm"
+
+            android:text="next"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/layout_notes" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+</androidx.core.widget.NestedScrollView>

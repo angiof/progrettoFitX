@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/create_schedes_navigations"
+    app:startDestination="@id/placeholderFragment">
+    <fragment
+        android:id="@+id/placeholderFragment"
+        android:name="com.app.progrettofitx.ui.shedeForms.FragCreateSchedeForm"
+        android:label="fragment_base_acitivity"
+        tools:layout="@layout/fragment_base_acitivity" />
+    <fragment
+        android:id="@+id/fragEssercissi"
+        android:name="com.app.progrettofitx.ui.shedeForms.FragEssercissi"
+        android:label="fragment_frag_essercissi"
+        tools:layout="@layout/fragment_frag_essercissi" />
+</navigation>
