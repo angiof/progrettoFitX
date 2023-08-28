@@ -4,20 +4,27 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewModelScope
 import com.app.progrettofitx.databinding.BottomSheetLayoutBinding
 import com.app.progrettofitx.db.DB.DbFit
 import com.app.progrettofitx.db.EsserciziEntity
+import com.app.progrettofitx.ui.shedeForms.EsserciziViewModel
+import com.app.progrettofitx.ui.shedeForms.SchedeViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-class MyBottomSheetFragment : BottomSheetDialogFragment() {
+class MyBottomSheetFragment(private val idScheda:Int) : BottomSheetDialogFragment() {
     private var nome: String? = null
     private var nSerie: Int? = null
     private var nIntervallo: Int? = null
     private var isometria: Int? = null
+    private val viewModel: EsserciziViewModel by viewModels()
+
     private val binding: BottomSheetLayoutBinding by lazy {
         BottomSheetLayoutBinding.inflate(
             layoutInflater
@@ -39,27 +46,28 @@ class MyBottomSheetFragment : BottomSheetDialogFragment() {
     private fun setInfoAndSave() {
 
         binding.layoutEssercissiSheet.bntSave.setOnClickListener { view ->
+
+            isometria = binding.layoutEssercissiSheet.edIsometria.text.toString().toInt()
+
             nome = binding.layoutEssercissiSheet.edNome.text.toString()
             nSerie = binding.layoutEssercissiSheet.edSerie.text.toString().toInt()
             nIntervallo = binding.layoutEssercissiSheet.edRiposo.text.toString().toInt()
-            isometria = binding.layoutEssercissiSheet.edIsometria.text.toString().toInt()
 
-            lifecycleScope.launch(Dispatchers.IO) {
-                DbFit.getDatabase(requireContext()).essercissiDao()
-                    .insert(
+                viewModel.viewModelScope.launch(Dispatchers.IO) {
+                    viewModel.insert(
                         EsserciziEntity(
-                            0,
-                            nome!!,
-                            nSerie!!,
-                            nIntervallo,
-                            isometria
+                            nome = nome!!,
+                            nRipetizione = nSerie!!,
+                            intervallo = nIntervallo,
+                            insometria = isometria,
+                            schedaId = idScheda
                         )
                     )
-            }
+                }
+
             lifecycleScope.launch(Dispatchers.Main) {
                 dismiss()
             }
         }
-
     }
 }

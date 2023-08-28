@@ -1,5 +1,6 @@
 package com.app.progrettofitx.db.dao
 
+import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
@@ -18,9 +19,15 @@ interface DaoEssercissi {
     @Delete
     suspend fun delete(essercizi: EsserciziEntity)
 
-    @Query("SELECT * FROM essercissi")
-    suspend fun getAllEssercissi(): List<EsserciziEntity>
+
 
     @Query("SELECT * FROM essercissi WHERE id = :id")
-    suspend fun getEssercissiById(id: Int): EsserciziEntity?
+    suspend fun getEssercissiById(id: Int): List<EsserciziEntity>
+
+    @Query("SELECT * FROM essercissi WHERE schedaId = :schedaId")
+     fun getEssercissiBySchedaId(schedaId: Int):  LiveData<List<EsserciziEntity>>
+
+
+    @Query("SELECT * FROM essercissi WHERE schedaId = :id")
+    fun getAllById(id: Int): LiveData<List<EsserciziEntity>>
 }

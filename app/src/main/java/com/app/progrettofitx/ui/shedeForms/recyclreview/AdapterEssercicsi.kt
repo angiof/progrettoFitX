@@ -5,15 +5,18 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import com.app.progrettofitx.R
+import com.app.progrettofitx.databinding.ListaEssercissiBinding
 import com.app.progrettofitx.db.EsserciziEntity
 
 
-class EserciziAdapter : ListAdapter<EsserciziEntity, EserciziViewHolder>(EserciziDiffCallback()) {
+class   EserciziAdapter : ListAdapter<EsserciziEntity, EserciziViewHolder>(EserciziDiffCallback()) {
 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): EserciziViewHolder {
-        return EserciziViewHolder(
-            LayoutInflater.from(parent.context).inflate(R.layout.essercissi_layout, parent, false)
+
+        val binding = ListaEssercissiBinding.inflate(LayoutInflater.from(parent.context),parent,false)
+        return EserciziViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.lista_essercissi, parent, false),
+            binding
         )
     }
 

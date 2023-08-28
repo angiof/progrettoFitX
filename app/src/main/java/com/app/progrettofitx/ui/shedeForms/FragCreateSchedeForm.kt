@@ -9,17 +9,30 @@ import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
 import com.app.progrettofitx.R
 import com.app.progrettofitx.databinding.FragmentBaseAcitivityBinding
+import com.app.progrettofitx.db.EsserciziEntity
 import com.app.progrettofitx.db.SchedeEntity
 import com.app.progrettofitx.ui.forms.BaseAcitivity
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Calendar
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 
 class FragCreateSchedeForm : Fragment() {
     private lateinit var binding: FragmentBaseAcitivityBinding
     private var shedaForm: SchedeEntity? = null
+    private val viewModel: SchedeViewModel by viewModels()
+    private var inserted: Int? = null
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -41,7 +54,10 @@ class FragCreateSchedeForm : Fragment() {
         gruppiMuscolari()
         populateAutoCompleteMusocli()
 
-        checkInputs()
+        lifecycleScope.launch(Dispatchers.IO) {
+
+            checkInputs()
+        }
 
     }
 
@@ -95,13 +111,13 @@ class FragCreateSchedeForm : Fragment() {
     }
 
 
-    fun checkInputs() {
+    suspend fun checkInputs() = coroutineScope {
 
         binding.btnNext.setOnClickListener {
 
             val data: String = binding.edEventData.text.toString()
             val titolo: String = binding.edTitle.text.toString()
-            val notes: String? = binding.edNotes.text.toString()
+            val notes: String = binding.edNotes.text.toString()
             val intensita: String = binding.edIntensita.text.toString()
             val gruppoMuscolare: String = binding.gruppuMuscolari.text.toString()
 
@@ -114,13 +130,20 @@ class FragCreateSchedeForm : Fragment() {
                     data = data
                 )
 
-                val shedaFormBundle = Bundle().apply {
-                putSerializable("f",shedaForm)
+                viewModel.viewModelScope.launch(Dispatchers.IO) {
+                    val newSchedeId = viewModel.insert(shedaForm!!).toInt() // Insert and get ID
+                    shedaForm!!.id = newSchedeId // Set the automatically generated ID
+
+                    withContext(Dispatchers.Main) {
+                        val shedaFormBundle = Bundle().apply {
+                            putSerializable("f", shedaForm)
+                        }
+                        findNavController().navigate(R.id.fragEssercissi, shedaFormBundle)
+                    }
                 }
 
-                findNavController().navigate(R.id.fragEssercissi, shedaFormBundle)
             } else {
-                Toast.makeText(requireContext(), "cè un campo vuoto", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "c'è un campo vuoto", Toast.LENGTH_SHORT).show()
             }
         }
     }
