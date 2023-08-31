@@ -15,7 +15,6 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
 import com.app.progrettofitx.R
 import com.app.progrettofitx.databinding.FragmentBaseAcitivityBinding
-import com.app.progrettofitx.db.EsserciziEntity
 import com.app.progrettofitx.db.SchedeEntity
 import com.app.progrettofitx.ui.forms.BaseAcitivity
 import kotlinx.coroutines.Dispatchers
@@ -23,8 +22,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Calendar
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 
 class FragCreateSchedeForm : Fragment() {
@@ -32,6 +29,8 @@ class FragCreateSchedeForm : Fragment() {
     private var shedaForm: SchedeEntity? = null
     private val viewModel: SchedeViewModel by viewModels()
     private var inserted: Int? = null
+    private var existingRecordId: Int? = null  // Aggiungi questa variabile per tenere traccia dell'ID esistente
+
 
 
     override fun onCreateView(
@@ -46,6 +45,12 @@ class FragCreateSchedeForm : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // Ripristina lo stato da savedInstanceState
+        savedInstanceState?.let {
+            existingRecordId = it.getInt("existingRecordId", -1)
+            if (existingRecordId == -1) existingRecordId = null
+        }
 
         binding.edEventData.setOnClickListener {
             showDatePickerDialog()
@@ -131,8 +136,16 @@ class FragCreateSchedeForm : Fragment() {
                 )
 
                 viewModel.viewModelScope.launch(Dispatchers.IO) {
-                    val newSchedeId = viewModel.insert(shedaForm!!).toInt() // Insert and get ID
-                    shedaForm!!.id = newSchedeId // Set the automatically generated ID
+                    if (existingRecordId == null) {
+                        // Inserisci un nuovo record e ottieni l'ID
+                        val newSchedeId = viewModel.insert(shedaForm!!).toInt()
+                        shedaForm!!.id = newSchedeId
+                        existingRecordId = newSchedeId
+                    } else {
+                        // Aggiorna il record esistente
+                        shedaForm!!.id = existingRecordId!!
+                        viewModel.update(shedaForm!!)
+                    }
 
                     withContext(Dispatchers.Main) {
                         val shedaFormBundle = Bundle().apply {
@@ -141,6 +154,7 @@ class FragCreateSchedeForm : Fragment() {
                         findNavController().navigate(R.id.fragEssercissi, shedaFormBundle)
                     }
                 }
+
 
             } else {
                 Toast.makeText(requireContext(), "c'è un campo vuoto", Toast.LENGTH_SHORT).show()
@@ -156,6 +170,10 @@ class FragCreateSchedeForm : Fragment() {
             }
         }
         return true
+    }
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt("existingRecordId", existingRecordId ?: -1)
     }
 
 
