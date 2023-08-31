@@ -179,7 +179,9 @@ class FragCreateSchedeForm : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        (activity as? BaseAcitivity)?.selectTab(0)
+        (activity as? BaseAcitivity)?.apply {
+            this.selectTab(0)
+        }
     }
 }
 

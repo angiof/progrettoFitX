@@ -2,15 +2,13 @@ package com.app.progrettofitx.ui.forms
 
 import android.os.Bundle
 import android.widget.LinearLayout
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.snackbar.Snackbar
-import com.google.android.material.tabs.TabLayout
-import androidx.viewpager.widget.ViewPager
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.navigation.NavInflater
 import androidx.navigation.fragment.NavHostFragment
 import com.app.progrettofitx.R
 import com.app.progrettofitx.databinding.ActivityBaseAcitivityBinding
+import com.google.android.material.tabs.TabLayout
 
 abstract class BaseAcitivity : AppCompatActivity() {
 
@@ -37,6 +35,8 @@ abstract class BaseAcitivity : AppCompatActivity() {
         }
 
 
+
+        setWalper()
     }
 
     fun addTab(tabs: MutableList<TabLayout.Tab>) {
@@ -49,8 +49,39 @@ abstract class BaseAcitivity : AppCompatActivity() {
 
         }
     }
+
+
     fun selectTab(position: Int) {
         val tab = binding.baseTabLayout.getTabAt(position)
         binding.baseTabLayout.selectTab(tab)
+    }
+
+    fun setWalper() {
+        tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab?) {
+                when (tab?.position) {
+                    0 -> {
+                        binding.title.setImageDrawable(
+                            AppCompatResources.getDrawable(this@BaseAcitivity, R.drawable.manubrio1)
+                        )
+
+                    }
+
+                    1 -> {
+                        binding.title.setImageDrawable(
+                            AppCompatResources.getDrawable(this@BaseAcitivity, R.drawable.ragazza_scheda))
+                    }
+                    // Aggiungi altri casi qui
+                }
+            }
+
+            override fun onTabUnselected(tab: TabLayout.Tab?) {
+                // Codice opzionale per quando una scheda viene deselezionata
+            }
+
+            override fun onTabReselected(tab: TabLayout.Tab?) {
+                // Codice opzionale per quando una scheda viene reselezionata
+            }
+        })
     }
 }
