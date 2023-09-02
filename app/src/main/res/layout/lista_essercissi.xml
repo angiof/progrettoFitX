@@ -2,7 +2,6 @@
 <com.google.android.material.card.MaterialCardView
     app:circularflow_radiusInDP="60dp"
     android:elevation="22dp"
-    app:cardCornerRadius="@dimen/activity_horizontal_margin"
     android:outlineAmbientShadowColor="@color/second"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -11,11 +10,25 @@
     android:layout_height="wrap_content">
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:background="@color/teal_200"
+        android:background="@color/white"
         android:padding="20dp"
 
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/shapeableImageView"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            android:cropToPadding="true"
+            android:scaleType="centerCrop"
+            android:src="@drawable/remo"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+        </com.google.android.material.imageview.ShapeableImageView>
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/lista_titolo"
@@ -26,9 +39,8 @@
             android:text="titolo djdsfsd"
             android:textColor="@color/black"
 
-            android:textSize="34sp"
+            android:textSize="24sp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
         </com.google.android.material.textview.MaterialTextView>
@@ -39,7 +51,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="30dp"
             android:text="ripetizini"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/shapeableImageView"
             app:layout_constraintTop_toBottomOf="@+id/lista_titolo" />
 
         <TextView
@@ -55,7 +67,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="TextView"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/shapeableImageView"
             app:layout_constraintTop_toBottomOf="@+id/textView" />
 
         <TextView
