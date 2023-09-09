@@ -20,6 +20,8 @@ interface DaoEssercissi {
     suspend fun delete(essercizi: EsserciziEntity)
 
 
+    @Query("SELECT COUNT(*) FROM essercissi WHERE schedaId = :id")
+    suspend fun countEsserciziById(id: Int): Int
 
     @Query("SELECT * FROM essercissi WHERE id = :id")
     suspend fun getEssercissiById(id: Int): List<EsserciziEntity>

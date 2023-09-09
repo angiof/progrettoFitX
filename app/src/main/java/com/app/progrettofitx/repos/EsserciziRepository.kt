@@ -21,9 +21,14 @@ class EsserciziRepository(private val daoEssercissi: DaoEssercissi) {
         daoEssercissi.delete(essercizi)
     }
 
-
-
     suspend fun getAllById(id: Int): LiveData<List<EsserciziEntity>> {
         return daoEssercissi.getEssercissiBySchedaId(id)
     }
+
+    suspend fun getCountById(id: Int): Int {
+        return daoEssercissi.countEsserciziById(id)
+    }
+
+
+
 }

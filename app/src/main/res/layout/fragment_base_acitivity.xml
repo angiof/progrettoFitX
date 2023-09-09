@@ -37,7 +37,6 @@
                 android:focusable="false"
                 android:imeOptions="actionNext"
                 style="@style/testoForm"
-
                 android:inputType="none"
                 android:singleLine="true"
                 android:textColor="@color/black"
@@ -52,7 +51,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="31dp"
-            android:hint="Inserisci Nome Sheda"
+            android:hint="@string/inserisci_nome_sheda"
             android:singleLine="true"
             app:boxStrokeWidth="3dp"
             app:hintTextColor="@color/black"
@@ -66,6 +65,7 @@
                 android:layout_height="match_parent"
                 android:imeOptions="actionNext"
                 android:singleLine="true"
+                android:maxLines="1"
                 style="@style/testoForm"
                 android:textColor="@color/black"
                 android:textColorHint="@color/black" />
@@ -92,6 +92,35 @@
             <AutoCompleteTextView
                 android:id="@+id/gruppu_muscolari"
                 android:layout_width="match_parent"
+                android:textSize="20sp"
+                android:imeOptions="actionNext"
+                android:layout_height="wrap_content"
+                android:inputType="none" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/lista_attrezzi_layout"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="31dp"
+            android:hint="attrezzi"
+            app:boxStrokeWidth="3dp"
+            android:focusable="false"
+            app:endIconMode="dropdown_menu"
+            android:visibility="gone"
+            app:hintTextColor="@color/black"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/layout_spinner_complete_gruppi_muscolari"
+            app:placeholderText="attrezzo">
+
+            <AutoCompleteTextView
+                android:visibility="gone"
+                android:textSize="28sp"
+                android:id="@+id/lista_attrezzi_txt"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="none" />
 
@@ -104,18 +133,20 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="31dp"
 
-            android:hint="@string/insensita"
+            android:hint="@string/intensita"
             app:boxStrokeWidth="3dp"
             app:endIconMode="dropdown_menu"
             app:hintTextColor="@color/black"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/layout_spinner_complete_gruppi_muscolari"
+            app:layout_constraintTop_toBottomOf="@id/lista_attrezzi_layout"
             app:placeholderText="@string/insensita">
 
             <AutoCompleteTextView
                 android:id="@+id/ed_intensita"
                 android:layout_width="match_parent"
+                android:textSize="20sp"
+                android:imeOptions="actionNext"
                 android:layout_height="wrap_content"
                 android:inputType="none" />
 
@@ -142,8 +173,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="312dp"
                 android:gravity="top|start"
+                android:imeOptions="actionNext"
                 style="@style/testoForm"
-
                 android:textAlignment="textStart"
                 android:textColor="@color/black"
                 android:textColorHint="@color/black" />

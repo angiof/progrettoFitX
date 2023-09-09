@@ -25,14 +25,13 @@ class EsserciziViewModel(application: Application) : AndroidViewModel(applicatio
         repository.insert(essercizi)
     }
 
-
+    suspend fun getTotalEss(id: Int): Int {
+        return repository.getCountById(id)
+    }
 
     suspend fun getAllById(id: Int): LiveData<List<EsserciziEntity>> {
         return repository.getAllById(id)
     }
-
-
-
 
 
 }

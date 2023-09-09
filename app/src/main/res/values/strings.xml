@@ -22,4 +22,10 @@
     <string name="add">Add</string>
     <string name="isometria">isometria</string>
     <string name="title_activity_compose">ComposeActi</string>
+    <string name="gruppo_muslcolare">Gruppo Muslcolare</string>
+    <string name="intensita">Intensita</string>
+    <string name="totale_essercissi">Totale Essercissi</string>
+    <string name="data">Data</string>
+    <string name="salva_ed_esci">Salva ed esci</string>
+    <string name="inserisci_nome_sheda">Inserisci Nome Sheda</string>
 </resources>

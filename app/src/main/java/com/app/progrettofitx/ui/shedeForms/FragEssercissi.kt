@@ -8,23 +8,23 @@ import android.widget.LinearLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewModelScope
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.app.progrettofitx.R
 import com.app.progrettofitx.databinding.FragmentFragEssercissiBinding
-import com.app.progrettofitx.db.EsserciziEntity
 import com.app.progrettofitx.db.SchedeEntity
 import com.app.progrettofitx.ui.forms.BaseAcitivity
 import com.app.progrettofitx.ui.shedeForms.recyclreview.EserciziAdapter
 import com.app.progrettofitx.ui.sheet.MyBottomSheetFragment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.lang.ArithmeticException
+
 class FragEssercissi : Fragment() {
     private lateinit var binding: FragmentFragEssercissiBinding
     private lateinit var adapterx: EserciziAdapter
     private lateinit var schedeEntity: SchedeEntity
+
     private val viewModel: EsserciziViewModel by viewModels()
 
     override fun onCreateView(
@@ -37,7 +37,6 @@ class FragEssercissi : Fragment() {
         adapterx = EserciziAdapter()
 
 
-
         binding.apply {
             recylcreview.apply {
                 val decorationSpan = DividerItemDecoration(requireContext(), LinearLayout.VERTICAL)
@@ -48,12 +47,18 @@ class FragEssercissi : Fragment() {
             }
         }
 
-
-
-
         binding.floatingActionButton.setOnClickListener {
             val bottomSheetFragment = MyBottomSheetFragment(schedeEntity.id!!)
-            bottomSheetFragment.show(requireActivity().supportFragmentManager, "MyBottomSheetFragment")
+            bottomSheetFragment.show(
+                requireActivity().supportFragmentManager,
+                "MyBottomSheetFragment"
+            )
+        }
+
+        binding.button.setOnClickListener {
+            val bundle = Bundle()
+            bundle.putSerializable("schedeEntity", schedeEntity)
+            findNavController().navigate(R.id.fragmentRepielogo, bundle)
         }
 
         return binding.root
@@ -68,7 +73,8 @@ class FragEssercissi : Fragment() {
                 // Observe changes to the list of exercises
                 viewModel.getAllById(schedeEntity.id!!).observe(viewLifecycleOwner) { list ->
                     adapterx.submitList(list)
-                }            }
+                }
+            }
         }
 
         (activity as? BaseAcitivity)?.selectTab(1)

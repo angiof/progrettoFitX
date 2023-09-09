@@ -28,9 +28,7 @@ class FragCreateSchedeForm : Fragment() {
     private lateinit var binding: FragmentBaseAcitivityBinding
     private var shedaForm: SchedeEntity? = null
     private val viewModel: SchedeViewModel by viewModels()
-    private var inserted: Int? = null
-    private var existingRecordId: Int? = null  // Aggiungi questa variabile per tenere traccia dell'ID esistente
-
+    private var existingRecordId: Int? = null
 
 
     override fun onCreateView(
@@ -41,7 +39,6 @@ class FragCreateSchedeForm : Fragment() {
         binding = FragmentBaseAcitivityBinding.inflate(inflater, container, false)
         return binding.root
     }
-
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -58,16 +55,14 @@ class FragCreateSchedeForm : Fragment() {
         //da rinominare
         gruppiMuscolari()
         populateAutoCompleteMusocli()
+        //listaAttrezzi()
 
         lifecycleScope.launch(Dispatchers.IO) {
-
             checkInputs()
         }
-
     }
 
-
-    fun showDatePickerDialog() {
+    private fun showDatePickerDialog() {
         val calendar = Calendar.getInstance()
         val year = calendar.get(Calendar.YEAR)
         val month = calendar.get(Calendar.MONTH)
@@ -83,9 +78,8 @@ class FragCreateSchedeForm : Fragment() {
         datePickerDialog.show()
     }
 
-
-    fun gruppiMuscolari() {
-        val items = listOf("spalle", "petto", "gambe", "braccia")
+    private fun gruppiMuscolari() {
+        val items = listOf("Spalle", "Petto", "Gambe", "Braccia")
 
         val adapter = ArrayAdapter(
             requireContext(),
@@ -96,11 +90,24 @@ class FragCreateSchedeForm : Fragment() {
 
         binding.layoutSpinnerCompleteGruppiMuscolari.setEndIconOnClickListener {
             (binding.gruppuMuscolari as? AutoCompleteTextView)?.showDropDown()
+        }
+    }
+    private fun listaAttrezzi() {
+        val items = listOf("Manubrio", "Bilanciere", "Elastico", "FatGrip","Nessuno")
 
+        val adapter = ArrayAdapter(
+            requireContext(),
+            androidx.appcompat.R.layout.support_simple_spinner_dropdown_item,
+            items
+        )
+        (binding.listaAttrezziTxt as? AutoCompleteTextView)?.setAdapter(adapter)
+
+        binding.layoutSpinnerCompleteGruppiMuscolari.setEndIconOnClickListener {
+            (binding.listaAttrezziTxt as? AutoCompleteTextView)?.showDropDown()
         }
     }
 
-    fun populateAutoCompleteMusocli() {
+    private fun populateAutoCompleteMusocli() {
         val items = listOf("Alta", "Media", "Bassa", "Cardio")
 
         val adapter = ArrayAdapter(
@@ -126,7 +133,7 @@ class FragCreateSchedeForm : Fragment() {
             val intensita: String = binding.edIntensita.text.toString()
             val gruppoMuscolare: String = binding.gruppuMuscolari.text.toString()
 
-            if (checkStrings(data, intensita, notes, gruppoMuscolare, titolo)) {
+            if (checkStrings(data, intensita, gruppoMuscolare, titolo)) {
                 shedaForm = SchedeEntity(
                     gruppoMuscolare = gruppoMuscolare,
                     intesita = intensita,
@@ -154,16 +161,13 @@ class FragCreateSchedeForm : Fragment() {
                         findNavController().navigate(R.id.fragEssercissi, shedaFormBundle)
                     }
                 }
-
-
             } else {
                 Toast.makeText(requireContext(), "c'è un campo vuoto", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-
-    fun checkStrings(vararg strings: String?): Boolean {
+    private fun checkStrings(vararg strings: String?): Boolean {
         for (str in strings) {
             if (str == null || str.trim().isEmpty()) {
                 return false
@@ -171,14 +175,16 @@ class FragCreateSchedeForm : Fragment() {
         }
         return true
     }
+
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putInt("existingRecordId", existingRecordId ?: -1)
     }
 
-
     override fun onResume() {
         super.onResume()
+        gruppiMuscolari()
+        populateAutoCompleteMusocli()
         (activity as? BaseAcitivity)?.apply {
             this.selectTab(0)
         }

@@ -67,5 +67,12 @@
         <item name="android:fontFamily">@font/raleway_medium</item>
     </style>
 
+    <style name="style_repielogo" parent="Widget.AppCompat.TextView">
+        <item name="fontFamily">@font/raleway_bold</item>
+        <item name="android:textColor">@color/second</item>
+        <item name="android:textSize">18sp</item>
+
+    </style>
+
 
 </resources>
