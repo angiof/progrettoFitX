@@ -6,14 +6,18 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.app.progrettofitx.R
+import com.app.progrettofitx.data_layer.db.DB.DbFit
+import com.app.progrettofitx.data_layer.db.SchedeEntity
+import com.app.progrettofitx.data_layer.db.repos.EsserciziRepository
 import com.app.progrettofitx.databinding.FragmentFragEssercissiBinding
-import com.app.progrettofitx.db.SchedeEntity
+import com.app.progrettofitx.dominio.UsesCasesEssercissi
+import com.app.progrettofitx.ui.factory.GenericViewModelFactory
 import com.app.progrettofitx.ui.forms.BaseAcitivity
 import com.app.progrettofitx.ui.shedeForms.recyclreview.EserciziAdapter
 import com.app.progrettofitx.ui.sheet.MyBottomSheetFragment
@@ -24,18 +28,26 @@ class FragEssercissi : Fragment() {
     private lateinit var binding: FragmentFragEssercissiBinding
     private lateinit var adapterx: EserciziAdapter
     private lateinit var schedeEntity: SchedeEntity
-
-    private val viewModel: EsserciziViewModel by viewModels()
+    private lateinit var viewModel: EsserciziViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentFragEssercissiBinding.inflate(inflater, container, false)
-
-        // Initialize the adapter
         adapterx = EserciziAdapter()
 
+        // Crea il Repository e il UseCase
+        val dao = DbFit.getDatabase(requireContext()).essercissiDao()
+        val esserciziRepository = EsserciziRepository(dao)
+        val getEserciziByIdUseCase = UsesCasesEssercissi(esserciziRepository)
+
+        // Inizializza il ViewModel tramite la Factory
+        val viewModelFactory = GenericViewModelFactory {
+            EsserciziViewModel(getEserciziByIdUseCase, activity?.application!!)
+        }
+
+        viewModel = ViewModelProvider(this, viewModelFactory!!).get(EsserciziViewModel::class.java)
 
         binding.apply {
             recylcreview.apply {

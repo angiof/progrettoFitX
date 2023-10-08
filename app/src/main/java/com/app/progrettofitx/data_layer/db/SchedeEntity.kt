@@ -1,4 +1,4 @@
-package com.app.progrettofitx.db
+package com.app.progrettofitx.data_layer.db
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

@@ -1,13 +1,13 @@
-package com.app.progrettofitx.db.DB
+package com.app.progrettofitx.data_layer.db.DB
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.app.progrettofitx.db.EsserciziEntity
-import com.app.progrettofitx.db.SchedeEntity
-import com.app.progrettofitx.db.dao.DaoEssercissi
-import com.app.progrettofitx.db.dao.DaoSchede
+import com.app.progrettofitx.data_layer.db.EsserciziEntity
+import com.app.progrettofitx.data_layer.db.SchedeEntity
+import com.app.progrettofitx.data_layer.db.dao.DaoEssercissi
+import com.app.progrettofitx.data_layer.db.dao.DaoSchede
 
 @Database(
     entities = [

@@ -9,13 +9,16 @@ import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
 import com.app.progrettofitx.R
+import com.app.progrettofitx.data_layer.db.DB.DbFit
+import com.app.progrettofitx.data_layer.db.SchedeEntity
 import com.app.progrettofitx.databinding.FragmentBaseAcitivityBinding
-import com.app.progrettofitx.db.SchedeEntity
+import com.app.progrettofitx.dominio.UsesCasesSheda
+import com.app.progrettofitx.ui.factory.GenericViewModelFactory
 import com.app.progrettofitx.ui.forms.BaseAcitivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
@@ -27,7 +30,7 @@ import java.util.Calendar
 class FragCreateSchedeForm : Fragment() {
     private lateinit var binding: FragmentBaseAcitivityBinding
     private var shedaForm: SchedeEntity? = null
-    private val viewModel: SchedeViewModel by viewModels()
+    private lateinit var viewModel: SchedeViewModel
     private var existingRecordId: Int? = null
 
 
@@ -35,6 +38,15 @@ class FragCreateSchedeForm : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+
+        val dao = DbFit.getDatabase(requireContext()).schedeDao()
+        val schedeRepository = SchedeRepository(dao)
+        val usesCasesSheda = UsesCasesSheda(schedeRepository)
+
+        val viewModelFactory = GenericViewModelFactory {
+            SchedeViewModel(activity?.application!!, usesCasesSheda)
+        }
+        viewModel = ViewModelProvider(this, viewModelFactory).get(SchedeViewModel::class.java)
 
         binding = FragmentBaseAcitivityBinding.inflate(inflater, container, false)
         return binding.root
@@ -92,8 +104,9 @@ class FragCreateSchedeForm : Fragment() {
             (binding.gruppuMuscolari as? AutoCompleteTextView)?.showDropDown()
         }
     }
+
     private fun listaAttrezzi() {
-        val items = listOf("Manubrio", "Bilanciere", "Elastico", "FatGrip","Nessuno")
+        val items = listOf("Manubrio", "Bilanciere", "Elastico", "FatGrip", "Nessuno")
 
         val adapter = ArrayAdapter(
             requireContext(),

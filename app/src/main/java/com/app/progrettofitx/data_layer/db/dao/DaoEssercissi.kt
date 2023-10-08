@@ -1,4 +1,4 @@
-package com.app.progrettofitx.db.dao
+package com.app.progrettofitx.data_layer.db.dao
 
 import androidx.lifecycle.LiveData
 import androidx.room.Dao
@@ -6,7 +6,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
-import com.app.progrettofitx.db.EsserciziEntity
+import com.app.progrettofitx.data_layer.db.EsserciziEntity
 
 @Dao
 interface DaoEssercissi {

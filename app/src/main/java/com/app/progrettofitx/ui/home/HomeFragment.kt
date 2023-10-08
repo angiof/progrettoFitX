@@ -6,8 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.app.progrettofitx.ModelHomemenu
-import com.app.progrettofitx.R
+import com.app.progrettofitx.dominio.ModelHomemenu
 import com.app.progrettofitx.databinding.FragmentHomeBinding
 
 class HomeFragment : Fragment() {

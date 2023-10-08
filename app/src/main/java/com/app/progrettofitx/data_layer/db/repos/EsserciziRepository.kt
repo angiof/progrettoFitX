@@ -1,8 +1,8 @@
-package com.app.progrettofitx.repos
+package com.app.progrettofitx.data_layer.db.repos
 
 import androidx.lifecycle.LiveData
-import com.app.progrettofitx.db.EsserciziEntity
-import com.app.progrettofitx.db.dao.DaoEssercissi
+import com.app.progrettofitx.data_layer.db.EsserciziEntity
+import com.app.progrettofitx.data_layer.db.dao.DaoEssercissi
 
 class EsserciziRepository(private val daoEssercissi: DaoEssercissi) {
 
@@ -28,7 +28,4 @@ class EsserciziRepository(private val daoEssercissi: DaoEssercissi) {
     suspend fun getCountById(id: Int): Int {
         return daoEssercissi.countEsserciziById(id)
     }
-
-
-
 }

@@ -33,13 +33,42 @@
 
 
     <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/lista_attrezzi_layoutx"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:focusable="false"
+        android:hint="@string/attrezzi"
+        android:background="#FFE0E0E0"
+        app:boxStrokeWidth="3dp"
+        android:layout_marginTop="8dp"
+        app:endIconMode="dropdown_menu"
+        app:hintTextColor="@color/black"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/layout_title"
+        app:placeholderText="attrezzo">
+
+        <AutoCompleteTextView
+            android:id="@+id/lista_attrezzi_txtx"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="none"
+            android:backgroundTint="#FFE0E0E0"
+            android:textSize="28sp"
+            />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+
+    <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/layout_serie"
         android:layout_width="144dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:hint="insrisci N serie"
+        android:hint="@string/insrisci_n_serie"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/layout_title">
+        app:layout_constraintTop_toBottomOf="@+id/lista_attrezzi_layoutx">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/ed_serie"
@@ -48,6 +77,7 @@
             android:fontFamily="@font/raleway_medium"
             android:inputType="number"
             android:textSize="20sp"
+            android:maxLines="1"
             tools:text="N serie " />
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -56,11 +86,10 @@
         android:id="@+id/layout_esecuzioni"
         android:layout_width="144dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
 
         android:hint="numero esecuzioni"
         app:layout_constraintEnd_toEndOf="@+id/layout_title"
-        app:layout_constraintTop_toBottomOf="@+id/layout_title">
+        app:layout_constraintTop_toTopOf="@+id/layout_serie">
 
 
         <com.google.android.material.textfield.TextInputEditText
@@ -68,6 +97,7 @@
             android:layout_height="match_parent"
             android:fontFamily="@font/raleway_medium"
             android:inputType="number"
+            android:maxLines="1"
             android:textSize="20sp"
             tools:text="fdsjadsj" />
     </com.google.android.material.textfield.TextInputLayout>
@@ -88,6 +118,7 @@
             android:layout_height="match_parent"
             android:fontFamily="@font/raleway_medium"
             android:inputType="number"
+            android:maxLines="1"
             android:textSize="20sp"
             tools:text="fdsjadsj" />
     </com.google.android.material.textfield.TextInputLayout>
@@ -109,6 +140,7 @@
             android:layout_height="match_parent"
             android:fontFamily="@font/raleway_medium"
             android:inputType="number"
+            android:maxLines="1"
             android:textSize="20sp"
             tools:text="fdsjadsj" />
     </com.google.android.material.textfield.TextInputLayout>
@@ -118,11 +150,11 @@
         android:id="@+id/bnt_save"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
         android:backgroundTint="@color/second"
         android:fontFamily="@font/raleway_bold"
         android:text="@string/add"
         android:textColor="@color/white"
-        android:layout_marginTop="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/layout_iso"

@@ -9,8 +9,8 @@ import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.app.progrettofitx.ModelHomemenu
 import com.app.progrettofitx.R
+import com.app.progrettofitx.dominio.ModelHomemenu
 import com.app.progrettofitx.ui.forms.AcitivySheda
 import com.google.android.material.card.MaterialCardView
 

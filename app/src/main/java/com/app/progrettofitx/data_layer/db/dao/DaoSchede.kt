@@ -1,7 +1,7 @@
-package com.app.progrettofitx.db.dao
+package com.app.progrettofitx.data_layer.db.dao
 
 import androidx.room.*
-import com.app.progrettofitx.db.SchedeEntity
+import com.app.progrettofitx.data_layer.db.SchedeEntity
 
 @Dao
 interface DaoSchede {

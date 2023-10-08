@@ -6,7 +6,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import com.app.progrettofitx.R
 import com.app.progrettofitx.databinding.ListaEssercissiBinding
-import com.app.progrettofitx.db.EsserciziEntity
+import com.app.progrettofitx.data_layer.db.EsserciziEntity
 
 
 class   EserciziAdapter : ListAdapter<EsserciziEntity, EserciziViewHolder>(EserciziDiffCallback()) {

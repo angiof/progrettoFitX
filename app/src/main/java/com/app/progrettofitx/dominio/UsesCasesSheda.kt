@@ -1,39 +1,37 @@
-package com.app.progrettofitx.ui.shedeForms
+package com.app.progrettofitx.dominio
 
 import com.app.progrettofitx.data_layer.db.SchedeEntity
-import com.app.progrettofitx.data_layer.db.dao.DaoSchede
-import com.app.progrettofitx.dominio.UsesCasesEssercissi
-import com.app.progrettofitx.dominio.UsesCasesSheda
+import com.app.progrettofitx.ui.shedeForms.SchedeRepository
 
-class SchedeRepository(private val daoSchede: DaoSchede) {
+class UsesCasesSheda(private val repository: SchedeRepository) {
 
-    // Inserisce una nuova scheda nel database
+
     suspend fun insert(schede: SchedeEntity): Long {
-        return daoSchede.insert(schede)
+        return repository.insert(schede)
     }
 
-    // Aggiorna una scheda esistente nel database
     suspend fun update(scheda: SchedeEntity) {
-        daoSchede.update(scheda)
+        repository.update(scheda)
     }
 
     // Elimina una scheda dal database
     suspend fun delete(scheda: SchedeEntity) {
-        daoSchede.delete(scheda)
+        repository.delete(scheda)
     }
 
     // Ottiene tutte le schede dal database
     suspend fun getAllSchede(): List<SchedeEntity> {
-        return daoSchede.getAllSchede()
+        return repository.getAllSchede()
     }
 
     // Ottiene una scheda specifica per ID dal database
     suspend fun getSchedeById(id: Int): SchedeEntity? {
-        return daoSchede.getSchedeById(id)
+        return repository.getSchedeById(id)
     }
 
     // Ottiene tutte le schede di un determinato gruppo muscolare
     suspend fun getSchedeByGruppoMuscolare(gruppoMuscolare: String): List<SchedeEntity> {
-        return daoSchede.getSchedeByGruppoMuscolare(gruppoMuscolare)
+        return repository.getSchedeByGruppoMuscolare(gruppoMuscolare)
     }
+
 }

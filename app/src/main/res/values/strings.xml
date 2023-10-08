@@ -28,4 +28,6 @@
     <string name="data">Data</string>
     <string name="salva_ed_esci">Salva ed esci</string>
     <string name="inserisci_nome_sheda">Inserisci Nome Sheda</string>
+    <string name="insrisci_n_serie">insrisci N serie</string>
+    <string name="attrezzi">attrezzi</string>
 </resources>

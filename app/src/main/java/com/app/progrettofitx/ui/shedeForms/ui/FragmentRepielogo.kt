@@ -9,8 +9,8 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.app.progrettofitx.R
+import com.app.progrettofitx.data_layer.db.SchedeEntity
 import com.app.progrettofitx.databinding.FragmentFragmentRepielogoBinding
-import com.app.progrettofitx.db.SchedeEntity
 import com.app.progrettofitx.ui.shedeForms.EsserciziViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
