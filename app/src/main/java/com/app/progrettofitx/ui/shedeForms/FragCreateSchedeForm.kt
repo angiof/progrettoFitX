@@ -39,14 +39,13 @@ class FragCreateSchedeForm : Fragment() {
         savedInstanceState: Bundle?
     ): View {
 
-        val dao = DbFit.getDatabase(requireContext()).schedeDao()
-        val schedeRepository = SchedeRepository(dao)
-        val usesCasesSheda = UsesCasesSheda(schedeRepository)
 
-        val viewModelFactory = GenericViewModelFactory {
-            SchedeViewModel(activity?.application!!, usesCasesSheda)
-        }
-        viewModel = ViewModelProvider(this, viewModelFactory).get(SchedeViewModel::class.java)
+        viewModel = ViewModelProvider(this, GenericViewModelFactory {
+            SchedeViewModel(
+                activity?.application!!,
+                UsesCasesSheda(SchedeRepository(DbFit.getDatabase(requireContext()).schedeDao()))
+            )
+        })[SchedeViewModel::class.java]
 
         binding = FragmentBaseAcitivityBinding.inflate(inflater, container, false)
         return binding.root
@@ -67,7 +66,7 @@ class FragCreateSchedeForm : Fragment() {
         //da rinominare
         gruppiMuscolari()
         populateAutoCompleteMusocli()
-        //listaAttrezzi()
+        listaAttrezzi()
 
         lifecycleScope.launch(Dispatchers.IO) {
             checkInputs()

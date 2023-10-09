@@ -37,17 +37,20 @@ class FragEssercissi : Fragment() {
         binding = FragmentFragEssercissiBinding.inflate(inflater, container, false)
         adapterx = EserciziAdapter()
 
-        // Crea il Repository e il UseCase
-        val dao = DbFit.getDatabase(requireContext()).essercissiDao()
-        val esserciziRepository = EsserciziRepository(dao)
-        val getEserciziByIdUseCase = UsesCasesEssercissi(esserciziRepository)
 
         // Inizializza il ViewModel tramite la Factory
-        val viewModelFactory = GenericViewModelFactory {
-            EsserciziViewModel(getEserciziByIdUseCase, activity?.application!!)
-        }
+        viewModel = ViewModelProvider(this, GenericViewModelFactory {
+            EsserciziViewModel(
+                UsesCasesEssercissi(
+                    EsserciziRepository(
+                        DbFit.getDatabase(
+                            requireContext()
+                        ).essercissiDao()
+                    )
+                )
+            )
+        })[EsserciziViewModel::class.java]
 
-        viewModel = ViewModelProvider(this, viewModelFactory!!).get(EsserciziViewModel::class.java)
 
         binding.apply {
             recylcreview.apply {

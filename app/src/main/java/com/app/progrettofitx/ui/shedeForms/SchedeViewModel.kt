@@ -13,12 +13,7 @@ import kotlinx.coroutines.withContext
 class SchedeViewModel(application: Application, private val useCase: UsesCasesSheda) :
     AndroidViewModel(application) {
 
-    private val repository: SchedeRepository
     // Aggiungere altre variabili LiveData se necessario
-    init {
-        val daoSchede = DbFit.getDatabase(application).schedeDao()
-        repository = SchedeRepository(daoSchede)
-    }
 
     // Inserisce una nuova scheda nel database
     suspend fun insert(scheda: SchedeEntity): Long {

@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import androidx.appcompat.R
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
@@ -50,7 +49,7 @@ class MyBottomSheetFragment(private val idScheda: Int) : BottomSheetDialogFragme
 
         // Inizializza il ViewModel tramite la Factory
         val viewModelFactory = GenericViewModelFactory {
-            EsserciziViewModel(getEserciziByIdUseCase, activity?.application!!)
+            EsserciziViewModel(getEserciziByIdUseCase)
         }
 
         viewModel = ViewModelProvider(this, viewModelFactory!!).get(EsserciziViewModel::class.java)

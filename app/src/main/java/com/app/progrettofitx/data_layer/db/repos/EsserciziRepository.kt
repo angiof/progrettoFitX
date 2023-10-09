@@ -6,26 +6,15 @@ import com.app.progrettofitx.data_layer.db.dao.DaoEssercissi
 
 class EsserciziRepository(private val daoEssercissi: DaoEssercissi) {
 
+    suspend fun insert(essercizi: EsserciziEntity) = daoEssercissi.insert(essercizi)
+    suspend fun update(essercizi: EsserciziEntity) = daoEssercissi.update(essercizi)
+    suspend fun delete(essercizi: EsserciziEntity) = daoEssercissi.delete(essercizi)
+
     // Function to insert EsserciziEntity into the database
-    suspend fun insert(essercizi: EsserciziEntity) {
-        daoEssercissi.insert(essercizi)
-    }
+    fun getAllById(id: Int): LiveData<List<EsserciziEntity>> =
+        daoEssercissi.getEssercissiBySchedaId(id)
 
-    // Function to update an existing EsserciziEntity in the database
-    suspend fun update(essercizi: EsserciziEntity) {
-        daoEssercissi.update(essercizi)
-    }
+    suspend fun getCountById(id: Int): Int = daoEssercissi.countEsserciziById(id)
 
-    // Function to delete an EsserciziEntity from the database
-    suspend fun delete(essercizi: EsserciziEntity) {
-        daoEssercissi.delete(essercizi)
-    }
 
-    suspend fun getAllById(id: Int): LiveData<List<EsserciziEntity>> {
-        return daoEssercissi.getEssercissiBySchedaId(id)
-    }
-
-    suspend fun getCountById(id: Int): Int {
-        return daoEssercissi.countEsserciziById(id)
-    }
 }
