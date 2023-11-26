@@ -34,4 +34,11 @@ class UsesCasesSheda(private val repository: SchedeRepository) {
         return repository.getSchedeByGruppoMuscolare(gruppoMuscolare)
     }
 
+    suspend fun updateTime(id: Int, time: String) = repository.updateTime(id, time)
+
+    suspend fun getSchedeWithTime(): List<SchedeEntity> {
+        return repository.getSchedeWithTime()
+    }
+
+
 }

@@ -19,6 +19,10 @@ interface DaoEssercissi {
     @Delete
     suspend fun delete(essercizi: EsserciziEntity)
 
+    // Metodo per cancellare un esercizio tramite il suo ID
+    @Query("DELETE FROM essercissi WHERE id = :id")
+    suspend fun deleteFromId(id: Int)
+
 
     @Query("SELECT COUNT(*) FROM essercissi WHERE schedaId = :id")
     suspend fun countEsserciziById(id: Int): Int
@@ -27,7 +31,7 @@ interface DaoEssercissi {
     suspend fun getEssercissiById(id: Int): List<EsserciziEntity>
 
     @Query("SELECT * FROM essercissi WHERE schedaId = :schedaId")
-     fun getEssercissiBySchedaId(schedaId: Int):  LiveData<List<EsserciziEntity>>
+    fun getEssercissiBySchedaId(schedaId: Int): LiveData<List<EsserciziEntity>>
 
 
     @Query("SELECT * FROM essercissi WHERE schedaId = :id")

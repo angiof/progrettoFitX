@@ -66,7 +66,10 @@ class FragCreateSchedeForm : Fragment() {
         //da rinominare
         gruppiMuscolari()
         populateAutoCompleteMusocli()
-        listaAttrezzi()
+
+        binding.listaAttrezziTxt.setOnClickListener {
+            listaAttrezzi()
+        }
 
         lifecycleScope.launch(Dispatchers.IO) {
             checkInputs()

@@ -12,5 +12,7 @@ data class SchedeEntity(
     val intesita: String,
     val titolo: String,
     val data: String,
-    val notes: String? = null
+    val notes: String? = null,
+    val ora: String? = null // Formato "HH:mm"
+
 ) : Serializable

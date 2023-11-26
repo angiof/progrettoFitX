@@ -34,4 +34,8 @@ class SchedeViewModel(application: Application, private val useCase: UsesCasesSh
 
     // Altre funzioni per interagire con il database
     // (per esempio, potresti voler aggiungere funzioni che restituiscano dati come LiveData)
+
+
+    suspend fun updateTime(id: Int, time: String) = useCase.updateTime(id, time)
+
 }

@@ -1,9 +1,13 @@
 package com.app.progrettofitx.ui.sheet
 
+import android.app.Dialog
+import android.graphics.Rect
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
+import android.view.WindowManager
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import androidx.appcompat.R
@@ -17,16 +21,24 @@ import com.app.progrettofitx.databinding.BottomSheetLayoutBinding
 import com.app.progrettofitx.dominio.UsesCasesEssercissi
 import com.app.progrettofitx.ui.factory.GenericViewModelFactory
 import com.app.progrettofitx.ui.shedeForms.EsserciziViewModel
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class MyBottomSheetFragment(private val idScheda: Int) : BottomSheetDialogFragment() {
+class MyBottomSheetFragment(private val idScheda: Int) :
+    BottomSheetDialogFragment() {
+
     private var nome: String? = null
     private var nSerie: Int? = null
     private var nIntervallo: Int? = null
+    private var nRipetizioni: Int? = null
+
     private var isometria: Int? = null
+    private var attrezzo: String? = null
     private lateinit var viewModel: EsserciziViewModel
+
 
     private val binding: BottomSheetLayoutBinding by lazy {
         BottomSheetLayoutBinding.inflate(
@@ -52,15 +64,17 @@ class MyBottomSheetFragment(private val idScheda: Int) : BottomSheetDialogFragme
             EsserciziViewModel(getEserciziByIdUseCase)
         }
 
-        viewModel = ViewModelProvider(this, viewModelFactory!!).get(EsserciziViewModel::class.java)
-
+        viewModel = ViewModelProvider(this, viewModelFactory)[EsserciziViewModel::class.java]
+        //modificaTastiera()
+       // adjustForKeyboard()
+        adjustForFocusedView()
 
         return binding.root
 
     }
 
-    private fun setInfoAndSave() {
 
+    private fun setInfoAndSave() {
         binding.layoutEssercissiSheet.bntSave.setOnClickListener { view ->
 
             isometria = binding.layoutEssercissiSheet.edIsometria.text.toString().toInt()
@@ -69,14 +83,17 @@ class MyBottomSheetFragment(private val idScheda: Int) : BottomSheetDialogFragme
             nSerie = binding.layoutEssercissiSheet.edSerie.text.toString().toInt()
             nIntervallo = binding.layoutEssercissiSheet.edRiposo.text.toString().toInt()
 
+
             viewModel.viewModelScope.launch(Dispatchers.IO) {
                 viewModel.insert(
                     EsserciziEntity(
                         nome = nome!!,
-                        nRipetizione = nSerie!!,
+                        nRipetizione = nRipetizioni ?: 0,
                         intervallo = nIntervallo,
                         insometria = isometria,
-                        schedaId = idScheda
+                        schedaId = idScheda,
+                        attrezzo = attrezzo ?: "nessuno",
+                        nSerie = nSerie ?: 0
                     )
                 )
             }
@@ -88,7 +105,7 @@ class MyBottomSheetFragment(private val idScheda: Int) : BottomSheetDialogFragme
     }
 
     private fun listaAttrezzi() {
-        val items = listOf("Manubrio", "Bilanciere", "Elastico", "FatGrip", "Nessuno")
+        val items = listOf("Manubrio", "Bilanciere", "Elastico", "fatGrip", "Nessuno")
 
         val adapter = ArrayAdapter(
             requireContext(),
@@ -98,10 +115,43 @@ class MyBottomSheetFragment(private val idScheda: Int) : BottomSheetDialogFragme
         (binding.layoutEssercissiSheet.listaAttrezziTxtx as? AutoCompleteTextView)?.setAdapter(
             adapter
         )
+        (binding.layoutEssercissiSheet.listaAttrezziTxtx as? AutoCompleteTextView)?.setOnItemClickListener { parent, _, position, _ ->
 
-        // binding.layoutSpinnerCompleteGruppiMuscolari.setEndIconOnClickListener {
-        (binding.layoutEssercissiSheet.listaAttrezziTxtx as? AutoCompleteTextView)?.showDropDown()
+            (binding.layoutEssercissiSheet.listaAttrezziTxtx as? AutoCompleteTextView)?.showDropDown()
+            attrezzo = parent.getItemAtPosition(position) as String
+        }
+
     }
+
+
+    fun adjustForFocusedView() {
+        val rootView = binding.root
+        val listener = ViewTreeObserver.OnGlobalLayoutListener {
+            val rect = Rect()
+            rootView.getWindowVisibleDisplayFrame(rect)
+            val screenHeight = rootView.height
+            val keypadHeight = screenHeight - rect.bottom
+
+            val focusedView = dialog?.currentFocus
+            if (focusedView != null && keypadHeight > screenHeight * 0.15) {
+                val scrollAmount = (focusedView.bottom + keypadHeight) - screenHeight
+                if (scrollAmount > 0) {
+                    rootView.scrollTo(0, scrollAmount)
+                }
+            } else {
+                rootView.scrollTo(0, 0)
+            }
+        }
+        rootView.viewTreeObserver.addOnGlobalLayoutListener(listener)
+    }
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        dialog?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+    }
+
+
+
 }
 
 

@@ -76,9 +76,10 @@
             android:layout_height="match_parent"
             android:fontFamily="@font/raleway_medium"
             android:inputType="number"
+            android:text="0"
             android:textSize="20sp"
             android:maxLines="1"
-            tools:text="N serie " />
+            />
     </com.google.android.material.textfield.TextInputLayout>
 
 
@@ -98,8 +99,9 @@
             android:fontFamily="@font/raleway_medium"
             android:inputType="number"
             android:maxLines="1"
+            android:text="0"
             android:textSize="20sp"
-            tools:text="fdsjadsj" />
+           />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
@@ -119,8 +121,9 @@
             android:fontFamily="@font/raleway_medium"
             android:inputType="number"
             android:maxLines="1"
+            android:text="0"
             android:textSize="20sp"
-            tools:text="fdsjadsj" />
+           />
     </com.google.android.material.textfield.TextInputLayout>
 
 
@@ -141,8 +144,9 @@
             android:fontFamily="@font/raleway_medium"
             android:inputType="number"
             android:maxLines="1"
+            android:text="0"
             android:textSize="20sp"
-            tools:text="fdsjadsj" />
+           />
     </com.google.android.material.textfield.TextInputLayout>
 
 

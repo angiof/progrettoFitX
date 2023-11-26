@@ -22,8 +22,15 @@ class EsserciziViewModel(private val getEserciziByIdUseCase: UsesCasesEssercissi
     }
 
     suspend fun getAllById(id: Int): LiveData<List<EsserciziEntity>> {
-      return  getEserciziByIdUseCase.getAllById(id = id)
+        return getEserciziByIdUseCase.getAllById(id = id)
     }
 
+    suspend fun delateEsser(essercizi: EsserciziEntity) {
+        getEserciziByIdUseCase.delateEss(essercizi = essercizi)
+    }
+
+    suspend fun delateEsser(id: Int) {
+        getEserciziByIdUseCase.delateEss(id)
+    }
 
 }

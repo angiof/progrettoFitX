@@ -2,8 +2,7 @@ package com.app.progrettofitx.ui.shedeForms
 
 import com.app.progrettofitx.data_layer.db.SchedeEntity
 import com.app.progrettofitx.data_layer.db.dao.DaoSchede
-import com.app.progrettofitx.dominio.UsesCasesEssercissi
-import com.app.progrettofitx.dominio.UsesCasesSheda
+import com.app.progrettofitx.dominio.GruppoMuscolarePercentuale
 
 class SchedeRepository(private val daoSchede: DaoSchede) {
 
@@ -36,4 +35,16 @@ class SchedeRepository(private val daoSchede: DaoSchede) {
     suspend fun getSchedeByGruppoMuscolare(gruppoMuscolare: String): List<SchedeEntity> {
         return daoSchede.getSchedeByGruppoMuscolare(gruppoMuscolare)
     }
+
+    suspend fun updateTime(id: Int, time: String) = daoSchede.updateTime(id, time)
+
+    suspend fun getSchedeWithTime(): List<SchedeEntity> {
+        return daoSchede.getSchedeWithTime()
+    }
+
+
+    suspend fun getPercentualePerGruppoMuscolare(): List<GruppoMuscolarePercentuale> {
+        return daoSchede.getPercentualePerGruppoMuscolare()
+    }
+
 }

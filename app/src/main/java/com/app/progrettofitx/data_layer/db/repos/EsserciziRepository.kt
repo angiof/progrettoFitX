@@ -10,11 +10,15 @@ class EsserciziRepository(private val daoEssercissi: DaoEssercissi) {
     suspend fun update(essercizi: EsserciziEntity) = daoEssercissi.update(essercizi)
     suspend fun delete(essercizi: EsserciziEntity) = daoEssercissi.delete(essercizi)
 
-    // Function to insert EsserciziEntity into the database
+    //delate from id
+    suspend fun delateFromId(id: Int) = daoEssercissi.deleteFromId(id = id)
+
+    // Function to insert EsserciziEntit into the database
     fun getAllById(id: Int): LiveData<List<EsserciziEntity>> =
         daoEssercissi.getEssercissiBySchedaId(id)
 
     suspend fun getCountById(id: Int): Int = daoEssercissi.countEsserciziById(id)
+
 
 
 }
