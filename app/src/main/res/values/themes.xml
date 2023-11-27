@@ -75,4 +75,18 @@
     </style>
 
 
+    <style name="style_dashboard_titles" parent="Widget.AppCompat.TextView">
+    <item name="fontFamily">@font/raleway_bold</item>
+    <item name="android:textColor">@color/second</item>
+    <item name="android:textSize">20sp</item>
+    </style>
+
+    <style name="style_dashboard" parent="Widget.AppCompat.TextView">
+        <item name="fontFamily">@font/raleway_medium</item>
+        <item name="android:textColor">@color/second</item>
+        <item name="android:textSize">18sp</item>
+
+    </style>
+
+
 </resources>

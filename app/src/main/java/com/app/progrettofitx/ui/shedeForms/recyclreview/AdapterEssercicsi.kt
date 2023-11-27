@@ -8,9 +8,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.app.progrettofitx.R
 import com.app.progrettofitx.data_layer.db.EsserciziEntity
 import com.app.progrettofitx.databinding.ListaEssercissiBinding
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 
-class EserciziAdapter :
+class EserciziAdapter(val param: ItemClick) :
     ListAdapter<EsserciziEntity, EserciziAdapter.EserciziViewHolder>(EserciziDiffCallback()) {
 
 
@@ -57,8 +60,15 @@ class EserciziAdapter :
                 esercizi.nRipetizione.toString() + "X" + esercizi.nSerie.toString()
 
             binding.tvIsometria.text =
-                " ${esercizi.insometria.toString()} " + " ${esercizi.intervallo.toString()}"
+                " ${esercizi.insometria.toString()} " + "X" + " ${esercizi.intervallo.toString()}"
 
+            binding.imageView.setOnClickListener {
+                runBlocking {
+                    launch(Dispatchers.IO) {
+                        param.getEssercissio(esercizi)
+                    }
+                }
+            }
 
             val imageRes = when {
                 esercizi.attrezzo.equals("Manubrio", true) -> R.drawable.remo

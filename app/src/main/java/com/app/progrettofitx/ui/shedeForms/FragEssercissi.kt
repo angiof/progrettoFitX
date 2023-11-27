@@ -40,7 +40,16 @@ class FragEssercissi : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         binding = FragmentFragEssercissiBinding.inflate(inflater, container, false)
-        adapterx = EserciziAdapter()
+        adapterx = EserciziAdapter(object : EserciziAdapter.ItemClick {
+            override suspend fun getEssercissio(esserciziEntity: EsserciziEntity) {
+                viewModel.viewModelScope.launch(Dispatchers.IO) {
+
+                    viewModel.delateEsser(esserciziEntity)
+                }
+
+            }
+
+        })
 
 
         // Inizializza il ViewModel tramite la Factory

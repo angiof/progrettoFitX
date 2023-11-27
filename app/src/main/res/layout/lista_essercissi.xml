@@ -20,22 +20,22 @@
 
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/shapeableImageView"
-            android:layout_width="wrap_content"
-            android:layout_height="200dp"
-            android:layout_marginTop="10dp"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
             android:adjustViewBounds="true"
             android:cropToPadding="true"
-            android:maxWidth="100dp"
             android:scaleType="centerCrop"
+            android:src="@drawable/elastico11"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/lista_titolo">
-
-        </com.google.android.material.imageview.ShapeableImageView>
+            app:layout_constraintTop_toBottomOf="@+id/lista_titolo" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/lista_titolo"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
             android:layout_marginTop="20dp"
             android:ellipsize="end"
             android:fontFamily="@font/raleway_bold"
@@ -54,18 +54,18 @@
 
         <ImageView
             android:id="@+id/imageView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/ic_edit_1" />
+            app:srcCompat="@drawable/ic_png_edit_" />
 
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/texviewa"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="200dp"
+            android:layout_marginTop="20dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="1.0"
