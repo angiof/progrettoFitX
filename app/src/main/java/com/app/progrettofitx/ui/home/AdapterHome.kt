@@ -26,7 +26,7 @@ class AdapterHome : ListAdapter<ModelHomemenu, AdapterHome.HomeViewHolder>(Adapt
             titoloTextView.text = voci.titolo
 
             if (voci.copertina==1){
-                copertina.setImageResource(R.drawable.gym_tabs)
+                copertina.setImageResource(R.drawable.scheda_ia_fitnes)
             }
             if (voci.copertina==2){
                 copertina.setImageResource(R.drawable.powerlifting)

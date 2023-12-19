@@ -89,4 +89,21 @@
     </style>
 
 
+
+    <style name="CustomDatePicker"  parent="ThemeOverlay.MaterialComponents.MaterialCalendar">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:headerBackground">@color/purple_500</item>
+        <item name="android:calendarTextColor">@color/purple_700</item>
+        <item name="android:dayOfWeekBackground">@android:color/darker_gray</item>
+        <item name="android:dayOfWeekTextAppearance">@style/CustomDayOfWeekTextAppearance</item>
+        <item name="android:selectedWeekBackgroundColor">@color/purple_500</item>
+        <item name="android:datePickerMode">calendar</item>
+    </style>
+
+    <style name="CustomDayOfWeekTextAppearance">
+        <item name="android:textColor">@color/purple_200</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
 </resources>

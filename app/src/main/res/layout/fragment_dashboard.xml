@@ -1,15 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<androidx.core.widget.NestedScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true">
 
+
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/constraintLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/tv_mese"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/raleway_bold"
+            android:text="cambia mese"
+            android:textSize="28sp"
+            app:layout_constraintBottom_toTopOf="@+id/tv_mese_corrente"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/tv_mese_corrente"
@@ -17,11 +30,22 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="44dp"
             android:fontFamily="@font/raleway_bold"
-            android:text="mese corrente"
+            android:text="mese inizio"
             android:textSize="28sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tv_mese_fine"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/raleway_bold"
+            android:text="mese corrente"
+            android:textSize="28sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_mese_corrente" />
 
         <include
             android:id="@+id/layout_ext"
@@ -29,23 +53,41 @@
             android:layout_width="match_parent"
             android:layout_height="400dp"
             android:layout_marginTop="20dp"
-            app:layout_constraintBottom_toTopOf="@+id/card_user_info_dasboard"
+            android:layout_marginBottom="100dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tv_mese_corrente" />
+            app:layout_constraintTop_toBottomOf="@+id/tv_mese_fine" />
+
+
+        <include
+            android:id="@+id/barchart_include"
+            layout="@layout/barchart"
+            android:layout_width="match_parent"
+            android:layout_height="400dp"
+            android:layout_marginTop="20dp"
+            app:layout_constraintBottom_toTopOf="@id/card_user_info_dasboard"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/layout_ext" />
 
 
         <include
             android:id="@+id/card_user_info_dasboard"
             layout="@layout/card_dashboard_schede_info"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_marginBottom="40dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
+
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
-
-
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/barchart_include" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
 </androidx.core.widget.NestedScrollView>
+
+
+
+

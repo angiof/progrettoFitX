@@ -43,4 +43,42 @@ interface DaoSchede {
     """)
     suspend fun getPercentualePerGruppoMuscolare(): List<GruppoMuscolarePercentuale>
 
+
+
+    @Query("""
+    SELECT gruppoMuscolare, COUNT(*) * 100.0 / (
+        SELECT COUNT(*) 
+        FROM schede 
+        WHERE data BETWEEN :startDate AND :endDate
+    ) as percentuale 
+    FROM schede 
+    WHERE data BETWEEN :startDate AND :endDate
+    GROUP BY gruppoMuscolare
+""")
+    suspend fun getPercentualePerGruppoMuscolareInDateRange(
+        startDate: String,
+        endDate: String
+    ): List<GruppoMuscolarePercentuale>
+
+
+    @Query("""
+    SELECT gruppoMuscolare, AVG(
+        CASE intesita
+            WHEN 'Bassa' THEN 5
+            WHEN 'Media' THEN 10
+            WHEN 'Alta' THEN 15
+            ELSE 0 
+        END
+    ) AS mediaIntensita
+    FROM schede
+    WHERE data BETWEEN :startDate AND :endDate
+    GROUP BY gruppoMuscolare
+""")
+    suspend fun getMediaIntensitaPerGruppoMuscolareDateRange(
+        startDate: String,
+        endDate: String
+    ): List<GruppoMuscolareIntensitaMedia>
+
+
+
 }

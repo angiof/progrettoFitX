@@ -28,11 +28,11 @@ class HomeFragment : Fragment() {
         binding.listaMenuHome.apply {
             // Prepara i dati per la RecyclerView
             val data = listOf(
-                ModelHomemenu(2, "Crea Scheda")
+                ModelHomemenu(2, "Crea Scheda"),
+                ModelHomemenu(1, "Apri Schede")
 
             )
             binding.listaMenuHome.layoutManager = LinearLayoutManager(context)
-
             adapters.submitList(data)
             this.adapter = adapters
         }
