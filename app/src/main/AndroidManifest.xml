@@ -1,37 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-    <uses-permission android:name="android.permission.VIBRATE" />
 
+    <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <application
+        android:name=".notifcationss.APPlicationServices"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:name=".notifcationss.APPlicationServices"
-        android:windowSoftInputMode="adjustResize"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:screenOrientation="portrait"
         android:supportsRtl="true"
         android:theme="@style/Theme.ProgrettoFitX"
+        android:windowSoftInputMode="adjustResize"
         tools:targetApi="31">
+        <activity
+            android:name=".ui.filter.ui.ActivityFilterSchede"
+            android:exported="false"
+            android:label="@string/title_activity_filter_schede" />
         <activity
             android:name=".ui.shedeForms.ComposeActi"
             android:exported="false"
             android:label="@string/title_activity_compose"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.ProgrettoFitX"
-
             android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".ui.forms.BaseAcitivity"
             android:exported="false"
             android:label="@string/title_activity_base_acitivity"
-
             android:screenOrientation="fullSensor"
-
             android:theme="@style/Theme.ProgrettoFitX.NoActionBar"
             android:windowSoftInputMode="adjustResize" />
         <activity
@@ -39,8 +41,7 @@
             android:exported="true"
             android:label="@string/app_name"
             android:screenOrientation="portrait"
-            android:windowSoftInputMode="adjustResize"
-            >
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -53,8 +54,7 @@
             android:label="@string/title_activity_base_acitivity"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.ProgrettoFitX.NoActionBar"
-            android:windowSoftInputMode="adjustResize"
-            />
+            android:windowSoftInputMode="adjustResize" />
 
         <meta-data
             android:name="preloaded_fonts"

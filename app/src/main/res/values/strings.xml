@@ -35,4 +35,5 @@
     <string name="select_period">Select period</string>
     <string name="dd_mm_yyyy">dd/MM/yyyy</string>
     <string name="dd_mm_yyyy_simplea_daat_format">dd/MM/yyyy</string>
+    <string name="title_activity_filter_schede">ActivityFilterSchede</string>
 </resources>

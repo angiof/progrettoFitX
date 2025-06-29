@@ -18,7 +18,6 @@ class AcitivySheda : BaseAcitivity() {
 
         binding = ActivityBaseAcitivityBinding.inflate(layoutInflater)
 
-
         val navGraph: NavGraph = navInflater.inflate(R.navigation.create_schedes_navigations)
         navHostFragment.navController.graph = navGraph
 
@@ -28,7 +27,6 @@ class AcitivySheda : BaseAcitivity() {
             tabLayout.newTab().setCustomView(createCustomTabView("repilogo"))
         )
         addTab(tabs = tabs)
-
     }
 
     private fun createCustomTabView(text: String): AppCompatTextView {

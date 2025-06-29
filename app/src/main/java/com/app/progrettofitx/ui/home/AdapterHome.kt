@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.app.progrettofitx.R
 import com.app.progrettofitx.dominio.ModelHomemenu
+import com.app.progrettofitx.ui.filter.ui.ActivityFilterSchede
 import com.app.progrettofitx.ui.forms.AcitivySheda
 import com.google.android.material.card.MaterialCardView
 
@@ -25,16 +26,22 @@ class AdapterHome : ListAdapter<ModelHomemenu, AdapterHome.HomeViewHolder>(Adapt
         fun bin(voci: ModelHomemenu) {
             titoloTextView.text = voci.titolo
 
-            if (voci.copertina==1){
+            if (voci.copertina == 1) {
                 copertina.setImageResource(R.drawable.scheda_ia_fitnes)
             }
-            if (voci.copertina==2){
+            if (voci.copertina == 2) {
                 copertina.setImageResource(R.drawable.powerlifting)
+            }
+            if (voci.copertina == 3) {
+                copertina.setImageResource(R.drawable.ic_calendario2)
             }
 
             card.setOnClickListener {
-                if (position==0){
+                if (position == 0) {
                     it.context.startActivity(Intent(it.context, AcitivySheda::class.java))
+                }
+                if (position == 1) {
+                    it.context.startActivity(Intent(it.context, ActivityFilterSchede::class.java))
                 }
             }
         }
