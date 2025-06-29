@@ -33,4 +33,10 @@ class EsserciziViewModel(private val getEserciziByIdUseCase: UsesCasesEssercissi
         getEserciziByIdUseCase.delateEss(id)
     }
 
+
+    fun update(item: EsserciziEntity) = viewModelScope.launch(Dispatchers.IO) {
+        getEserciziByIdUseCase.update(item)
+    }
+
+
 }

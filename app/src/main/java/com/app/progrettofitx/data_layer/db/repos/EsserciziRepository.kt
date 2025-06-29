@@ -10,6 +10,8 @@ class EsserciziRepository(private val daoEssercissi: DaoEssercissi) {
     suspend fun update(essercizi: EsserciziEntity) = daoEssercissi.update(essercizi)
     suspend fun delete(essercizi: EsserciziEntity) = daoEssercissi.delete(essercizi)
 
+
+
     //delate from id
     suspend fun delateFromId(id: Int) = daoEssercissi.deleteFromId(id = id)
 
@@ -18,6 +20,7 @@ class EsserciziRepository(private val daoEssercissi: DaoEssercissi) {
         daoEssercissi.getEssercissiBySchedaId(id)
 
     suspend fun getCountById(id: Int): Int = daoEssercissi.countEsserciziById(id)
+
 
 
 

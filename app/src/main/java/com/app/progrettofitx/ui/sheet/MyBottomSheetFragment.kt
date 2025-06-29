@@ -105,7 +105,7 @@ class MyBottomSheetFragment(private val idScheda: Int) :
     }
 
     private fun listaAttrezzi() {
-        val items = listOf("Manubrio", "Bilanciere", "Elastico", "fatGrip", "Nessuno")
+        val items = listOf("Manubrio", "Bilanciere", "Bilanciere EZ", "Kettlebell", "Palla Medica", "Elastico", "Corda per saltare", "FatGrip", "Catene", "Sbarra per trazioni", "Anelli da ginnastica", "Parallele", "Box pliometrico", "Power Rack", "Panca piana", "Panca inclinata", "Leg Press", "Lat Machine", "Pectoral Machine", "Shoulder Press", "Chest Press", "Leg Extension", "Leg Curl", "Calf Machine", "Macchina cavi", "Vogatore", "Air Bike", "GHD", "Tapis Roulant", "Cyclette", "Ellittica", "Stepper", "Sacco da boxe", "Punching ball", "Corda per saltare", "Corpo libero", "Macchinario Bicipiti", "Macchinario Tricipiti", "Macchinario Gambe", "Macchinario Glutei", "Altro", "Nessuno")
 
         val adapter = ArrayAdapter(
             requireContext(),

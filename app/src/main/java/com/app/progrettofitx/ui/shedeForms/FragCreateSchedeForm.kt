@@ -14,6 +14,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
 import com.app.progrettofitx.R
+import com.app.progrettofitx.R.*
 import com.app.progrettofitx.data_layer.db.DB.DbFit
 import com.app.progrettofitx.data_layer.db.SchedeEntity
 import com.app.progrettofitx.databinding.FragmentBaseAcitivityBinding
@@ -51,8 +52,13 @@ class FragCreateSchedeForm : Fragment() {
         return binding.root
     }
 
+
+
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+
 
         // Ripristina lo stato da savedInstanceState
         savedInstanceState?.let {
@@ -63,13 +69,72 @@ class FragCreateSchedeForm : Fragment() {
         binding.edEventData.setOnClickListener {
             showDatePickerDialog()
         }
-        //da rinominare
-        gruppiMuscolari()
-        populateAutoCompleteMusocli()
+        setupDropdown(
+            binding.gruppuMuscolari,
+            binding.layoutSpinnerCompleteGruppiMuscolari,
+            listOf(
+                "Dorsali",
+                "Petorali",
+                "Gambe",
+                "Spalle",
+                "Bicipiti",
+                "Tricipiti",
+                "Addominali",
+                "Cardio",
+                "Full Body",
+                "Altro"
+            )
+        )
 
         binding.listaAttrezziTxt.setOnClickListener {
-            listaAttrezzi()
-        }
+            setupDropdown(
+                binding.listaAttrezziTxt,
+                binding.listaAttrezziLayout,
+                listOf(
+                    "Manubrio",
+                    "Bilanciere",
+                    "Bilanciere EZ",
+                    "Kettlebell",
+                    "Palla Medica",
+                    "Elastico",
+                    "Corda per saltare",
+                    "FatGrip",
+                    "Catene",
+                    "Sbarra per trazioni",
+                    "Anelli da ginnastica",
+                    "Parallele",
+                    "Box pliometrico",
+                    "Power Rack",
+                    "Panca piana",
+                    "Panca inclinata",
+                    "Leg Press",
+                    "Lat Machine",
+                    "Pectoral Machine",
+                    "Shoulder Press",
+                    "Chest Press",
+                    "Leg Extension",
+                    "Leg Curl",
+                    "Calf Machine",
+                    "Macchina cavi",
+                    "Vogatore",
+                    "Air Bike",
+                    "GHD",
+                    "Tapis Roulant",
+                    "Cyclette",
+                    "Ellittica",
+                    "Stepper",
+                    "Sacco da boxe",
+                    "Punching ball",
+                    "Corda per saltare",
+                    "Corpo libero",
+                    "Macchinario Bicipiti",
+                    "Macchinario Tricipiti",
+                    "Macchinario Gambe",
+                    "Macchinario Glutei",
+                    "Altro",
+                    "Nessuno"
+                )
+            )        }
 
         lifecycleScope.launch(Dispatchers.IO) {
             checkInputs()
@@ -83,58 +148,13 @@ class FragCreateSchedeForm : Fragment() {
         val day = calendar.get(Calendar.DAY_OF_MONTH)
 
         val datePickerDialog =
-            DatePickerDialog(requireContext(), R.style.DialogTheme, { _, y, m, d ->
+            DatePickerDialog(requireContext(), style.DialogTheme, { _, y, m, d ->
                 val selectedDate =
                     "${y}-${String.format("%02d", m + 1)}-${String.format("%02d", d)}"
                 binding.edEventData.setText(selectedDate)
             }, year, month, day)
         datePickerDialog.datePicker.minDate = System.currentTimeMillis() - 1000
         datePickerDialog.show()
-    }
-
-    private fun gruppiMuscolari() {
-        val items = listOf("Spalle", "Petto", "Gambe", "Braccia")
-
-        val adapter = ArrayAdapter(
-            requireContext(),
-            androidx.appcompat.R.layout.support_simple_spinner_dropdown_item,
-            items
-        )
-        (binding.gruppuMuscolari as? AutoCompleteTextView)?.setAdapter(adapter)
-
-        binding.layoutSpinnerCompleteGruppiMuscolari.setEndIconOnClickListener {
-            (binding.gruppuMuscolari as? AutoCompleteTextView)?.showDropDown()
-        }
-    }
-
-    private fun listaAttrezzi() {
-        val items = listOf("Manubrio", "Bilanciere", "Elastico", "FatGrip", "Nessuno")
-
-        val adapter = ArrayAdapter(
-            requireContext(),
-            androidx.appcompat.R.layout.support_simple_spinner_dropdown_item,
-            items
-        )
-        (binding.listaAttrezziTxt as? AutoCompleteTextView)?.setAdapter(adapter)
-
-        binding.layoutSpinnerCompleteGruppiMuscolari.setEndIconOnClickListener {
-            (binding.listaAttrezziTxt as? AutoCompleteTextView)?.showDropDown()
-        }
-    }
-
-    private fun populateAutoCompleteMusocli() {
-        val items = listOf("Alta", "Media", "Bassa", "Cardio")
-
-        val adapter = ArrayAdapter(
-            requireContext(),
-            androidx.appcompat.R.layout.support_simple_spinner_dropdown_item,
-            items
-        )
-        (binding.edIntensita as? AutoCompleteTextView)?.setAdapter(adapter)
-
-        binding.layoutSpinnerInsita.setEndIconOnClickListener {
-            (binding.edIntensita as? AutoCompleteTextView)?.showDropDown()
-        }
     }
 
 
@@ -198,11 +218,41 @@ class FragCreateSchedeForm : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        gruppiMuscolari()
-        populateAutoCompleteMusocli()
+
+        setupDropdown(
+            binding.edIntensita,
+            binding.layoutSpinnerInsita,
+            listOf(
+                "Alta - Molto intensa",
+                "Media - Allenamento standard",
+                "Bassa - Leggera o recupero",
+                "Cardio - Resistenza o attività aerobica"
+            )
+        )
+
         (activity as? BaseAcitivity)?.apply {
             this.selectTab(0)
         }
     }
+
+
+
+    private fun setupDropdown(
+        textView: AutoCompleteTextView,
+        containerLayout: View,
+        items: List<String>
+    ) {
+        val adapter = ArrayAdapter(
+            requireContext(),
+            layout.layout_custom_line_drop,
+            items
+        )
+        textView.setAdapter(adapter)
+
+        containerLayout.setOnClickListener {
+            textView.showDropDown()
+        }
+    }
+
 }
 

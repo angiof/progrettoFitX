@@ -28,4 +28,8 @@ class UsesCasesEssercissi(private val repository: EsserciziRepository) {
         repository.delateFromId(id = id)
     }
 
+
+    suspend fun update(item: EsserciziEntity) = repository.update(item)  // ← NEW
+
+
 }

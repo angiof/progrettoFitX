@@ -28,6 +28,7 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recylcreview"
             android:layout_width="match_parent"
+            tools:listitem="@layout/lista_essercissi"
             android:layout_height="match_parent"
             app:layout_constraintBottom_toTopOf="@+id/btn_add"
             app:layout_constraintEnd_toEndOf="parent"
