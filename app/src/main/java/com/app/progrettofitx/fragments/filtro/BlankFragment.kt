@@ -1,5 +1,6 @@
 package com.app.progrettofitx.fragments.filtro
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.view.animation.Animation
@@ -8,14 +9,22 @@ import android.widget.AutoCompleteTextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import com.app.progrettofitx.R
 import com.app.progrettofitx.R.layout
 import com.app.progrettofitx.databinding.FragmentBlankBinding
+import com.app.progrettofitx.ui.MainActivity
+import com.app.progrettofitx.ui.forms.AcitivySheda
 import com.app.progrettofitx.ui.schede.SchedaAdapter
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.text.DateFormat
 import java.util.Calendar
 import java.util.Locale
+import kotlin.jvm.java
 
 class BlankFragment : Fragment(layout.fragment_blank) {
 
@@ -44,7 +53,15 @@ class BlankFragment : Fragment(layout.fragment_blank) {
 
         // 2) RecyclerView + Adapter
         // 2) Adapter e GridLayoutManager a 2 colonne
-        adapter = SchedaAdapter()
+        // dentro BlankFragment, quando setti l’adapter:
+        adapter = SchedaAdapter(onItemClick = { scheda ->
+            val intent = Intent(requireContext(), AcitivySheda::class.java).apply {
+                putExtra("isNew", false)                 // segnala che è apertura di una scheda esistente
+                putExtra("f", scheda)                    // SchedeEntity è Serializable
+            }
+            startActivity(intent)
+        })
+
         b.rvSchede.layoutManager = GridLayoutManager(requireContext(), 2)
         b.rvSchede.adapter = adapter
 

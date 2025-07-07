@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.setFragmentResultListener
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
@@ -36,6 +37,9 @@ class FragEssercissi : Fragment() {
     private lateinit var viewModel: EsserciziViewModel
     private var positionRecy: Int? = null
     private var mEssercizi: EsserciziEntity? = null
+
+    private var hasUnsavedChanges = false
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -176,6 +180,19 @@ class FragEssercissi : Fragment() {
 
         override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
             onSwiped(viewHolder.adapterPosition, direction)
+        }
+    }
+
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        binding.btnSave.isEnabled = false   // parte spento
+
+        // registra listener per gli aggiornamenti dal BottomSheet
+        setFragmentResultListener("exercise_changed") { _, _ ->
+            hasUnsavedChanges = true
+            binding.btnSave.isEnabled = true
         }
     }
 

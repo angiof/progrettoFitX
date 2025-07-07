@@ -8,14 +8,16 @@
     android:layout_width="200dp"
     android:background="#bdbdbd"
     android:padding="12dp"
+    android:id="@+id/layout_scheda"
     android:layout_height="wrap_content"
 >
 
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:clickable="true"
+        android:id="@+id/card_scheda_item"
         android:elevation="12dp"
+        android:clickable="true"
         android:focusable="true"
         android:importantForAccessibility="yes"
         android:outlineSpotShadowColor="@color/second"
@@ -27,9 +29,7 @@
         app:strokeColor="@color/second"
         app:strokeWidth="4dp">
 
-        <ScrollView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/card_scheda"
@@ -103,7 +103,6 @@
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-        </ScrollView>
 
     </com.google.android.material.card.MaterialCardView>
 
