@@ -36,19 +36,23 @@ class FragEssercissi : Fragment() {
     private lateinit var viewModel: EsserciziViewModel
     private var positionRecy: Int? = null
     private var mEssercizi: EsserciziEntity? = null
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         binding = FragmentFragEssercissiBinding.inflate(inflater, container, false)
         adapterx = EserciziAdapter(object : EserciziAdapter.ItemClick {
-            override suspend fun getEssercissio(esserciziEntity: EsserciziEntity) {
-                viewModel.viewModelScope.launch(Dispatchers.IO) {
 
-                    viewModel.delateEsser(esserciziEntity)
-                }
-
+            override fun onEdit(item: EsserciziEntity) {
+                MyBottomSheetFragment
+                    .newInstance(schedeEntity.id!!, item)
+                    .show(parentFragmentManager, "EditSheet")
             }
 
+            override suspend fun onDelete(item: EsserciziEntity) {
+                viewModel.delateEsser(item)
+
+            }
         })
 
 
@@ -104,12 +108,16 @@ class FragEssercissi : Fragment() {
 
             }
         }
+        MyBottomSheetFragment
+
+
+
         binding.btnAdd.setOnClickListener {
-            val bottomSheetFragment = MyBottomSheetFragment(schedeEntity.id!!)
-            bottomSheetFragment.show(
-                requireActivity().supportFragmentManager, "MyBottomSheetFragment"
-            )
+            MyBottomSheetFragment
+                .newInstance(schedeEntity.id!!)
+                .show(parentFragmentManager, "AddSheet")
         }
+
         binding.btnSave.setOnClickListener {
             val bundle = Bundle()
             bundle.putSerializable("schedeEntity", schedeEntity)

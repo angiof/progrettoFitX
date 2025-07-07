@@ -1,5 +1,6 @@
 package com.app.progrettofitx.ui.shedeForms.recyclreview
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
@@ -45,42 +46,39 @@ class EserciziAdapter(val param: ItemClick) :
     }
 
     interface ItemClick {
-        suspend fun getEssercissio(esserciziEntity: EsserciziEntity)
+        fun onEdit(item: EsserciziEntity)
+        suspend fun onDelete(item: EsserciziEntity)
     }
 
-    inner class EserciziViewHolder(private val binding: ListaEssercissiBinding) :
-        RecyclerView.ViewHolder(binding.root) {
+    inner class EserciziViewHolder(private val b: ListaEssercissiBinding) :
+        RecyclerView.ViewHolder(b.root) {
 
+        @SuppressLint("SetTextI18n")
+        fun bind(e: EsserciziEntity) = with(b) {
 
-        fun bind(esercizi: EsserciziEntity) {
-            //qui richiamo il
-
-            binding.listaTitolo.text = esercizi.nome
-            binding.tvInformazione.text =
-                esercizi.nRipetizione.toString() + "X" + esercizi.nSerie.toString()
-
-            binding.tvIsometria.text =
-                " ${esercizi.insometria.toString()} " + "X" + " ${esercizi.intervallo.toString()}"
-
-            binding.imageView.setOnClickListener {
-                runBlocking {
-                    launch(Dispatchers.IO) {
-                        param.getEssercissio(esercizi)
-                    }
-                }
+            listaTitolo.text = e.nome
+            tvInformazione.text = "${e.nRipetizione}X${e.nSerie}"
+            val intervallo = e.intervallo ?: 0
+            val intervalloTesto = if (intervallo > 60) {
+                val minuti = intervallo / 60
+                val secondi = intervallo % 60
+                if (secondi == 0) "$minuti min" else "$minuti min $secondi s"
+            } else {
+                "$intervallo s"
+            }
+            tvIsometria.text = "${e.insometria ?: 0} s isometria  •  Riposo: $intervalloTesto"
+            imageView.setOnClickListener {
+                runBlocking { launch(Dispatchers.IO) { param.onDelete(e) } }
             }
 
-            val imageRes = when {
-                esercizi.attrezzo.equals("Manubrio", true) -> R.drawable.remo
-                esercizi.attrezzo.equals("Bilanciere", true) -> R.drawable.bialnciere11
-                esercizi.attrezzo.equals("Elastico", true) -> R.drawable.elastico11
-                esercizi.attrezzo.equals("fatGrip", true) -> R.drawable.faa
-                //  esercizi.attrezzo.equals("Nessuno", true) -> R.drawable.some_drawable_for_nessuno
-                else -> null
+
+            imageView.setOnClickListener {
+                runBlocking { launch(Dispatchers.IO) { param.onEdit(e) } }
             }
-            binding.shapeableImageView.setImageResource(imageRes ?: 0)
+
+            root.setOnClickListener { param.onEdit(e) }
+
         }
     }
-
 }
 

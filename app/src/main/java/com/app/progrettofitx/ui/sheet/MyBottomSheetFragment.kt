@@ -11,6 +11,7 @@ import android.view.WindowManager
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import androidx.appcompat.R
+import androidx.core.os.bundleOf
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
@@ -24,12 +25,31 @@ import com.app.progrettofitx.ui.shedeForms.EsserciziViewModel
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.kizitonwose.calendar.core.CalendarMonth
+import com.kizitonwose.calendar.view.CalendarView
+import com.kizitonwose.calendar.view.MonthHeaderFooterBinder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class MyBottomSheetFragment(private val idScheda: Int) :
-    BottomSheetDialogFragment() {
+class MyBottomSheetFragment : BottomSheetDialogFragment() {
 
+    private lateinit var calendarView: CalendarView
+
+
+    companion object {
+        private const val ARG_SCHEDA = "schedaId"
+        private const val ARG_ITEM = "item"
+        fun newInstance(schedaId: Int, item: EsserciziEntity? = null) =
+            MyBottomSheetFragment().apply {
+                arguments = bundleOf(
+                    ARG_SCHEDA to schedaId,
+                    ARG_ITEM to item
+                )
+            }
+    }
+
+    private val idScheda by lazy { requireArguments().getInt(ARG_SCHEDA) }
+    private val editing by lazy { arguments?.getSerializable(ARG_ITEM) as? EsserciziEntity }
     private var nome: String? = null
     private var nSerie: Int? = null
     private var nIntervallo: Int? = null
@@ -52,6 +72,17 @@ class MyBottomSheetFragment(private val idScheda: Int) :
         savedInstanceState: Bundle?
     ): View {
         listaAttrezzi()
+        editing?.let { e ->
+            binding.layoutEssercissiSheet.apply {
+                edNome.setText(e.nome)
+                edSerie.setText(e.nSerie.toString())
+                edRiposo.setText(e.intervallo?.toString() ?: "")
+                edIsometria.setText(e.insometria?.toString() ?: "")
+                listaAttrezziTxtx.setText(e.attrezzo, false)
+                nRipetizioni = e.nRipetizione                  // variabile già esistente
+                attrezzo = e.attrezzo
+            }
+        }
         setInfoAndSave()
 
 
@@ -66,58 +97,108 @@ class MyBottomSheetFragment(private val idScheda: Int) :
 
         viewModel = ViewModelProvider(this, viewModelFactory)[EsserciziViewModel::class.java]
         //modificaTastiera()
-       // adjustForKeyboard()
+        // adjustForKeyboard()
         adjustForFocusedView()
 
         return binding.root
 
+
+
+
+
     }
 
 
-    private fun setInfoAndSave() {
-        binding.layoutEssercissiSheet.bntSave.setOnClickListener { view ->
-
-            isometria = binding.layoutEssercissiSheet.edIsometria.text.toString().toInt()
-
-            nome = binding.layoutEssercissiSheet.edNome.text.toString()
-            nSerie = binding.layoutEssercissiSheet.edSerie.text.toString().toInt()
-            nIntervallo = binding.layoutEssercissiSheet.edRiposo.text.toString().toInt()
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
 
+
+    }
+
+
+
+    private fun setInfoAndSave() = with(binding.layoutEssercissiSheet) {
+
+        bntSave.setOnClickListener {
+            val nuovo = (editing ?: EsserciziEntity(
+                nome = "", attrezzo = "", nSerie = 0, nRipetizione = 0,
+                insometria = null, intervallo = null, schedaId = idScheda
+            )).copy(
+                nome = edNome.text.toString(),
+                nSerie = edSerie.text.toString().toIntOrNull() ?: 0,
+                intervallo = edRiposo.text.toString().toIntOrNull(),
+                insometria = edIsometria.text.toString().toIntOrNull(),
+                attrezzo = attrezzo ?: editing?.attrezzo ?: "nessuno",
+                nRipetizione = nRipetizioni ?: editing?.nRipetizione ?: 0,
+                schedaId = idScheda
+            )
+
+            // 2. Decide cosa fare
             viewModel.viewModelScope.launch(Dispatchers.IO) {
-                viewModel.insert(
-                    EsserciziEntity(
-                        nome = nome!!,
-                        nRipetizione = nRipetizioni ?: 0,
-                        intervallo = nIntervallo,
-                        insometria = isometria,
-                        schedaId = idScheda,
-                        attrezzo = attrezzo ?: "nessuno",
-                        nSerie = nSerie ?: 0
-                    )
-                )
+                if (editing == null) viewModel.insert(nuovo) else viewModel.update(nuovo)
             }
-
-            lifecycleScope.launch(Dispatchers.Main) {
-                dismiss()
-            }
+            dismiss()
         }
     }
 
     private fun listaAttrezzi() {
-        val items = listOf("Manubrio", "Bilanciere", "Bilanciere EZ", "Kettlebell", "Palla Medica", "Elastico", "Corda per saltare", "FatGrip", "Catene", "Sbarra per trazioni", "Anelli da ginnastica", "Parallele", "Box pliometrico", "Power Rack", "Panca piana", "Panca inclinata", "Leg Press", "Lat Machine", "Pectoral Machine", "Shoulder Press", "Chest Press", "Leg Extension", "Leg Curl", "Calf Machine", "Macchina cavi", "Vogatore", "Air Bike", "GHD", "Tapis Roulant", "Cyclette", "Ellittica", "Stepper", "Sacco da boxe", "Punching ball", "Corda per saltare", "Corpo libero", "Macchinario Bicipiti", "Macchinario Tricipiti", "Macchinario Gambe", "Macchinario Glutei", "Altro", "Nessuno")
+        val items = listOf(
+            "Manubrio",
+            "Bilanciere",
+            "Bilanciere EZ",
+            "Kettlebell",
+            "Palla Medica",
+            "Elastico",
+            "Corda per saltare",
+            "FatGrip",
+            "Catene",
+            "Sbarra per trazioni",
+            "Anelli da ginnastica",
+            "Parallele",
+            "Box pliometrico",
+            "Power Rack",
+            "Panca piana",
+            "Panca inclinata",
+            "Leg Press",
+            "Lat Machine",
+            "Pectoral Machine",
+            "Shoulder Press",
+            "Chest Press",
+            "Leg Extension",
+            "Leg Curl",
+            "Calf Machine",
+            "Macchina cavi",
+            "Vogatore",
+            "Air Bike",
+            "GHD",
+            "Tapis Roulant",
+            "Cyclette",
+            "Ellittica",
+            "Stepper",
+            "Sacco da boxe",
+            "Punching ball",
+            "Corda per saltare",
+            "Corpo libero",
+            "Macchinario Bicipiti",
+            "Macchinario Tricipiti",
+            "Macchinario Gambe",
+            "Macchinario Glutei",
+            "Altro",
+            "Nessuno"
+        )
 
         val adapter = ArrayAdapter(
             requireContext(),
             R.layout.support_simple_spinner_dropdown_item,
             items
         )
-        (binding.layoutEssercissiSheet.listaAttrezziTxtx as? AutoCompleteTextView)?.setAdapter(
+        binding.layoutEssercissiSheet.listaAttrezziTxtx.setAdapter(
             adapter
         )
-        (binding.layoutEssercissiSheet.listaAttrezziTxtx as? AutoCompleteTextView)?.setOnItemClickListener { parent, _, position, _ ->
+        binding.layoutEssercissiSheet.listaAttrezziTxtx.setOnItemClickListener { parent, _, position, _ ->
 
-            (binding.layoutEssercissiSheet.listaAttrezziTxtx as? AutoCompleteTextView)?.showDropDown()
+            binding.layoutEssercissiSheet.listaAttrezziTxtx.showDropDown()
             attrezzo = parent.getItemAtPosition(position) as String
         }
 
@@ -149,6 +230,7 @@ class MyBottomSheetFragment(private val idScheda: Int) :
         super.onActivityCreated(savedInstanceState)
         dialog?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
     }
+
 
 
 

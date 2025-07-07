@@ -53,11 +53,8 @@ class FragCreateSchedeForm : Fragment() {
     }
 
 
-
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
 
 
         // Ripristina lo stato da savedInstanceState
@@ -134,7 +131,8 @@ class FragCreateSchedeForm : Fragment() {
                     "Altro",
                     "Nessuno"
                 )
-            )        }
+            )
+        }
 
         lifecycleScope.launch(Dispatchers.IO) {
             checkInputs()
@@ -234,7 +232,6 @@ class FragCreateSchedeForm : Fragment() {
             this.selectTab(0)
         }
     }
-
 
 
     private fun setupDropdown(

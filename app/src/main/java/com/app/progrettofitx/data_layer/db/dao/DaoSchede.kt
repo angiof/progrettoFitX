@@ -81,4 +81,12 @@ interface DaoSchede {
 
 
 
+    @Query("""
+    SELECT * FROM schede
+    WHERE date(data) BETWEEN date(:start) AND date(:end)
+    ORDER BY date(data) DESC""")
+    suspend fun getSchedeInDateRange(start: String, end: String): List<SchedeEntity>
+
+
+
 }

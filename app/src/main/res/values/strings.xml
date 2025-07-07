@@ -36,4 +36,6 @@
     <string name="dd_mm_yyyy">dd/MM/yyyy</string>
     <string name="dd_mm_yyyy_simplea_daat_format">dd/MM/yyyy</string>
     <string name="title_activity_filter_schede">ActivityFilterSchede</string>
+    <string name="agggiungi_filtri">agggiungi filtri</string>
+    <string name="intesit">Intesità</string>
 </resources>

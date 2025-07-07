@@ -106,4 +106,24 @@
         <item name="android:textSize">14sp</item>
     </style>
 
+
+
+    <style name="MaterialCalendarTheme" parent="ThemeOverlay.MaterialComponents.MaterialCalendar">
+        <!-- Colore di sfondo del cerchietto -->
+        <item name="colorPrimary">@color/second</item>
+        <!-- Colore del testo dentro il cerchietto -->
+        <item name="colorOnPrimary">@color/white</item>
+    </style>
+
+
+
+    <style name="ThemeOverlay.Custom.TextInput" parent="ThemeOverlay.MaterialComponents.TextInputEditText.OutlinedBox">
+        <item name="colorControlActivated">@color/second</item> <!-- Colore bordo in focus -->
+        <item name="hintTextColor">@color/second</item>        <!-- Colore hint -->
+        <item name="android:textColor">@color/second</item>     <!-- Colore del testo -->
+        <item name="boxStrokeColor" >@color/second</item> <!-- Colore del bordo -->
+
+
+    </style>
+
 </resources>

@@ -5,6 +5,11 @@ import com.app.progrettofitx.data_layer.db.dao.DaoSchede
 import com.app.progrettofitx.data_layer.db.dao.GruppoMuscolareIntensitaMedia
 import com.app.progrettofitx.dominio.GruppoMuscolarePercentuale
 
+
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+
 class SchedeRepository(private val daoSchede: DaoSchede) {
 
     // Inserisce una nuova scheda nel database
@@ -55,5 +60,30 @@ class SchedeRepository(private val daoSchede: DaoSchede) {
     suspend fun getMediaIntensitaPerGruppoMuscolareDateRange(startDate: String, endDate: String): List<GruppoMuscolareIntensitaMedia> {
         return daoSchede.getMediaIntensitaPerGruppoMuscolareDateRange(startDate, endDate)
     }
+
+
+    class SchedeRepository(private val dao: DaoSchede) {
+        suspend fun getAllSchede() = dao.getAllSchede()
+    }
+
+
+
+    suspend fun getSchedeInDateRange(startMillis: Long, endMillis: Long): List<SchedeEntity> {
+        // Converte i millisecondi in stringhe ISO-8601 compatibili con la tua colonna `data`
+        val fmt = DateTimeFormatter.ISO_LOCAL_DATE
+        val startDate = Instant.ofEpochMilli(startMillis)
+            .atZone(ZoneId.systemDefault())
+            .toLocalDate()
+            .format(fmt)
+        val endDate = Instant.ofEpochMilli(endMillis)
+            .atZone(ZoneId.systemDefault())
+            .toLocalDate()
+            .format(fmt)
+
+        return daoSchede.getSchedeInDateRange(startDate, endDate)
+    }
+
+
+
 
 }
