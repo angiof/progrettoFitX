@@ -84,6 +84,9 @@ class SchedeRepository(private val daoSchede: DaoSchede) {
     }
 
 
+    suspend fun setFavorite(id: Int, isFav: Boolean) {
+        daoSchede.setFavorite(id, isFav)
+    }
 
 
 }

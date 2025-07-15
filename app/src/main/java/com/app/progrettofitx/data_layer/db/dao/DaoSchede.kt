@@ -89,4 +89,9 @@ interface DaoSchede {
 
 
 
+    @Query("UPDATE schede SET favorite = :isFav WHERE id = :id")
+    suspend fun setFavorite(id: Int, isFav: Boolean)
+
+
+
 }

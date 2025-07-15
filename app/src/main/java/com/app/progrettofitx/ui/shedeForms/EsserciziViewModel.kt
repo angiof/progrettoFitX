@@ -10,9 +10,7 @@ import kotlinx.coroutines.launch
 
 class EsserciziViewModel(private val getEserciziByIdUseCase: UsesCasesEssercissi) : ViewModel() {
 
-    // Your other ViewModel code and LiveData variables
 
-    // ViewModel functions that use the repository
     fun insert(essercizi: EsserciziEntity) = viewModelScope.launch(Dispatchers.IO) {
         getEserciziByIdUseCase.insert(essercizi)
     }
@@ -37,6 +35,9 @@ class EsserciziViewModel(private val getEserciziByIdUseCase: UsesCasesEssercissi
     fun update(item: EsserciziEntity) = viewModelScope.launch(Dispatchers.IO) {
         getEserciziByIdUseCase.update(item)
     }
+
+
+
 
 
 }

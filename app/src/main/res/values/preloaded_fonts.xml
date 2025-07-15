@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <array name="preloaded_fonts" translatable="false">
+        <!-- Raleway -->
         <item>@font/raleway_bold</item>
         <item>@font/raleway_medium</item>
+        <!-- Montserrat -->
+        <item>@font/montserratbold</item>
+        <item>@font/montserratregular</item>
+        <!-- Roboto -->
+        <item>@font/robotomedium</item>
+        <item>@font/robotoregular</item>
     </array>
 </resources>

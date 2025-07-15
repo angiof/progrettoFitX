@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.app.progrettofitx.data_layer.db.DB.DbFit
 import com.app.progrettofitx.data_layer.db.SchedeEntity
 import com.app.progrettofitx.ui.shedeForms.SchedeRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class BlankViewModel(application: Application) : AndroidViewModel(application) {
@@ -26,5 +27,15 @@ class BlankViewModel(application: Application) : AndroidViewModel(application) {
 
     fun loadSchedeInDateRange(start: Long, end: Long) = viewModelScope.launch {
         _schede.postValue(repo.getSchedeInDateRange(start, end))
+    }
+
+    fun deleteScheda(scheda: SchedeEntity) = viewModelScope.launch {
+        repo.delete(scheda)
+        loadSchede() // Ricarica le schede dopo la cancellazione
+    }
+
+
+    fun setFavorite(id: Int, isFav: Boolean) = viewModelScope.launch(Dispatchers.IO) {
+        repo.setFavorite(id, isFav)
     }
 }

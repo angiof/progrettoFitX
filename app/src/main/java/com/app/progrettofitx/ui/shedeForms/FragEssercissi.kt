@@ -37,6 +37,8 @@ class FragEssercissi : Fragment() {
     private lateinit var viewModel: EsserciziViewModel
     private var positionRecy: Int? = null
     private var mEssercizi: EsserciziEntity? = null
+    val isNew = arguments?.getBoolean("isNew") ?: true
+
 
     private var hasUnsavedChanges = false
 
@@ -183,16 +185,21 @@ class FragEssercissi : Fragment() {
         }
     }
 
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.btnSave.isEnabled = false   // parte spento
+        // se manca l’argomento, consideralo true
+        val isNew = arguments?.getBoolean("isNew", true) ?: true
 
-        // registra listener per gli aggiornamenti dal BottomSheet
-        setFragmentResultListener("exercise_changed") { _, _ ->
-            hasUnsavedChanges = true
+        if (isNew) {
+            // scheda nuova → salva sempre abilitato
             binding.btnSave.isEnabled = true
+        } else {
+            // scheda esistente → parte spento e si abilita al primo cambiamento
+            binding.btnSave.isEnabled = false
+            setFragmentResultListener("exercise_changed") { _, _ ->
+                binding.btnSave.isEnabled = true
+            }
         }
     }
 

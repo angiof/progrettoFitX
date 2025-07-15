@@ -14,5 +14,8 @@ data class SchedeEntity(
     val data: String,
     val notes: String? = null,
     val ora: String? = null // Formato "HH:mm"
+    ,
+    var favorite: Boolean = false       // ← Nuovo campo
+
 
 ) : Serializable

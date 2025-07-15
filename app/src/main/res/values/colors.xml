@@ -9,5 +9,12 @@
     <color name="white">#FFFFFFFF</color>
     <color name="second">#455A64</color>
     <color name="secondtest">#BDBDBD</color>
+    <color name="accent">#40C4FF</color>
+
+
+    <color name="text_primary">#111111</color>
+    <color name="text_secondary">#555555</color>
+    <color name="text_tertiary">#777777</color>
+
 
 </resources>

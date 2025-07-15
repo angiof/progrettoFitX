@@ -1,111 +1,88 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="200dp"
-    android:background="#bdbdbd"
-    android:padding="12dp"
-    android:id="@+id/layout_scheda"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
->
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_margin="12dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp"
+    android:id="@+id/card_scheda_item"
+    app:strokeColor="@color/second"
+    app:strokeWidth="1dp"
+    android:background="@color/white">
 
-    <com.google.android.material.card.MaterialCardView
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/card_scheda_item"
-        android:elevation="12dp"
-        android:clickable="true"
-        android:focusable="true"
-        android:importantForAccessibility="yes"
-        android:outlineSpotShadowColor="@color/second"
-        app:cardCornerRadius="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:strokeColor="@color/second"
-        app:strokeWidth="4dp">
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <!-- Icona bookmark (attrezzo usato) -->
+        <ImageView
+            android:id="@+id/ic_attrezzo"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:srcCompat="@drawable/preferito"
+            app:tint="#40C4FF" />
+
+        <!-- Titolo -->
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/montserratbold"
+            android:textSize="24sp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textColor="#111111"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/ic_attrezzo"
+            tools:text="Full Body Blast" />
 
 
+        <TextView
+            android:id="@+id/tv_group"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:fontFamily="@font/robotomedium"
+            android:textSize="16sp"
+            android:textColor="#555555"
+            app:layout_constraintStart_toStartOf="@id/tv_title"
+            app:layout_constraintTop_toBottomOf="@id/tv_title"
+            app:layout_constraintEnd_toEndOf="@id/tv_title"
+            tools:text="Petorali" />
 
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/card_scheda"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="12dp">
+        <!-- Numero esercizi -->
+        <TextView
+            android:id="@+id/tv_count"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:fontFamily="@font/robotomedium"
+            android:textColor="#555555"
+            android:textSize="16sp"
+            app:layout_constraintEnd_toEndOf="@id/tv_title"
+            app:layout_constraintStart_toStartOf="@id/tv_title"
+            app:layout_constraintTop_toBottomOf="@+id/tv_group"
+            tools:text="5 exercises" />
 
+        <TextView
+            android:id="@+id/tv_description"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:fontFamily="@font/robotoregular"
+            android:textColor="#777777"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="@id/tv_title"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="@id/tv_title"
+            app:layout_constraintTop_toBottomOf="@id/tv_count"
+            tools:text="A quick full-body routine to build strength." />
 
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/m_titolo"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="@font/raleway_bold"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:text="titolo"
-                    android:textColor="@color/second"
-                    android:textSize="22sp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/imageView3">
-
-                </com.google.android.material.textview.MaterialTextView>
-
-
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/m_grupppo_muscolare"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:fontFamily="@font/raleway_medium"
-                    android:ellipsize="end"
-
-                    android:text="titolo"
-                    android:textColor="@color/second"
-                    android:textSize="18sp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/m_titolo">
-
-                </com.google.android.material.textview.MaterialTextView>
-
-
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/m_descrizione"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:ellipsize="end"
-                    android:fontFamily="@font/raleway_medium"
-                    android:maxLines="2"
-                    android:text="titolo jwjdwfjdsbfbbsjdfjsdjbfjsddsffsdjjbdsfbjsdfjjfbdsjdjsfjnfsdnjjsdfjsndfsjfdsnjsdfnjfsdnjjsdfjnfsdnjfnjsdsfdjnfnsjdfdsfjsjsdfjb"
-                    android:textAlignment="viewStart"
-                    android:textColor="@color/second"
-                    android:textSize="16sp"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/m_grupppo_muscolare">
-
-                </com.google.android.material.textview.MaterialTextView>
-
-                <ImageView
-                    android:id="@+id/imageView3"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:srcCompat="@drawable/preferito" />
-
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-
-    </com.google.android.material.card.MaterialCardView>
-
-
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

@@ -56,8 +56,8 @@ class EserciziAdapter(val param: ItemClick) :
         @SuppressLint("SetTextI18n")
         fun bind(e: EsserciziEntity) = with(b) {
 
-            listaTitolo.text = e.nome
-            tvInformazione.text = "${e.nRipetizione}X${e.nSerie}"
+            title.text = e.nome
+            subtitle.text = " Ripetizioni:${e.nRipetizione} Serie:${e.nSerie}"
             val intervallo = e.intervallo ?: 0
             val intervalloTesto = if (intervallo > 60) {
                 val minuti = intervallo / 60
@@ -66,13 +66,12 @@ class EserciziAdapter(val param: ItemClick) :
             } else {
                 "$intervallo s"
             }
-            tvIsometria.text = "${e.insometria ?: 0} s isometria  •  Riposo: $intervalloTesto"
-            imageView.setOnClickListener {
+            details.text = "${e.insometria ?: 0} s iso  •  Riposo: $intervalloTesto  •  Attrezzo: ${e.attrezzo}"
+            imDelete.setOnClickListener {
                 runBlocking { launch(Dispatchers.IO) { param.onDelete(e) } }
             }
 
-
-            imageView.setOnClickListener {
+            svgEdit.setOnClickListener {
                 runBlocking { launch(Dispatchers.IO) { param.onEdit(e) } }
             }
 

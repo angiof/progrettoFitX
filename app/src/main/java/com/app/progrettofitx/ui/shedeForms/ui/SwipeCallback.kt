@@ -39,7 +39,7 @@ class SwipeCallback(private val adapter: EserciziAdapter) : ItemTouchHelper.Simp
         isCurrentlyActive: Boolean
     ) {
         val itemView = viewHolder.itemView
-        val itemContent = itemView.findViewById<View>(R.id.itemConte)
+        val itemContent = itemView.findViewById<View>(R.id.svg_edit)
 
         // Se stiamo swipando verso sinistra
         if (dX < 0) {

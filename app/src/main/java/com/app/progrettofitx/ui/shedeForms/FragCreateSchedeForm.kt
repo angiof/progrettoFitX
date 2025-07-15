@@ -188,10 +188,11 @@ class FragCreateSchedeForm : Fragment() {
                     }
 
                     withContext(Dispatchers.Main) {
-                        val shedaFormBundle = Bundle().apply {
+                        val bundle = Bundle().apply {
                             putSerializable("f", shedaForm)
+                            putBoolean("isNew", true)
                         }
-                        findNavController().navigate(R.id.fragEssercissi, shedaFormBundle)
+                        findNavController().navigate(R.id.fragEssercissi, bundle)
                     }
                 }
             } else {
