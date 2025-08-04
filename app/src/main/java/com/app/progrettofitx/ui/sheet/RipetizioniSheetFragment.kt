@@ -1,6 +1,5 @@
 package com.app.progrettofitx.ui.sheet
 
-import android.app.Dialog
 import android.graphics.Rect
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -9,11 +8,9 @@ import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.view.WindowManager
 import android.widget.ArrayAdapter
-import android.widget.AutoCompleteTextView
 import androidx.appcompat.R
 import androidx.core.os.bundleOf
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import com.app.progrettofitx.data_layer.db.DB.DbFit
 import com.app.progrettofitx.data_layer.db.EsserciziEntity
@@ -22,16 +19,12 @@ import com.app.progrettofitx.databinding.BottomSheetLayoutBinding
 import com.app.progrettofitx.dominio.UsesCasesEssercissi
 import com.app.progrettofitx.ui.factory.GenericViewModelFactory
 import com.app.progrettofitx.ui.shedeForms.EsserciziViewModel
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import com.kizitonwose.calendar.core.CalendarMonth
 import com.kizitonwose.calendar.view.CalendarView
-import com.kizitonwose.calendar.view.MonthHeaderFooterBinder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class MyBottomSheetFragment : BottomSheetDialogFragment() {
+class RipetizioniSheetFragment : BottomSheetDialogFragment() {
 
     private lateinit var calendarView: CalendarView
 
@@ -40,7 +33,7 @@ class MyBottomSheetFragment : BottomSheetDialogFragment() {
         private const val ARG_SCHEDA = "schedaId"
         private const val ARG_ITEM = "item"
         fun newInstance(schedaId: Int, item: EsserciziEntity? = null) =
-            MyBottomSheetFragment().apply {
+            RipetizioniSheetFragment().apply {
                 arguments = bundleOf(
                     ARG_SCHEDA to schedaId,
                     ARG_ITEM to item
@@ -76,11 +69,10 @@ class MyBottomSheetFragment : BottomSheetDialogFragment() {
             binding.layoutEssercissiSheet.apply {
                 edNome.setText(e.nome)
                 edSerie.setText(e.nSerie.toString())
+                edReps.setText(e.nRipetizione.toString())         // <— qui
                 edRiposo.setText(e.intervallo?.toString() ?: "")
                 edIsometria.setText(e.insometria?.toString() ?: "")
                 listaAttrezziTxtx.setText(e.attrezzo, false)
-                nRipetizioni = e.nRipetizione                  // variabile già esistente
-                attrezzo = e.attrezzo
             }
         }
         setInfoAndSave()
@@ -119,22 +111,36 @@ class MyBottomSheetFragment : BottomSheetDialogFragment() {
 
 
     private fun setInfoAndSave() = with(binding.layoutEssercissiSheet) {
-
         bntSave.setOnClickListener {
+            // Leggo i testi direttamente dagli EditText
+            val serieText = edSerie.text.toString()
+            val repsText  = edReps.text.toString()
+            val riposoText = edRiposo.text.toString()
+            val isoText    = edIsometria.text.toString()
+
+            val serie = serieText.toIntOrNull() ?: 0
+            val reps  = repsText.toIntOrNull() ?: 0
+            val riposo= riposoText.toIntOrNull()
+            val iso   = isoText.toIntOrNull()
+
             val nuovo = (editing ?: EsserciziEntity(
-                nome = "", attrezzo = "", nSerie = 0, nRipetizione = 0,
-                insometria = null, intervallo = null, schedaId = idScheda
+                nome         = "",
+                attrezzo     = "",
+                nSerie       = 0,
+                nRipetizione = 0,
+                insometria   = null,
+                intervallo   = null,
+                schedaId     = idScheda
             )).copy(
-                nome = edNome.text.toString(),
-                nSerie = edSerie.text.toString().toIntOrNull() ?: 0,
-                intervallo = edRiposo.text.toString().toIntOrNull(),
-                insometria = edIsometria.text.toString().toIntOrNull(),
-                attrezzo = attrezzo ?: editing?.attrezzo ?: "nessuno",
-                nRipetizione = nRipetizioni ?: editing?.nRipetizione ?: 0,
-                schedaId = idScheda
+                nome         = edNome.text.toString(),
+                nSerie       = serie,      // prendo dal campo serie
+                nRipetizione = reps,       // prendo dal campo reps
+                intervallo   = riposo,
+                insometria   = iso,
+                attrezzo     = attrezzo ?: editing?.attrezzo.orEmpty(),
+                schedaId     = idScheda
             )
 
-            // 2. Decide cosa fare
             viewModel.viewModelScope.launch(Dispatchers.IO) {
                 if (editing == null) viewModel.insert(nuovo) else viewModel.update(nuovo)
             }

@@ -52,9 +52,9 @@ class SchedaAdapter(
       }
 
       // aggiorna colore icona in base a favorite
-      val accent = Color.parseColor("#40C4FF")
+      val second = Color.parseColor("#40C4FF")
       val gray   = Color.parseColor("#CCCCCC")
-      favIcon.setColorFilter(if (s.favorite) accent else gray)
+      favIcon.setColorFilter(if (s.favorite) second else gray)
 
       // singolo tap → apri dettagli
       card.setOnClickListener { onItemClick(s) }
@@ -71,7 +71,7 @@ class SchedaAdapter(
           val newFav = !s.favorite
           s.favorite = newFav
           onToggleFavorite(s, newFav)
-          favIcon.setColorFilter(if (newFav) accent else gray)
+          favIcon.setColorFilter(if (newFav) second else gray)
           Toast.makeText(
             it.context,
             if (newFav) "Aggiunto ai preferiti" else "Rimosso dai preferiti",

@@ -25,7 +25,7 @@ import com.app.progrettofitx.dominio.UsesCasesEssercissi
 import com.app.progrettofitx.ui.factory.GenericViewModelFactory
 import com.app.progrettofitx.ui.forms.BaseAcitivity
 import com.app.progrettofitx.ui.shedeForms.recyclreview.EserciziAdapter
-import com.app.progrettofitx.ui.sheet.MyBottomSheetFragment
+import com.app.progrettofitx.ui.sheet.RipetizioniSheetFragment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -50,7 +50,7 @@ class FragEssercissi : Fragment() {
         adapterx = EserciziAdapter(object : EserciziAdapter.ItemClick {
 
             override fun onEdit(item: EsserciziEntity) {
-                MyBottomSheetFragment
+                RipetizioniSheetFragment
                     .newInstance(schedeEntity.id!!, item)
                     .show(parentFragmentManager, "EditSheet")
             }
@@ -114,12 +114,12 @@ class FragEssercissi : Fragment() {
 
             }
         }
-        MyBottomSheetFragment
+        RipetizioniSheetFragment
 
 
 
         binding.btnAdd.setOnClickListener {
-            MyBottomSheetFragment
+            RipetizioniSheetFragment
                 .newInstance(schedeEntity.id!!)
                 .show(parentFragmentManager, "AddSheet")
         }

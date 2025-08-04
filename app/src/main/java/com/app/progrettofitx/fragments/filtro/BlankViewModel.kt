@@ -10,6 +10,7 @@ import com.app.progrettofitx.data_layer.db.SchedeEntity
 import com.app.progrettofitx.ui.shedeForms.SchedeRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class BlankViewModel(application: Application) : AndroidViewModel(application) {
     private val repo = SchedeRepository(DbFit.getDatabase(application).schedeDao())
@@ -37,5 +38,9 @@ class BlankViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setFavorite(id: Int, isFav: Boolean) = viewModelScope.launch(Dispatchers.IO) {
         repo.setFavorite(id, isFav)
+    }
+
+    suspend fun getSchedeCount(): Int = withContext(Dispatchers.IO) {
+        repo.countSchede()
     }
 }

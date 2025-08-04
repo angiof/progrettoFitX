@@ -89,4 +89,8 @@ class SchedeRepository(private val daoSchede: DaoSchede) {
     }
 
 
+    suspend fun countSchede(): Int = daoSchede.countSchede()
+
+
+
 }

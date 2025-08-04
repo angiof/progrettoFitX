@@ -93,5 +93,8 @@ interface DaoSchede {
     suspend fun setFavorite(id: Int, isFav: Boolean)
 
 
-
+    @Query("SELECT COUNT(*) FROM schede")
+    suspend fun countSchede(): Int
 }
+
+
