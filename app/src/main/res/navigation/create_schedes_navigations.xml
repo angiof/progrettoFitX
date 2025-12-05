@@ -6,17 +6,17 @@
     app:startDestination="@id/placeholderFragment">
     <fragment
         android:id="@+id/placeholderFragment"
-        android:name="com.app.progrettofitx.ui.shedeForms.FragCreateSchedeForm"
+        android:name="com.app.fityo.ui.shedeForms.FragCreateSchedeForm"
         android:label="fragment_base_acitivity"
         tools:layout="@layout/fragment_base_acitivity" />
     <fragment
         android:id="@+id/fragEssercissi"
-        android:name="com.app.progrettofitx.ui.shedeForms.FragEssercissi"
+        android:name="com.app.fityo.ui.shedeForms.FragEssercissi"
         android:label="fragment_frag_essercissi"
         tools:layout="@layout/fragment_frag_essercissi" />
     <fragment
         android:id="@+id/fragmentRepielogo"
-        android:name="com.app.progrettofitx.ui.shedeForms.ui.FragmentRepielogo"
+        android:name="com.app.fityo.ui.shedeForms.ui.FragmentRepielogo"
         android:label="fragment_fragment_repielogo"
         tools:layout="@layout/fragment_fragment_repielogo" />
 </navigation>

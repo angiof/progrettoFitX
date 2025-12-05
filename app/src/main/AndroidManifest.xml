@@ -19,7 +19,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:screenOrientation="portrait"
         android:supportsRtl="true"
-        android:theme="@style/Theme.ProgrettoFitX"
+        android:theme="@style/Theme.Fityo"
         android:windowSoftInputMode="adjustResize"
         tools:targetApi="33">
         <provider
@@ -36,7 +36,7 @@
             android:name=".ui.compose.SchedeListActivity"
             android:exported="false"
             android:label="@string/apri_schede"
-            android:theme="@style/Theme.ProgrettoFitX" />
+            android:theme="@style/Theme.Fityo" />
         <activity
             android:name=".ui.filter.ui.ActivityFilterSchede"
             android:exported="false"
@@ -46,14 +46,14 @@
             android:exported="false"
             android:label="@string/title_activity_compose"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.ProgrettoFitX"
+            android:theme="@style/Theme.Fityo"
             android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".ui.forms.BaseAcitivity"
             android:exported="false"
             android:label="@string/title_activity_base_acitivity"
             android:screenOrientation="fullSensor"
-            android:theme="@style/Theme.ProgrettoFitX.NoActionBar"
+            android:theme="@style/Theme.Fityo.NoActionBar"
             android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".ui.MainActivity"
@@ -72,12 +72,36 @@
             android:exported="false"
             android:label="@string/title_activity_base_acitivity"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.ProgrettoFitX.NoActionBar"
+            android:theme="@style/Theme.Fityo.NoActionBar"
             android:windowSoftInputMode="adjustResize" />
 
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
+
+        <service
+            android:name=".wearsync.PhoneWearListenerService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
+                <data
+                    android:host="*"
+                    android:pathPrefix="/fityo/sync"
+                    android:scheme="wear" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".wearsync.PhoneSyncResponder"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
+                <data
+                    android:host="*"
+                    android:pathPrefix="/fityo/request_sync"
+                    android:scheme="wear" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

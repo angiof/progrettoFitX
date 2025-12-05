@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">progrettoFitX</string>
+    <string name="app_name">Fityo</string>
     <string name="title_home">Home</string>
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Notifications</string>
@@ -50,7 +50,7 @@
     <string name="export_pdf">Esporta scheda in PDF</string>
     <string name="export_pdf_success">PDF salvato: %1$s</string>
     <string name="export_pdf_error">Errore durante l\'esportazione del PDF</string>
-    <string name="export_pdf_saved">PDF salvato in Download/ProgrettoFitX</string>
+    <string name="export_pdf_saved">PDF salvato in Download/Fityo</string>
     <string name="share_pdf">Condividi scheda</string>
     <string name="share_pdf_title">Condividi PDF tramite</string>
     <string name="duration_minutes_label">Min</string>

@@ -1,0 +1,23 @@
+R_DEF: Internal format may change without notice
+local
+drawable ic_launcher_background
+drawable ic_launcher_foreground
+mipmap ic_launcher
+mipmap ic_launcher_round
+string app_name
+string avg_bpm
+string bpm_unit
+string complete_scheda
+string completed_label
+string exercises_title
+string heart_rate_label
+string max_bpm
+string no_schede
+string schede_title
+string sensor_unavailable
+string start_workout_prompt
+string steps_label
+string tab_monitor
+string tab_workout
+string toggle_exercise
+style Theme.FityoWear

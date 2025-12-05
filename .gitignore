@@ -13,3 +13,18 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Local tools
+/.claude/
+
+# IDE metadata
+/.idea/.name
+
+# Build artifacts
+*.aab
+*.apk
+/app/release/
+/app/build/
+
+# Room schemas
+app/schemas/

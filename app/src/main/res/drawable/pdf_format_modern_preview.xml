@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="160dp"
+    android:viewportWidth="120"
+    android:viewportHeight="160">
+
+    <!-- Background (Dark Modern) -->
+    <path
+        android:fillColor="#1A222A"
+        android:pathData="M0,0 L120,0 L120,160 L0,160 Z" />
+
+    <!-- Gradient Header -->
+    <path
+        android:fillColor="#455A64"
+        android:pathData="M0,0 L120,0 L120,20 L0,20 Z" />
+
+    <!-- Accent Line (Cyan) -->
+    <path
+        android:fillColor="#40C4FF"
+        android:pathData="M0,20 L120,20 L120,23 L0,23 Z" />
+
+    <!-- Title Card -->
+    <path
+        android:fillColor="#222C35"
+        android:pathData="M10,30 L110,30 Q 115,30 115,35 L115,50 Q 115,55 110,55 L10,55 Q 5,55 5,50 L5,35 Q 5,30 10,30 Z" />
+
+    <!-- Info Cards (Modern rounded) -->
+    <path
+        android:fillColor="#2C3742"
+        android:pathData="M10,65 L55,65 Q 58,65 58,68 L58,75 Q 58,78 55,78 L10,78 Q 7,78 7,75 L7,68 Q 7,65 10,65 Z" />
+    <path
+        android:fillColor="#2C3742"
+        android:pathData="M65,65 L110,65 Q 113,65 113,68 L113,75 Q 113,78 110,78 L65,78 Q 62,78 62,75 L62,68 Q 62,65 65,65 Z" />
+
+    <!-- Exercise Cards (Modern with accent bar) -->
+    <path
+        android:fillColor="#222C35"
+        android:pathData="M10,88 L110,88 Q 114,88 114,92 L114,105 Q 114,109 110,109 L10,109 Q 6,109 6,105 L6,92 Q 6,88 10,88 Z" />
+    <!-- Accent bar -->
+    <path
+        android:fillColor="#40C4FF"
+        android:pathData="M6,88 L10,88 L10,109 L6,109 Z" />
+
+    <path
+        android:fillColor="#222C35"
+        android:pathData="M10,115 L110,115 Q 114,115 114,119 L114,132 Q 114,136 110,136 L10,136 Q 6,136 6,132 L6,119 Q 6,115 10,115 Z" />
+    <!-- Accent bar -->
+    <path
+        android:fillColor="#40C4FF"
+        android:pathData="M6,115 L10,115 L10,136 L6,136 Z" />
+
+    <!-- Text highlights (cyan accent) -->
+    <path
+        android:fillColor="#40C4FF"
+        android:pathData="M15,95 L35,95 L35,98 L15,98 Z" />
+    <path
+        android:fillColor="#40C4FF"
+        android:pathData="M15,122 L35,122 L35,125 L15,125 Z" />
+
+    <!-- Footer accent -->
+    <path
+        android:fillColor="#40C4FF"
+        android:pathData="M0,157 L120,157 L120,160 L0,160 Z" />
+</vector>

@@ -1,0 +1,3377 @@
+android.content.res.Resources#getIdentifier present: true
+Web content present: false
+Referenced Strings:
+?
+Gender
+java.lang.Integer
+NewUsername
+wear_fast_pair_get_account_keys
+android.widget.ViewGroup
+TAKEN
+$this$item
+generatedAdapters
+googleSignInAccount
+Compose:abandons
+Rgb565
+onAutoCloseCallback
+java.lang.CharSequence
+PersonLastName
+STOP
+DIAGNOSTIC_CURRENT_PROFILE_DOES_NOT_E...
+onConsumedWindowInsetsChanged
+CONNECTION_SUSPENDED_DURING_CALL
+EmojiSupportMatch.All
+SHOW_TRANSLATED
+textSelectionRange
+Shown
+ACTION_PRESS_AND_HOLD
+size
+kotlinx.coroutines.DefaultExecutor
+left
+FontFamily.Serif
+FocusOwnerImpl:dispatchKeyEvent
+notnull
+SEL
+object
+Strategy.HighQuality
+S_RESUMING_BY_RCV
+role
+C
+EXTRA_DESCRIPTORS
+displayName
+emoji2.text.DefaultEmojiConfig
+BEGIN_OBJECT
+androidx.compose.foundation.lazy.layo...
+H
+LifecycleFragmentImpl
+InitialPending
+SignInClientImpl
+result
+NumberPassword
+AccountAccessor
+EXTRA_BENCHMARK_OPERATION
+wear_wifi_immediate_connect
+_
+a
+completedExpandBuffersAndPauseFlag$vo...
+Center
+c
+SUCCESS
+ACTION_CLEAR_ACCESSIBILITY_FOCUS
+Infinity
+d
+Compose:unobserve
+truncated
+RESUMING_BY_EB
+kotlin.String
+OnClick
+m
+n
+DRIVE_EXTERNAL_STORAGE_REQUIRED
+r
+SUSPEND
+java.lang.Module
+x
+ProgressBarRangeInfo
+TRUNCATE
+BLOCK_ALL
+Start
+reader
+emailAddress
+transactionContext
+Placement
+Checkbox
+Multiply
+ACTION_SCROLL_FORWARD
+SIGN_IN_REQUIRED
+compose:lazy:prefetch:compose
+SIGN_IN_FAILED
+com.google.android.gms.signin.interna...
+list
+Rgb
+UNSET_PRIMARY_NAV
+End
+cid
+androidx.view.accessibility.Accessibi...
+COMPLETING_WAITING_CHILDREN
+RESULT_BASELINE_PROFILE_NOT_FOUND
+AddressCountry
+RESULT_DELETE_SKIP_FILE_SUCCESS
+SDK_INT
+WordBreak.None
+provider
+supportDriver
+root
+AddressAuxiliaryDetails
+NaN
+kotlinx.coroutines.main.delay
+kotlin.collections.List
+WearableListenerService
+compose:lazy:prefetch:execute:item
+SignIn.API
+service
+android.support.wearable.ambient.Ambi...
+getNextValue
+com.google.android.gms.wearable.BIND_...
+ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE
+java.lang.Float
+Dispatchers.IO
+layoutlib
+databaseFile
+InactivePendingWork
+SharingStarted.Eagerly
+autoMigrationSpecs
+androidx.profileinstaller.action.SAVE...
+LookaheadLayingOut
+android.os.Build$VERSION
+executor
+LocalGraphicsContext
+SERVICE_MISSING
+block
+write
+StateDescription
+toggleableState
+EmojiSupportMatch.Default
+$this$Button
+byte
+TextSubstitution
+ON_DOWNGRADE
+Square
+defaultGoogleSignInAccount
+Modulate
+onBackInvoked
+creditCardNumber
+orders
+indication
+hash
+foreignKeys
+initialState
+birthDateYear
+ACTION_SCROLL_IN_DIRECTION
+GoogleApiAvailability
+%s.%sParcelizer
+maxTextLength
+VIEW_DISAPPEAR
+ACTION_PAGE_UP
+java.lang.String
+INPUT_CLOSED
+DataBuffer
+inTransaction
+BasePendingResult
+TextStringSimpleNode::measure
+HorizontalScrollAxisRange
+Unspecified
+Default
+AndroidEdgeEffectOverscrollEffect
+invisible_actions
+LookaheadMeasuring
+comparator
+names
+connectionFactory
+OUTPUT_CLOSED
+ConnectionlessLifecycleHelper
+autoCloser
+android.intent.action.TIME_TICK
+Lighten
+All
+New
+BirthDateYear
+databaseConfiguration
+Carousel
+android.intent.action.TIME_SET
+MaxTextLength
+workerCtl$volatile
+android.widget.CheckBox
+com.google.android.gms.signin.interna...
+function
+wearable_services
+android.view.accessibility.extra.DATA...
+Plus
+void
+android.car.EXTENSIONS
+compose:lazy:prefetch:nested
+StructuralEqualityPolicy
+REAL
+END_ARRAY
+$this$ToggleChip
+_id
+filterType
+kotlin.Throwable
+RequestFocus
+_handled$volatile
+Horizontal
+UPPER_CAMEL_CASE
+cause
+selectors
+NO_VALUE
+sendAccessibilitySemanticsStructureCh...
+InMeasureBlock
+kotlin.Annotation
+com.google.android.gms.signin.interna...
+SkipSubtreeAndContinueTraversal
+DEAD_CLIENT
+paddingFrom
+invalidatedTablesNames
+VonKries
+Invalid
+Strictness.None
+BITMAP
+API_NOT_CONNECTED
+newConfig
+RECONNECTION_TIMED_OUT
+Array
+_size$volatile
+ATTACH
+setValue
+UNKNOWN
+initialExtras
+DstOut
+com.google.android.gms.wearable.MESSA...
+fileName
+common_google_play_services_sign_in_f...
+_isCompleting$volatile
+Bradford
+accessibility
+com.google.android.gms.common.interna...
+STOP_AND_RESET_REPLAY_CACHE
+onBackCancelled
+impl
+password
+CreditCardExpirationDate
+kotlinx.coroutines.scheduler.keep.ali...
+state
+CompanionObject
+element
+pending_intent
+FontFamily.Monospace
+ACTION_SCROLL_DOWN
+TextDecoration.
+WearableClient
+input
+remoteInputs
+WearDataSync
+com.google.android.gms.wearable.CHANN...
+CollectionInfo
+on_delete
+delegateOpenHelper
+GetTextLayoutResult
+Rtl
+android.hardware.type.automotive
+ToggleableState
+getThreadSession
+ComposeInternal
+builder
+liveRegion
+DstIn
+receive
+getParent
+internalQueryExecutor
+Normal
+androidx.lifecycle.ViewModelProvider....
+runnable
+dflt_value
+watch
+transactionExecutor
+Assertive
+quit
+PaneTitle
+chars
+converter
+parameterProviderClassName
+source
+Compose:Composer.dispose
+java.lang.Short
+Search
+android.widget.Button
+Oklab
+androidx.view.accessibility.Accessibi...
+DEFERRED
+REPLACE
+Eraser
+INTEGER
+actual
+tableIds
+DIAGNOSTIC_PROFILE_IS_COMPRESSED
+NAME
+FragmentManager
+phoneNumber
+Enter
+connectionWrapper
+INTERRUPTED_RCV
+CLIENT_TELEMETRY
+font_variation_settings
+common_google_play_services_network_e...
+common_google_play_services_invalid_a...
+EmojiSupportMatch.None
+TextSelectionRange
+LAZILY_PARSED_NUMBER
+Stylus
+essercissi
+PhoneCountryCode
+SEALED
+CREATED
+ContentOrRtl
+NO_OWNER
+SHOW
+androidx.content.action.LOAD_EMOJI_FONT
+Password
+invalidationServiceIntent
+Fab
+EXTRA_SKIP_FILE_OPERATION
+INTERNAL_ERROR
+start
+cursive
+pair
+generic
+Paragraph
+com.google.android.gms.signin.interna...
+INDECISIVE
+short
+Sentences
+FALSE
+MINUTES
+Strategy.Unspecified
+com.google.android.wearable.app.cn.UP...
+COMPLETING_RETRY
+com.google.android.gms.common.interna...
+TypefaceCompat.createFromFontInfo
+defaultValue
+android.widget.RadioButton
+android.widget.ImageView
+moduleName
+ACCESSIBILITY_CLICKABLE_SPAN_ID
+NotUsed
+imeAction
+ACTION_PAGE_LEFT
+RedirectCancelled
+FAILED
+POISONED
+font_ttc_index
+ACTION_SHOW_ON_SCREEN
+ChannelEventParcelable
+tokenId
+peso
+customActions
+CustomActions
+robolectric
+onDelete
+BUFFERED
+$callback
+common_google_play_services_api_unava...
+.apk
+CHANNEL_CLOSED
+SharingStarted.Lazily
+CurvedModifier
+java.lang.Throwable
+/data/misc/profiles/cur/0/
+ApplyPending
+className
+wear_consent_supervised
+migrationContainer
+unknown
+undefined
+android.widget.SeekBar
+INITIALIZED
+REMOVE
+addressLocality
+deqIdx$volatile
+LineHeightStyle.Alignment.Bottom
+ACTION_DRAG_START
+END_DOCUMENT
+serverAuthCode
+com.google.android.gms.common.interna...
+DIAGNOSTIC_CURRENT_PROFILE_EXISTS
+.immediate
+AddressStreet
+char
+None
+onUpdate
+com.google.android.gms.wearable.CAPAB...
+DataItem
+ValueAnimation
+Bevel
+RESULT_INSTALL_SUCCESS
+Send
+internalTransactionExecutor
+CollectionItemInfo
+com.google.android.gms.common.interna...
+BoundReached
+callbackExecutor
+klass
+ambientDetails
+KEY_COMPONENT_ACTIVITY_REGISTERED_KEYS
+ALIGN_RIGHT
+com.google.android.gms.signin.interna...
+CLOSE_HANDLER_INVOKED
+onCancellationImplDoNotCall
+java.lang.Cloneable
+getConstructorId
+Compose:deactivate
+com.android.vending
+_rootCause$volatile
+ASSET_UNAVAILABLE
+Alpha8
+com.google.android.gms.signin
+openHelper
+targetUnit
+androidx.compose.ui.semantics.shapeRect
+PersonMiddleInitial
+android.permission.ACTIVITY_RECOGNITION
+android.support.action.showsUserInter...
+UPPER_CASE_WITH_UNDERSCORES
+CLOSED
+LocalImageVectorCache
+values
+isContainer
+PostalCode
+LocalFocusManager
+LineHeightStyle.Trim.None
+AmbientMode
+findViewByAccessibilityIdTraversal
+Idle
+CANCELED
+HardLight
+common_google_play_services_resolutio...
+kotlin.String.Companion
+padding
+LocalDensity
+ActiveParent
+FontFamily.Cursive
+ACTION_SHOW_TOOLTIP
+WearSyncClient
+clear
+jClass
+com.google.android.gms.wearable.inter...
+DstOver
+classes.dex
+_cur$volatile
+Left
+android.view.ViewStructure.extra.EXTR...
+common_google_play_services_sign_in_f...
+kotlin.Cloneable
+CreditCardExpirationMonth
+onNotificationReceived
+path
+closeable
+Decimal
+Button
+kotlin.reflect.jvm.internal.Reflectio...
+migrationStartAndEndVersions
+PARKING
+CutText
+addObserver
+generatedAdapter
+modelClass
+profile
+ContentQueryWrapper.query
+ClearTextSubstitution
+onChannelEvent
+ON_ANY
+METHODS
+guava.concurrent.generate_cancellatio...
+GMT
+cancellation
+ON_PAUSE
+allocateInstance
+Link
+TARGET_NODE_NOT_CONNECTED
+Recomposer:animation
+onLocked
+wear_get_phone_switching_feature_status
+OnAutofillText
+getEmojiConsistencySet
+DROP_LATEST
+UNSUPPORTED_BY_TARGET
+/fityo/sync
+isSensitiveData
+computeFunction
+common_google_play_services_restricte...
+RESULT_DESIRED_FORMAT_UNSUPPORTED
+Decal
+java.version
+PERMIT
+android.os.SystemProperties
+Recomposer:recompose
+PreviewActivity
+IsPlacedInApproach
+personNamePrefix
+LICENSE_CHECK_FAILED
+wear_await_data_sync_complete
+Linearity.Linear
+dispatch
+missingDelimiterValue
+CancelTraversal
+listener
+BirthDateMonth
+wear_get_node_id
+migrationsNotRequiredFrom
+lambdaFunction
+intervallo
+AwaitContinuation
+Compose:onForgotten
+kotlin.Boolean
+Clickable
+androidx.transition.FragmentTransitio...
+DORMANT
+parcel
+Redirected
+Weight
+PhoneNumberDevice
+Role
+month
+onRequestReceived
+java.lang.annotation.Annotation
+Measurement
+font_weight
+$e
+AndroidOwner:onMeasure
+TERMINATED
+compositionLocalMap
+ACTION_SET_SELECTION
+com.google.android.instantapps.superv...
+title
+androidx.view.accessibility.Accessibi...
+viewTables
+kotlin.collections.Map
+RecordingIC
+columnNames
+ProfileInstaller
+LOWER_CASE_WITH_DOTS
+java.lang.Boolean
+continuation
+owner
+classSimpleName
+EXCLUSIVE
+closeAction
+com.google.android.gms.common.telemet...
+und
+on_update
+Animatable
+kotlin.collections.MutableIterable
+DEFAULT
+android.support.allowGeneratedReplies
+DROP_OLDEST
+SetText
+InsertTextAtCursor
+androidx.activity.result.contract.ext...
+tables
+_removedRef$volatile
+action
+lock
+text
+Captured
+LocalFontFamilyResolver
+schedaId
+blockingTasksInBuffer$volatile
+cookie
+primary.prof
+onEnterAmbient
+/fityo/request_sync
+RESOLUTION_REQUIRED
+getRecordComponents
+TIMEOUT
+arch_disk_io_
+sun.misc.Unsafe
+StartEllipsis
+LocalClipboardManager
+ACTION_CLEAR_SELECTION
+TestTagsAsResourceId
+Right
+InvisibleToUser
+Off
+file
+typeConverters
+traversalIndex
+waiters
+CancellableContinuation
+android.summaryText
+map
+Linearity.FontHinting
+Final
+allowFreeFormInput
+factoryProducer
+HIDE
+listeners
+ACTION_PAGE_RIGHT
+BirthDateDay
+max
+serviceResponseIntentKey
+menu
+uri
+NO_OP
+Italic
+ACTION_HIDE_TOOLTIP
+onPeerConnected
+newIndent
+EmojiCompat.MetadataRepo.create
+RESUMED
+KEY_COMPONENT_ACTIVITY_PENDING_RESULT
+onFocusStateChange
+consumed$volatile
+Luminosity
+LineHeightStyle.Trim.FirstLineTop
+com.google.android.gms.availability
+fillMaxHeight
+ContinueTraversal
+isEditable
+onBackStarted
+selected
+sendersAndCloseStatus$volatile
+birthDateMonth
+separator
+onWheelScrollStopped
+personMiddleName
+entries
+null
+font_italic
+background
+true
+startDrag
+androidx.lifecycle.internal.SavedStat...
+Samsung
+phoneNational
+UNDISPATCHED
+NonCancellable
+androidx.compose.ui.semantics.shapeRe...
+Src
+transformer
+ACTION_SCROLL_RIGHT
+GetScrollViewportLength
+androidx.savedstate.SavedStateRegistry
+Clear
+transform
+theUnsafe
+STARTED
+nSerie
+Inactive
+Round
+NeverEqualPolicy
+timeUnit
+wear_update_connection_retry_strategy
+DONE_RCV
+Error
+thread
+collectionItemInfo
+Closed
+Completed
+callback
+UNINITIALIZED
+RESUME_TOKEN
+writer
+ACTION_PASTE
+ContentCapture:sendAppearEvents
+wrapContentWidth
+Vertical
+00
+PUBLICATION
+common_google_play_services_restricte...
+Connected
+observer
+predicate
+Unknown
+java.lang.Long
+CounterClockwise
+height
+onClosed
+BirthDateFull
+BackgroundTextMeasurement
+ContentCapture:changeChecker
+Butt
+LOWER_CASE_WITH_DASHES
+IDENTITY
+input_method
+filename
+dayOfMonth
+defaultCreationExtras
+unique
+Expand
+setCurrentState
+statusCode
+com.google.android.gms.signin.interna...
+kotlin.Function
+long
+com.google.android.gms.wearable.BIND
+min
+PreviewLogger
+ACTION_PAGE_DOWN
+kotlinx.coroutines.channels.defaultBu...
+classes_to_restore
+isTraversalGroup
+Exclusion
+android_metadata
+service_esmobile
+AGGREGATION_COUNT
+GooglePlayServicesErrorDialog
+SECONDS
+insometria
+ApiCallRunner
+UPPER_CAMEL_CASE_WITH_SPACES
+STRING
+operation
+common_google_play_services_invalid_a...
+PRA
+LocalFontLoader
+android.widget.EditText
+ON_CONFIGURE
+contentDataType
+OnLongClick
+LookaheadMeasurement
+LocalClipboard
+postalCode
+com.google.android.gms.signin.interna...
+ShuttingDown
+onConnectedNodes
+PasteText
+Operations:
+DESC
+CLOSE_REASON_LOCAL_CLOSE
+FontFamily.Default
+getAllUncoveredSemanticsNodesToIntObj...
+androidx.profileinstaller.action.INST...
+$this$Chip
+ON_START
+nativeCanvas
+KEY_COMPONENT_ACTIVITY_LAUNCHED_KEYS
+birthDateFull
+kotlinx.coroutines.io.parallelism
+NUMBER
+monospace
+constructor
+collection
+requiredSize
+WARNING
+BOOLEAN
+profileInstalled
+WearableControllerProvider
+semanticAction
+androidx.lifecycle.internal.SavedStat...
+IsEditable
+_isTerminated$volatile
+InputText
+Compose:applyChanges
+ColorBurn
+wear3_oem_companion
+Empty
+INVALID_ACCOUNT
+android.view.accessibility.extra.EXTR...
+SetProgress
+NewPassword
+registry
+UidVerifier
+creditCardExpirationYear
+_decisionAndIndex$volatile
+onInvalidatedTablesIds
+viewModelStoreOwner
+LocalResourceIdCache
+step
+java.lang.Object
+dexopt/baseline.profm
+kotlinx.coroutines.bufferedChannel.se...
+extendedPostalCode
+ContentType
+Strictness.Normal
+prefix
+totalSteps
+LiveRegion
+state1
+intentSender
+onRefreshCompleted
+permissions
+delimiter
+internalTracker
+canAccess
+gruppiMuscolari
+WIFI_CONNECTION_FAILED
+NONE
+AddressRegion
+kotlinx.coroutines.semaphore.maxSpinC...
+carrier_auth
+ShutDown
+java.util.Set
+PersonFirstName
+focusTarget
+androidx.compose.ui.semantics.shapeCo...
+Switch
+TopBar
+result_code
+END_OBJECT
+sizeIn
+favorite
+alignmentLine
+avgHeartRate
+_delayed$volatile
+DELETE_SKIP_FILE
+fillMaxWidth
+Heading
+gender
+androidx.compose.ui.semantics.id
+kotlin.collections.MutableMap
+market://details
+signature
+ActivityResultRegistry
+UNKNOWN_LISTENER
+Clip
+savedStateRegistry
+NO_THREAD_ELEMENTS
+INTERRUPTED_SEND
+reportFullyDrawn
+Visible
+tracker
+velocityVector
+CreditCardNumber
+DOUBLE
+event
+CHANNEL_OPENED
+minWidth
+PENDING
+androidx.profileinstaller.action.BENC...
+updateSemanticsNodesCopyAndPanes
+Tab
+outState
+ACTION_SET_TEXT
+java.lang.Comparable
+DstAtop
+AndroidOwner:outOfFrameExecutor
+IsContainer
+BLOB
+Done
+Characters
+float
+OP_SET_MAX_LIFECYCLE
+reference
+java.lang.Enum
+familyName
+progressBarRangeInfo
+INVALID_TARGET_NODE
+from
+android.permission.POST_NOTIFICATIONS
+enqIdx$volatile
+android.hardware.type.embedded
+offset
+Strategy.Balanced
+_exceptionsHolder$volatile
+StopInput
+transactionListener
+nRipetizione
+completedDate
+Softlight
+allowedCapabilities
+SERVICE_INVALID
+sequence
+DATA
+FocusTransactions:requestFocus
+Content
+file_id
+INSERT
+replacement
+UNKNOWN_CAPABILITY
+ime
+$onBackInvoked
+AndroidOwner:measureAndLayout
+lastVisibleItem:index
+android.text.EmojiConsistency
+configuration
+producerIndex$volatile
+ACTION_CUT
+localRect
+error
+Strictness.Unspecified
+kotlin.Byte
+_parentHandle$volatile
+array
+SelectableGroup
+journalMode
+postfix
+value
+TextMotion.Animated
+REUSABLE_CLAIMED
+0x%08x
+GmsClient
+TestTag
+fontMetrics
+REMOTE_EXCEPTION
+int
+command
+wear_retry_connection
+androidx.activity.result.contract.act...
+serif
+providers
+stmt
+exception
+_state$volatile
+year
+IsTraversalGroup
+androidx.activity.result.contract.ext...
+androidx.compose.ui.layout.WindowInse...
+String
+actionIntent
+resolution
+wear_get_related_configs
+Compose:sideeffects
+com.google.app.id
+WordBreak.Unspecified
+SERVICE_DISABLED
+VerbatimTts
+AndroidOwner:onTouch
+androidx.activity.result.contract.act...
+providerValues
+givenName
+DUPLICATE_LISTENER
+com.google.android.wearable.compat.ex...
+gruppoMuscolare
+switchTransition
+version
+SetSelection
+onBackProgressed
+kotlin.jvm.functions.
+kotlinx.coroutines.scheduler.default....
+placeable
+Xor
+VerticalScrollAxisRange
+DAYS
+Wearable.API
+AmbientModeSupport
+FEATURE_DISABLED
+wear_platform_mr_number
+LookaheadPlacement
+LayingOut
+ContentOrLtr
+LocalInputManager
+behavior
+EmojiCompat.EmojiCompatInitializer.run
+esercizi
+RESULT_PARSE_EXCEPTION
+wear_set_cloud_sync_setting_by_node
+ColorDodge
+Hyphens.None
+Compose:recompose
+parameterProviderIndex
+androidx.lifecycle.viewmodel.internal...
+ALREADY_LOCKED_BY_OWNER
+androidx.lifecycle.BundlableSavedStat...
+DEVELOPER_ERROR
+this$0
+hourOfDay
+Initial
+Startup
+acc
+Email
+getName
+notes
+androidx.profileinstaller.action.SKIP...
+actualStyle
+Miter
+Gpu
+addSuppressed
+ACTION_SET_PROGRESS
+intesita
+rotaryHandler
+RESULT_OK
+ALLOW
+_resumed$volatile
+add
+addressCountry
+$this$ScalingLazyColumn
+index_
+com.google.android.gms.wearable.inter...
+RadioButton
+IsSensitiveData
+GoogleApiActivity
+RECONNECTION_TIMED_OUT_DURING_UPDATE
+failed_status
+phoneCountryCode
+error_code
+stateDescription
+pendingIntent
+compose:lazy:prefetch:update_nested_p...
+com.google.android.gms.dynamic.IObjec...
+textSubstitution
+_invoked$volatile
+kotlin.collections.MutableCollection
+ACTION_CLEAR_FOCUS
+Em
+openDelegate
+ACTION_SCROLL_BACKWARD
+d6af434cd5687b3f563e67b5f46fa0b1
+onDataItemChanged
+WordBreak.Phrase
+com.google.android.wearable.compat.ex...
+com.google.android.gms.common.interna...
+androidx.compose.foundation.text.inli...
+TextAnnotatedStringNode:measure
+FontProvider.getFontFamilyResult
+oldValue
+ACTION_SCROLL_UP
+BITMAP_MASKABLE
+Down
+seqno
+SHOW_ORIGINAL
+checkForSemanticsChanges
+androidx.view.accessibility.Accessibi...
+UserInput
+label
+message
+android:support:fragments
+attachedDbs
+Checked
+ACTION_DRAG_DROP
+Mouse
+Offset.Unspecified
+Username
+Measuring
+BIG_DECIMAL
+Previous
+FontProvider.getProvider
+ImeAction
+START
+PageDown
+ROOM
+creditCardExpirationDay
+tail$volatile
+username
+grantResults
+RESTRICTED_PROFILE
+UNDEFINED
+Go
+callbacks
+isShowingTextSubstitution
+asset_id
+ACTION_CONTEXT_CLICK
+com.google.android.gms.wearable.inter...
+com.google.android.gms.wearable.inter...
+dexopt/baseline.prof
+kotlinx.coroutines.internal.StackTrac...
+Hidden
+createSegment
+_isCompleted$volatile
+grantedScopes
+LinkTestMarker
+shape
+GoogleSignatureVerifier
+handle
+rememberCompositionContext
+runningWorkers$volatile
+androidx.compose.ui.input.pointer.Poi...
+WearableLS
+DIAGNOSTIC_REF_PROFILE_EXISTS
+onLockError
+driver
+FLOA
+RESULT_NOT_WRITABLE
+.dp
+GooglePlayServicesUpdatingDialog
+WIFI_CREDENTIAL_SYNC_NO_CREDENTIAL_FE...
+Snackbar
+RESULT_INSTALL_SKIP_FILE_SUCCESS
+Strictness.Loose
+tableNames
+other
+compose:lazy:prefetch:execute:urgent
+CASCADE
+URI
+safeCast
+valueVector
+androidx$room$IMultiInstanceInvalidat...
+LocalViewConfiguration
+androidx.view.accessibility.Accessibi...
+Strategy.Simple
+queryExecutor
+kotlin.Long
+.em
+androidx.view.accessibility.Accessibi...
+Style
+Completing
+UPDATE
+addressRegion
+Width
+ALIGN_LEFT
+head$volatile
+Focused
+CLOSE_REASON_DISCONNECTED
+android.settings.APPLICATION_DETAILS_...
+Text
+Lab
+Xyz
+service_googleme
+DESTROYED
+OnPositionedDispatch
+androidx.core.app.extra.COMPAT_TEMPLATE
+ATOMIC
+kotlin.collections.Collection
+UTC
+_decision$volatile
+paneTitle
+com.google.android.wearable.app.cn
+receivers$volatile
+mode
+coroutineScope
+Hyphens.Auto
+buffer
+API_DISABLED_FOR_CONNECTION
+read
+inputText
+CLASSES
+newInstance
+MetadataValueReader
+LocalAutofillTree
+ComposeAutofillManager
+com.google.android.gms.chimera
+unit
+java.util.List
+lastScheduledTask$volatile
+cn.google
+scrollAxisRange
+sensor
+kotlin.Int
+com.google.android.gms.wearable.DATA_...
+handleLifecycleEvent
+indent
+COMPLETING_ALREADY
+Indeterminate
+java.lang.Iterable
+extrasProducer
+kotlinx.coroutines.DefaultExecutor.ke...
+Phone
+Modifier
+androidx.activity.result.contract.ext...
+Collapse
+Keyboard
+CompositionErrorContext
+Lsq2
+getContentCaptureSessionCompat
+minute
+gcore_
+application
+paddingValues
+Main
+On
+LineHeightStyle.Alignment.Proportional
+notifyInvalidatedObservers
+_prev$volatile
+sqLiteDatabase
+PersonMiddleName
+layoutResult
+getLocalSavedStateRegistryOwner
+AccessibilityNodeInfo.roleDescription
+/fityo/sync_data
+tableName
+Recomposing
+android.widget.HorizontalScrollView
+GoogleApiHandler
+emojiCompat
+TypefaceCompatApi29Impl
+NO_CLOSE_CAUSE
+androidx$room$IMultiInstanceInvalidat...
+ERROR
+api
+SERVICE_UPDATING
+androidx.compose.ui.platform.AndroidC...
+newValue
+creditCardExpirationMonth
+fillMaxSize
+wrapContentSize
+$dispatcher
+completed
+expirationTime
+verticalScrollAxisRange
+wear_consent
+targetVector
+_closeCause$volatile
+choices
+REMOVE_FROZEN
+onEntityUpdate
+.tmp
+supportOpenHelperFactory
+HH:mm
+_Impl
+PersonNameSuffix
+androidx.savedstate.Restarter
+kotlinx.coroutines.semaphore.segmentSize
+android.view.accessibility.extra.DATA...
+Repeated
+DROP_SHADER_CACHE
+Open
+kotlin.collections.ListIterator
+restricted_profile
+Clockwise
+waterfall
+lifecycleOwner
+ClientTelemetry.API
+outBundle
+PersonNamePrefix
+SmsOtpCode
+ACTION_SELECT
+timestamp
+BLOCK_INACCESSIBLE
+streetAddress
+kotlin.Char
+LOWER_CASE_WITH_UNDERSCORES
+ACTION_ARGUMENT_EXTEND_SELECTION_BOOLEAN
+Sp
+SrcOver
+java.util.ListIterator
+room_table_modification_trigger_
+SUCCESS_CACHE
+DefaultDispatcher
+android.view.accessibility.extra.EXTR...
+CreditCardExpirationYear
+kotlin.Double
+GoogleCertificates
+lifecycle
+view
+com.google.android.gms.version
+Disabled
+testTag
+unreachable
+creditCardSecurityCode
+AccessibilityDelegate
+name
+DIAGNOSTIC_REF_PROFILE_DOES_NOT_EXIST
+Up
+SERVICE_VERSION_UPDATE_REQUIRED
+next
+getDescriptor
+allowedDataTypes
+string
+color
+kotlin.coroutines.jvm.internal.BaseCo...
+reduce_motion
+java.lang.module.ModuleDescriptor
+SrcIn
+Justify
+LineThrough
+ContentDataType
+androidx.view.accessibility.Accessibi...
+Picker
+statement
+Impulse
+$contract
+HideFromAccessibility
+SUSPEND_NO_WAITER
+android.hardware.touchscreen
+Dispatchers.Main
+TraversalIndex
+collectionInfo
+Cancelled
+notify_manager
+callbackName
+graphicsLayer
+.lck
+interactionSource
+android.title.big
+android.intent.action.PACKAGE_ADDED
+HOURS
+GoogleApiManager
+WRITE_AHEAD_LOGGING
+connectionManager
+android.intent.action.VIEW
+android.view.contentcapture.EventTime...
+personFamilyName
+Cancelling
+container
+MainContent
+com.google.android.gms.common.interna...
+index_essercissi_schedaId
+M/d/yy
+sendSegment$volatile
+PersonFullName
+.sp
+DialogRedirect
+onPeerDisconnected
+EmptyCoroutineContext
+CPU_ACQUIRED
+ACTION_ARGUMENT_SELECTION_END_INT
+ConnectionStatusConfig
+dbFit
+com.google
+failed_client_id
+item
+kotlinx.coroutines.scheduler.core.poo...
+kotlinx.coroutines.scheduler.max.pool...
+double
+newPassword
+Darken
+smsOTPCode
+ViewPager
+ConnectionTracker
+getLocalLifecycleOwner
+kotlin.Short
+showsUserInterface
+android.software.leanback
+BLOCKING
+RecomposePending
+Shape
+Dispatchers.Unconfined
+onBackPressedDispatcherOwner
+pattern
+CHAR
+exercise
+Absolute
+Span
+kotlinx.coroutines.bufferedChannel.ex...
+IsPlacedInLookahead
+compose:lazy:prefetch:available_time_...
+android.hardware.type.watch
+com.google.android.gms.wearable.REQUE...
+LAZY
+resuming_sender
+9igjgp
+java.util.Map$Entry
+birthDateDay
+Unchecked
+width
+Clamp
+StartInput
+onConnectedCapabilityChanged
+IMMINENT
+com.google.android.gms.signin.interna...
+kotlinx.coroutines.fast.service.loader
+ScrollToIndex
+EmojiCompatInitializer
+kotlin.Any
+KEY_COMPONENT_ACTIVITY_REGISTERED_RCS
+coroutineContext
+IGNORED
+notification
+LocalLayoutDirection
+com.google.android.gms.signin.interna...
+android.view.View
+java.lang.Byte
+contentType
+android.view.accessibility.action.ARG...
+DONE
+fullyDrawnReporterOwner
+package
+compose:lazy:schedule_prefetch:index
+FontFamily.SansSerif
+$key
+Applied
+storeProducer
+firstVisibleItem:index
+sqlite_
+CANCELLED
+DropdownList
+editableText
+StartupLogger
+CLOSED_EMPTY
+kotlin.collections.Iterator
+job
+SetTextSubstitution
+nextFunction
+androidx.compose.
+unexpected
+SupportSQLite
+NO_RECEIVE_RESULT
+intrinsicSize
+PageRight
+Ltr
+Touch
+INT
+AUTOMATIC
+com.google.android.gms.signin.interna...
+database
+kotlin.Enum
+backEvent
+sendSemanticsPropertyChangeEvents
+com.google.android.gms.signin.service...
+Size.Unspecified
+pcampaignid
+ACTION_PREVIOUS_HTML_ELEMENT
+CLOB
+invalidateNodes
+Ellipsis
+androidx.lifecycle.savedstate.vm.tag
+TEMP
+NETWORK_ERROR
+fityo_sync
+PostalCodeExtended
+user
+IsPopup
+owner$volatile
+getModule
+parent
+android.widget.ProgressBar
+SCHEDULED
+compose:lazy:prefetch:measure
+PerformImeAction
+androidx.lifecycle.LifecycleDispatche...
+getSuppressed
+ACTION_UNKNOWN
+defaultLifecycleObserver
+SHOULD_BUFFER
+LineHeightStyle.Alignment.Center
+_COROUTINE
+kotlinx.coroutines.scheduler.resoluti...
+kotlin.Unit
+getType
+kotlin.jvm.internal.StringCompanionOb...
+ContentDescription
+FontProvider.query
+DpOffset.Unspecified
+ACTION_CLICK
+common_google_play_services_resolutio...
+$this$Card
+Theme.Dialog.Alert
+:memory:
+PageLeft
+icon
+_availablePermits$volatile
+serviceIntentCall
+PhoneNumberNational
+GmsClientSupervisor
+wear_consent_recordoptin
+Selected
+seq
+completion
+androidx.view.accessibility.Accessibi...
+ACTION_IME_ENTER
+Blocking
+Strictness.Strict
+ThreadLocalEventLoop
+DETACH
+Dp.Unspecified
+deleted
+_reusableCancellableContinuation$vola...
+DOUB
+ACTION_NEXT_AT_MOVEMENT_GRANULARITY
+room_fts_content_sync_
+config
+db
+ReferentialEqualityPolicy
+ADD
+Difference
+ACTION_DRAG_CANCEL
+androidx.view.accessibility.Accessibi...
+composable
+Underline
+Failed
+Color
+nativePattern
+NonDisposableHandle
+RectangleShape
+ex
+ShowTextSubstitution
+beginTransaction
+Dismiss
+_value
+ACTION_ACCESSIBILITY_FOCUS
+android.widget.NumberPicker
+frame
+SignInCoordinator
+ACTION_LONG_CLICK
+origin
+onFocusChange
+measureAndLayout
+extendedAddress
+oldContent
+content
+Number
+onRefreshScheduled
+Hue
+class
+parkedWorkersStack$volatile
+false
+common_google_play_services_network_e...
+F16
+PendingWork
+SignIn.INTERNAL_API
+referenceColumnNames
+dispatchOnScrollChanged
+failed_resolution
+ScrollByOffset
+Ascii
+legacyIdentityHash
+ACTION_MOVE_WINDOW
+android.support.text.emoji.emojiCompa...
+wear_backup_restore
+LocalAutofillManager
+TEXT
+invoke
+Image
+clipboard
+_queue$volatile
+output
+BottomBar
+androidx.compose.ui.input.nestedscrol...
+java.lang.Character
+attrezzo
+context
+com.google.android.gms.signin.interna...
+id
+%07x
+dispatcher
+Exit
+MILLISECONDS
+com.google.android.clockwork.home.UPD...
+it
+params
+ON_OPEN
+UNDECIDED
+EmailAddress
+IndexForKey
+SET_PRIMARY_NAV
+com.google.android.gms.wearable.NODE_...
+resolving_error
+DUPLICATE_CAPABILITY
+wear_consent_recordoptin_swaadl
+obfuscatedIdentifier
+kotlin.jvm.internal.
+Cmyk
+Max
+extras
+Uri
+Url
+delegate
+com.google.android.wearable.api.version
+bundle
+table
+referenceTable
+personNameSuffix
+kotlin.jvm.functions.Function
+receiveSegment$volatile
+scheda
+.onEnterAmbient
+schede
+wrapContentHeight
+AccessibilityClassName
+android.widget.ScrollView
+/data/misc/profiles/ref/
+onMessageReceived
+Locale
+android:text
+newUsername
+shadowTablesMap
+suffix
+second
+cleanedAndPointers$volatile
+personMiddleInitial
+CLOSE_REASON_NORMAL
+API_UNAVAILABLE
+com.google.android.gms.signin.interna...
+Polite
+kotlin.Number
+NULL
+TOO_LATE_TO_CANCEL
+Dst
+level
+ms
+TRUE
+UNFINISHED
+entry
+focused
+p0
+h:mm
+android.hardware.rotaryencoder.lowres
+MIGRATION_NOT_CANCELLABLE
+androidx.compose.ui.semantics.testTag
+onAutoClose
+sql
+photoUrl
+SupportSQLiteLock
+ACTION_SCROLL_LEFT
+inParcel
+kotlin.Comparable
+Height
+baseKey
+COROUTINE_SUSPENDED
+android.widget.Spinner
+_LifecycleAdapter
+LineHeightStyle.Alignment.Top
+pk
+sourceUnit
+EditableText
+wear_cancel_migration
+invalidationTracker
+createAsync
+.Companion
+ZeroCornerSize
+exercises
+java.util.Map
+onAttach
+/data/misc/profiles/cur/0
+Overlay
+INTERRUPTED
+TextDecoration.None
+ACTION_NEXT_HTML_ELEMENT
+identityHash
+invoker
+kotlin.Array
+ACTION_COLLAPSE
+$this$items
+PostalAddress
+node
+Min
+RESOLUTION_ACTIVITY_NOT_FOUND
+CLOSE_REASON_REMOTE_CLOSE
+HideKeyboard
+androidx.activity.result.contract.ext...
+RESULT_CANCELED
+activity
+MICROSECONDS
+viewModelClass
+sb
+ASC
+DELETE
+current
+DATA_ITEM_TOO_LARGE
+ACTION_SCROLL_TO_POSITION
+key
+email
+maxHeartRate
+RESOURCE
+kotlin.Enum.Companion
+animator_duration_scale
+creditCardExpirationDate
+profileinstaller_profileWrittenFor_la...
+IsNotPlaced
+silent
+defaultExtras
+wear_fast_pair_account_key_sync
+ACTION_EXPAND
+isRecord
+window.decorView
+WRITE_SKIP_FILE
+kotlin.Float
+store
+onNodeMigrated
+_next$volatile
+Words
+closed
+PhoneNumber
+to
+compressed
+horizontalScrollAxisRange
+resultKey
+ON_UPGRADE
+dest
+personGivenName
+IMMEDIATE
+pairs
+horizontal
+SERVICE_MISSING_PERMISSION
+ReusedSlotId
+up
+dbRef
+BROKEN
+Hyphens.Unspecified
+Dispatchers.Default
+kotlinx.coroutines.flow.defaultConcur...
+CreditCardExpirationDay
+frameRateCategoryView
+java.util.Collection
+query
+CLOSE_HANDLER_CLOSED
+HIDDEN
+wear_customizable_screens
+PreventUserInput
+bufferEndSegment$volatile
+failure
+NOT_IN_STACK
+viewModel
+closeHandler$volatile
+serviceActionBundleKey
+Mirror
+desc
+changed
+ACCOUNT_KEY_CREATION_FAILED
+titolo
+serviceIntent
+removeObserver
+destination
+NANOSECONDS
+ON_DESTROY
+consumerIndex$volatile
+VIEW_APPEAR
+com.google.android.gms
+LocalContext
+wear_update_config
+RESULT_ALREADY_INSTALLED
+backing
+androidx.compose.ui.semantics.shapeType
+FontsProvider
+wear_get_node_active_network_metered
+ora
+android.intent.action.TIMEZONE_CHANGED
+WearSignatureVerifier
+MiddleEllipsis
+Saturation
+TextLayout:initLayout
+androidx.core.app.NotificationCompat$...
+Dispatchers.Main.immediate
+java.sql.Date
+invalidatedTablesIds
+Compose:onRemembered
+com.google.android.wearable.compat.We...
+migration
+asset_key
+REMOVED_TASK
+SrcOut
+ACTION_PREVIOUS_AT_MOVEMENT_GRANULARITY
+getInitialValue
+type
+LocalView
+android.hardware.type.iot
+DEX_FILES
+event_type
+allowedPackages
+appops
+Argb8888
+connection
+addChangeCallback
+cont
+Finished
+IsShowingTextSubstitution
+ACTION_ARGUMENT_MOVEMENT_GRANULARITY_INT
+partialLayoutInfo
+contract
+refHolder
+marginPrefix
+nome
+ShowKeyboard
+ACTION_ARGUMENT_SELECTION_START_INT
+android.support.text.emoji.emojiCompa...
+CreditCardSecurityCode
+Next
+messageEvent
+notifications
+ACTION_FOCUS
+android.support.action.semanticAction
+java.lang.Double
+columns
+allowedDataItemFilters
+android.permission.BODY_SENSORS
+ColorAnimation
+NO_MIGRATION_FOUND_TO_CANCEL
+Ciecat02
+GooglePlayServicesUtil
+feature
+java.lang.Number
+app_client
+DefaultExecutor
+bufferEnd$volatile
+controlState$volatile
+compose:lazy:prefetch:idle_frame
+initializer
+android.view.accessibility.extra.DATA...
+phoneNumberDevice
+LocalTextToolbar
+elements
+URI_MASKABLE
+ON_CREATE
+androidx.graphics.path
+data
+ON_RESUME
+5d0ee82dd1f9864a7310f80004b5738c
+LocalConfiguration
+API_VERSION_UPDATE_REQUIRED
+autoCloseTimeUnit
+IsDialog
+API_DISABLED
+Linearity.None
+LocalUriHandler
+InLayoutBlock
+EmojiCompat.FontRequestEmojiCompatCon...
+SYNCHRONIZED
+PageUp
+LocalHapticFeedback
+TextMotion.Static
+kotlin.jvm.internal.EnumCompanionObject
+RESULT_UNSUPPORTED_ART_VERSION
+ACTION_COPY
+LineHeightStyle.Trim.Both
+Active
+postalAddress
+android.widget.TextView
+kotlin.collections.Iterable
+endVelocityVector
+send
+Both
+requestFocus
+WIT
+kotlin.collections.Map.Entry
+ScrollBy
+line
+Screen
+failing_client_id
+CopyText
+kclass
+kotlin.collections.Set
+androidx.activity.result.contract.ext...
+factory
+LineHeightStyle.Trim.LastLineBottom
+LONG_OR_DOUBLE
+java.util.Iterator
+focusProperties
+request_sync
+AddressLocality
+ON_STOP
+kotlin.CharSequence
+compose:lazy:prefetch:apply
+BEGIN_ARRAY
+RESULT_IO_EXCEPTION
+intent
+.path
+personName
+fragment
+boolean
+migrations
+com.google.android.wearable.app
+SrcAtop
+emit
+LocalWindowInfo
+clazz
+Marking id:left:2131230792 used because it matches string pool constant left
+Marking id:blocking:2131230765 used because it matches string pool constant block
+Marking id:accessibility_action_clickable_span:2131230720 used because it matches string pool constant accessibility
+Marking id:accessibility_custom_action_0:2131230721 used because it matches string pool constant accessibility
+Marking id:accessibility_custom_action_1:2131230722 used because it matches string pool constant accessibility
+Marking id:accessibility_custom_action_10:2131230723 used because it matches string pool constant accessibility
+Marking id:accessibility_custom_action_11:2131230724 used because it matches string pool constant accessibility
+Marking id:accessibility_custom_action_12:2131230725 used because it matches string pool constant accessibility
+Marking id:accessibility_custom_action_13:2131230726 used because it matches string pool constant accessibility
+Marking id:accessibility_custom_action_14:2131230727 used because it matches string pool constant accessibility
+Marking id:accessibility_custom_action_15:2131230728 used because it matches string pool constant accessibility
+Marking id:accessibility_custom_action_16:2131230729 used because it matches string pool constant accessibility
+Marking id:accessibility_custom_action_17:2131230730 used because it matches string pool constant accessibility
+Marking id:accessibility_custom_action_18:2131230731 used because it matches string pool constant accessibility
+Marking id:accessibility_custom_action_19:2131230732 used because it matches string pool constant accessibility
+Marking id:accessibility_custom_action_2:2131230733 used because it matches string pool constant accessibility
+Marking id:accessibility_custom_action_20:2131230734 used because it matches string pool constant accessibility
+Marking id:accessibility_custom_action_21:2131230735 used because it matches string pool constant accessibility
+Marking id:accessibility_custom_action_22:2131230736 used because it matches string pool constant accessibility
+Marking id:accessibility_custom_action_23:2131230737 used because it matches string pool constant accessibility
+Marking id:accessibility_custom_action_24:2131230738 used because it matches string pool constant accessibility
+Marking id:accessibility_custom_action_25:2131230739 used because it matches string pool constant accessibility
+Marking id:accessibility_custom_action_26:2131230740 used because it matches string pool constant accessibility
+Marking id:accessibility_custom_action_27:2131230741 used because it matches string pool constant accessibility
+Marking id:accessibility_custom_action_28:2131230742 used because it matches string pool constant accessibility
+Marking id:accessibility_custom_action_29:2131230743 used because it matches string pool constant accessibility
+Marking id:accessibility_custom_action_3:2131230744 used because it matches string pool constant accessibility
+Marking id:accessibility_custom_action_30:2131230745 used because it matches string pool constant accessibility
+Marking id:accessibility_custom_action_31:2131230746 used because it matches string pool constant accessibility
+Marking id:accessibility_custom_action_4:2131230747 used because it matches string pool constant accessibility
+Marking id:accessibility_custom_action_5:2131230748 used because it matches string pool constant accessibility
+Marking id:accessibility_custom_action_6:2131230749 used because it matches string pool constant accessibility
+Marking id:accessibility_custom_action_7:2131230750 used because it matches string pool constant accessibility
+Marking id:accessibility_custom_action_8:2131230751 used because it matches string pool constant accessibility
+Marking id:accessibility_custom_action_9:2131230752 used because it matches string pool constant accessibility
+Marking string:state_empty:2131492919 used because it matches string pool constant state
+Marking string:state_off:2131492920 used because it matches string pool constant state
+Marking string:state_on:2131492921 used because it matches string pool constant state
+Marking attr:startDestination:2130903131 used because it matches string pool constant start
+Marking id:start:2131230815 used because it matches string pool constant start
+Marking string:start_workout_prompt:2131492918 used because it matches string pool constant start
+Marking anim:generic_confirmation_animation:2130771975 used because it matches string pool constant generic
+Marking anim:generic_confirmation_animation_interpolator_0:2130771976 used because it matches string pool constant generic
+Marking anim:generic_confirmation_animation_interpolator_1:2130771977 used because it matches string pool constant generic
+Marking anim:generic_confirmation_animation_interpolator_2:2130771978 used because it matches string pool constant generic
+Marking anim:generic_confirmation_animation_interpolator_3:2130771979 used because it matches string pool constant generic
+Marking anim:generic_confirmation_icon_animation:2130771980 used because it matches string pool constant generic
+Marking attr:shortcutMatchRequired:2130903127 used because it matches string pool constant short
+Marking id:title:2131230832 used because it matches string pool constant title
+Marking attr:action:2130903040 used because it matches string pool constant action
+Marking attr:actionMenu:2130903041 used because it matches string pool constant action
+Marking id:action_container:2131230753 used because it matches string pool constant action
+Marking id:action_divider:2131230754 used because it matches string pool constant action
+Marking id:action_image:2131230755 used because it matches string pool constant action
+Marking id:action_list:2131230756 used because it matches string pool constant action
+Marking id:action_text:2131230757 used because it matches string pool constant action
+Marking id:actions:2131230758 used because it matches string pool constant action
+Marking id:text:2131230829 used because it matches string pool constant text
+Marking id:text2:2131230830 used because it matches string pool constant text
+Marking attr:maxSweepDegrees:2130903106 used because it matches string pool constant max
+Marking string:max_bpm:2131492908 used because it matches string pool constant max
+Marking attr:uri:2130903135 used because it matches string pool constant uri
+Marking string:selected:2131492915 used because it matches string pool constant selected
+Marking attr:nullable:2130903112 used because it matches string pool constant null
+Marking attr:backgroundColor:2130903046 used because it matches string pool constant background
+Marking attr:background_border_cap:2130903047 used because it matches string pool constant background
+Marking attr:background_border_color:2130903048 used because it matches string pool constant background
+Marking attr:background_border_width:2130903049 used because it matches string pool constant background
+Marking attr:background_color:2130903050 used because it matches string pool constant background
+Marking attr:background_radius:2130903051 used because it matches string pool constant background
+Marking attr:background_radius_percent:2130903052 used because it matches string pool constant background
+Marking attr:background_radius_pressed:2130903053 used because it matches string pool constant background
+Marking attr:background_radius_pressed_percent:2130903054 used because it matches string pool constant background
+Marking attr:background_shadow_width:2130903055 used because it matches string pool constant background
+Marking id:height:2131230779 used because it matches string pool constant height
+Marking attr:minSweepDegrees:2130903108 used because it matches string pool constant min
+Marking string:steps_label:2131492923 used because it matches string pool constant step
+Marking layout:ime_base_split_test_activity:2131361793 used because it matches string pool constant ime
+Marking layout:ime_secondary_split_test_activity:2131361794 used because it matches string pool constant ime
+Marking id:accessibility_action_clickable_span:2131230720 used because it matches string pool constant acc
+Marking id:accessibility_custom_action_0:2131230721 used because it matches string pool constant acc
+Marking id:accessibility_custom_action_1:2131230722 used because it matches string pool constant acc
+Marking id:accessibility_custom_action_10:2131230723 used because it matches string pool constant acc
+Marking id:accessibility_custom_action_11:2131230724 used because it matches string pool constant acc
+Marking id:accessibility_custom_action_12:2131230725 used because it matches string pool constant acc
+Marking id:accessibility_custom_action_13:2131230726 used because it matches string pool constant acc
+Marking id:accessibility_custom_action_14:2131230727 used because it matches string pool constant acc
+Marking id:accessibility_custom_action_15:2131230728 used because it matches string pool constant acc
+Marking id:accessibility_custom_action_16:2131230729 used because it matches string pool constant acc
+Marking id:accessibility_custom_action_17:2131230730 used because it matches string pool constant acc
+Marking id:accessibility_custom_action_18:2131230731 used because it matches string pool constant acc
+Marking id:accessibility_custom_action_19:2131230732 used because it matches string pool constant acc
+Marking id:accessibility_custom_action_2:2131230733 used because it matches string pool constant acc
+Marking id:accessibility_custom_action_20:2131230734 used because it matches string pool constant acc
+Marking id:accessibility_custom_action_21:2131230735 used because it matches string pool constant acc
+Marking id:accessibility_custom_action_22:2131230736 used because it matches string pool constant acc
+Marking id:accessibility_custom_action_23:2131230737 used because it matches string pool constant acc
+Marking id:accessibility_custom_action_24:2131230738 used because it matches string pool constant acc
+Marking id:accessibility_custom_action_25:2131230739 used because it matches string pool constant acc
+Marking id:accessibility_custom_action_26:2131230740 used because it matches string pool constant acc
+Marking id:accessibility_custom_action_27:2131230741 used because it matches string pool constant acc
+Marking id:accessibility_custom_action_28:2131230742 used because it matches string pool constant acc
+Marking id:accessibility_custom_action_29:2131230743 used because it matches string pool constant acc
+Marking id:accessibility_custom_action_3:2131230744 used because it matches string pool constant acc
+Marking id:accessibility_custom_action_30:2131230745 used because it matches string pool constant acc
+Marking id:accessibility_custom_action_31:2131230746 used because it matches string pool constant acc
+Marking id:accessibility_custom_action_4:2131230747 used because it matches string pool constant acc
+Marking id:accessibility_custom_action_5:2131230748 used because it matches string pool constant acc
+Marking id:accessibility_custom_action_6:2131230749 used because it matches string pool constant acc
+Marking id:accessibility_custom_action_7:2131230750 used because it matches string pool constant acc
+Marking id:accessibility_custom_action_8:2131230751 used because it matches string pool constant acc
+Marking id:accessibility_custom_action_9:2131230752 used because it matches string pool constant acc
+Marking style:TextAppearance_Compat_Notification:2131558403 used because it matches string pool constant Text
+Marking style:TextAppearance_Compat_Notification_Info:2131558404 used because it matches string pool constant Text
+Marking style:TextAppearance_Compat_Notification_Line2:2131558405 used because it matches string pool constant Text
+Marking style:TextAppearance_Compat_Notification_Time:2131558406 used because it matches string pool constant Text
+Marking style:TextAppearance_Compat_Notification_Title:2131558407 used because it matches string pool constant Text
+Marking string:sensor_unavailable:2131492916 used because it matches string pool constant sensor
+Marking string:completed_label:2131492897 used because it matches string pool constant completed
+Marking id:view_tree_disjoint_parent:2131230834 used because it matches string pool constant view
+Marking id:view_tree_lifecycle_owner:2131230835 used because it matches string pool constant view
+Marking id:view_tree_on_back_pressed_dispatcher_owner:2131230836 used because it matches string pool constant view
+Marking id:view_tree_saved_state_registry_owner:2131230837 used because it matches string pool constant view
+Marking id:view_tree_view_model_store_owner:2131230838 used because it matches string pool constant view
+Marking attr:colorScheme:2130903064 used because it matches string pool constant color
+Marking attr:colorSchemeColors:2130903065 used because it matches string pool constant color
+Marking dimen:item_touch_helper_max_drag_scroll_per_frame:2131034129 used because it matches string pool constant item
+Marking dimen:item_touch_helper_swipe_escape_max_velocity:2131034130 used because it matches string pool constant item
+Marking dimen:item_touch_helper_swipe_escape_velocity:2131034131 used because it matches string pool constant item
+Marking id:item_touch_helper_previous_elevation:2131230791 used because it matches string pool constant item
+Marking string:exercises_title:2131492904 used because it matches string pool constant exercise
+Marking id:width:2131230844 used because it matches string pool constant width
+Marking color:notification_action_color_filter:2130968596 used because it matches string pool constant notification
+Marking color:notification_icon_bg_color:2130968597 used because it matches string pool constant notification
+Marking dimen:notification_action_icon_size:2131034132 used because it matches string pool constant notification
+Marking dimen:notification_action_text_size:2131034133 used because it matches string pool constant notification
+Marking dimen:notification_big_circle_margin:2131034134 used because it matches string pool constant notification
+Marking dimen:notification_content_margin_start:2131034135 used because it matches string pool constant notification
+Marking dimen:notification_large_icon_height:2131034136 used because it matches string pool constant notification
+Marking dimen:notification_large_icon_width:2131034137 used because it matches string pool constant notification
+Marking dimen:notification_main_column_padding_top:2131034138 used because it matches string pool constant notification
+Marking dimen:notification_media_narrow_margin:2131034139 used because it matches string pool constant notification
+Marking dimen:notification_right_icon_size:2131034140 used because it matches string pool constant notification
+Marking dimen:notification_right_side_padding_top:2131034141 used because it matches string pool constant notification
+Marking dimen:notification_small_icon_background_padding:2131034142 used because it matches string pool constant notification
+Marking dimen:notification_small_icon_size_as_large:2131034143 used because it matches string pool constant notification
+Marking dimen:notification_subtext_size:2131034144 used because it matches string pool constant notification
+Marking dimen:notification_top_pad:2131034145 used because it matches string pool constant notification
+Marking dimen:notification_top_pad_large_text:2131034146 used because it matches string pool constant notification
+Marking drawable:notification_action_background:2131099740 used because it matches string pool constant notification
+Marking drawable:notification_bg:2131099741 used because it matches string pool constant notification
+Marking drawable:notification_bg_low:2131099742 used because it matches string pool constant notification
+Marking drawable:notification_bg_low_normal:2131099743 used because it matches string pool constant notification
+Marking drawable:notification_bg_low_pressed:2131099744 used because it matches string pool constant notification
+Marking drawable:notification_bg_normal:2131099745 used because it matches string pool constant notification
+Marking drawable:notification_bg_normal_pressed:2131099746 used because it matches string pool constant notification
+Marking drawable:notification_icon_background:2131099747 used because it matches string pool constant notification
+Marking drawable:notification_oversize_large_icon_bg:2131099748 used because it matches string pool constant notification
+Marking drawable:notification_template_icon_bg:2131099749 used because it matches string pool constant notification
+Marking drawable:notification_template_icon_low_bg:2131099750 used because it matches string pool constant notification
+Marking drawable:notification_tile_bg:2131099751 used because it matches string pool constant notification
+Marking id:notification_background:2131230800 used because it matches string pool constant notification
+Marking id:notification_main_column:2131230801 used because it matches string pool constant notification
+Marking id:notification_main_column_container:2131230802 used because it matches string pool constant notification
+Marking layout:notification_action:2131361795 used because it matches string pool constant notification
+Marking layout:notification_action_tombstone:2131361796 used because it matches string pool constant notification
+Marking layout:notification_template_custom_big:2131361797 used because it matches string pool constant notification
+Marking layout:notification_template_icon_group:2131361798 used because it matches string pool constant notification
+Marking layout:notification_template_part_chronometer:2131361799 used because it matches string pool constant notification
+Marking layout:notification_template_part_time:2131361800 used because it matches string pool constant notification
+Marking id:androidx_compose_ui_view_composition_context:2131230762 used because it matches string pool constant androidx.compose.
+Marking id:icon:2131230783 used because it matches string pool constant icon
+Marking id:icon_group:2131230784 used because it matches string pool constant icon
+Marking id:icon_only:2131230785 used because it matches string pool constant icon
+Marking attr:exitAnim:2130903073 used because it matches string pool constant ex
+Marking string:exercises_title:2131492904 used because it matches string pool constant ex
+Marking dimen:item_touch_helper_max_drag_scroll_per_frame:2131034129 used because it matches string pool constant it
+Marking dimen:item_touch_helper_swipe_escape_max_velocity:2131034130 used because it matches string pool constant it
+Marking dimen:item_touch_helper_swipe_escape_velocity:2131034131 used because it matches string pool constant it
+Marking id:italic:2131230790 used because it matches string pool constant it
+Marking id:item_touch_helper_previous_elevation:2131230791 used because it matches string pool constant it
+Marking string:schede_title:2131492914 used because it matches string pool constant schede
+Marking string:exercises_title:2131492904 used because it matches string pool constant exercises
+Marking id:top:2131230833 used because it matches string pool constant to
+Marking string:toggle_exercise:2131492929 used because it matches string pool constant to
+Marking string:tooltip_description:2131492930 used because it matches string pool constant to
+Marking string:tooltip_label:2131492931 used because it matches string pool constant to
+Marking attr:destination:2130903068 used because it matches string pool constant dest
+Marking attr:queryPatterns:2130903119 used because it matches string pool constant query
+Marking drawable:failure_animation:2131099729 used because it matches string pool constant failure
+Marking attr:destination:2130903068 used because it matches string pool constant destination
+Marking attr:data:2130903066 used because it matches string pool constant data
+Marking attr:dataPattern:2130903067 used because it matches string pool constant data
+Marking id:line1:2131230794 used because it matches string pool constant line
+Marking id:line3:2131230795 used because it matches string pool constant line
+Marking anim:fragment_close_enter:2130771968 used because it matches string pool constant fragment
+Marking anim:fragment_close_exit:2130771969 used because it matches string pool constant fragment
+Marking anim:fragment_fade_enter:2130771970 used because it matches string pool constant fragment
+Marking anim:fragment_fade_exit:2130771971 used because it matches string pool constant fragment
+Marking anim:fragment_fast_out_extra_slow_in:2130771972 used because it matches string pool constant fragment
+Marking anim:fragment_open_enter:2130771973 used because it matches string pool constant fragment
+Marking anim:fragment_open_exit:2130771974 used because it matches string pool constant fragment
+Marking id:fragment_container_view_tag:2131230778 used because it matches string pool constant fragment
+@anim/fragment_close_enter : reachable=true
+    @anim/fragment_fast_out_extra_slow_in
+@anim/fragment_close_exit : reachable=true
+    @anim/fragment_fast_out_extra_slow_in
+@anim/fragment_fade_enter : reachable=true
+@anim/fragment_fade_exit : reachable=true
+@anim/fragment_fast_out_extra_slow_in : reachable=true
+@anim/fragment_open_enter : reachable=true
+    @anim/fragment_fast_out_extra_slow_in
+@anim/fragment_open_exit : reachable=true
+    @anim/fragment_fast_out_extra_slow_in
+@anim/generic_confirmation_animation : reachable=true
+    @anim/generic_confirmation_animation_interpolator_1
+    @anim/generic_confirmation_animation_interpolator_0
+@anim/generic_confirmation_animation_interpolator_0 : reachable=true
+@anim/generic_confirmation_animation_interpolator_1 : reachable=true
+@anim/generic_confirmation_animation_interpolator_2 : reachable=true
+@anim/generic_confirmation_animation_interpolator_3 : reachable=true
+@anim/generic_confirmation_icon_animation : reachable=true
+    @anim/generic_confirmation_animation_interpolator_2
+    @anim/generic_confirmation_animation_interpolator_3
+@anim/open_on_phone_animation_interpolator_0 : reachable=false
+@anim/open_on_phone_animation_interpolator_1 : reachable=false
+@anim/open_on_phone_arrow_animation : reachable=false
+    @anim/open_on_phone_animation_interpolator_0
+@anim/open_on_phone_path_1_animation : reachable=false
+    @anim/open_on_phone_animation_interpolator_1
+@anim/open_on_phone_path_2_animation : reachable=false
+@array/circular_progress_layout_color_scheme_colors : reachable=false
+    @color/circular_progress_layout_red
+    @color/circular_progress_layout_yellow
+    @color/circular_progress_layout_green
+    @color/circular_progress_layout_blue
+@attr/action : reachable=true
+@attr/actionMenu : reachable=true
+@attr/alpha : reachable=false
+@attr/anchorAngleDegrees : reachable=false
+@attr/anchorPosition : reachable=false
+@attr/argType : reachable=false
+@attr/backgroundColor : reachable=true
+@attr/background_border_cap : reachable=true
+@attr/background_border_color : reachable=true
+@attr/background_border_width : reachable=true
+@attr/background_color : reachable=true
+@attr/background_radius : reachable=true
+@attr/background_radius_percent : reachable=true
+@attr/background_radius_pressed : reachable=true
+@attr/background_radius_pressed_percent : reachable=true
+@attr/background_shadow_width : reachable=true
+@attr/bezelWidth : reachable=false
+@attr/boxedEdges : reachable=false
+@attr/buttonSize : reachable=false
+@attr/circleCrop : reachable=false
+@attr/circularScrollingGestureEnabled : reachable=false
+@attr/clipEnabled : reachable=false
+@attr/clip_dimen : reachable=false
+@attr/clockwise : reachable=false
+@attr/colorScheme : reachable=true
+@attr/colorSchemeColors : reachable=true
+@attr/data : reachable=true
+@attr/dataPattern : reachable=true
+@attr/destination : reachable=true
+@attr/drawerContent : reachable=false
+@attr/drawerTitle : reachable=false
+@attr/enableAutoPeek : reachable=false
+@attr/enterAnim : reachable=false
+@attr/exitAnim : reachable=true
+@attr/fastScrollEnabled : reachable=false
+@attr/fastScrollHorizontalThumbDrawable : reachable=false
+@attr/fastScrollHorizontalTrackDrawable : reachable=false
+@attr/fastScrollVerticalThumbDrawable : reachable=false
+@attr/fastScrollVerticalTrackDrawable : reachable=false
+@attr/font : reachable=false
+@attr/fontProviderAuthority : reachable=false
+@attr/fontProviderCerts : reachable=false
+@attr/fontProviderFallbackQuery : reachable=false
+@attr/fontProviderFetchStrategy : reachable=false
+@attr/fontProviderFetchTimeout : reachable=false
+@attr/fontProviderPackage : reachable=false
+@attr/fontProviderQuery : reachable=false
+@attr/fontProviderSystemFontFamily : reachable=false
+@attr/fontStyle : reachable=false
+@attr/fontVariationSettings : reachable=false
+@attr/fontWeight : reachable=false
+@attr/graph : reachable=false
+@attr/imageAspectRatio : reachable=false
+@attr/imageAspectRatioAdjust : reachable=false
+@attr/img_circle_percentage : reachable=false
+@attr/img_horizontal_offset_percentage : reachable=false
+@attr/img_padding : reachable=false
+@attr/img_tint : reachable=false
+@attr/indeterminate : reachable=false
+@attr/lStar : reachable=false
+@attr/launchSingleTop : reachable=false
+@attr/layoutManager : reachable=false
+@attr/layout_boxedEdges : reachable=false
+@attr/layout_rotate : reachable=false
+@attr/layout_valign : reachable=false
+@attr/layout_weight : reachable=false
+@attr/maxSweepDegrees : reachable=true
+@attr/mimeType : reachable=false
+@attr/minSweepDegrees : reachable=true
+@attr/navGraph : reachable=false
+@attr/navigationStyle : reachable=false
+@attr/nestedScrollViewStyle : reachable=false
+@attr/nullable : reachable=true
+@attr/peekView : reachable=false
+@attr/popEnterAnim : reachable=false
+@attr/popExitAnim : reachable=false
+@attr/popUpTo : reachable=false
+@attr/popUpToInclusive : reachable=false
+@attr/popUpToSaveState : reachable=false
+@attr/queryPatterns : reachable=true
+@attr/radius : reachable=false
+@attr/recyclerViewStyle : reachable=false
+@attr/restoreState : reachable=false
+@attr/reverseLayout : reachable=false
+@attr/route : reachable=false
+@attr/scopeUris : reachable=false
+@attr/scrollDegreesPerScreen : reachable=false
+@attr/shortcutMatchRequired : reachable=true
+@attr/showOverflowInPeek : reachable=false
+@attr/spanCount : reachable=false
+@attr/stackFromEnd : reachable=false
+@attr/startDestination : reachable=true
+@attr/strokeWidth : reachable=false
+@attr/targetPackage : reachable=false
+@attr/ttcIndex : reachable=false
+@attr/uri : reachable=true
+@attr/wsPageIndicatorDotColor : reachable=false
+@attr/wsPageIndicatorDotColorSelected : reachable=false
+@attr/wsPageIndicatorDotFadeInDuration : reachable=false
+@attr/wsPageIndicatorDotFadeOutDelay : reachable=false
+@attr/wsPageIndicatorDotFadeOutDuration : reachable=false
+@attr/wsPageIndicatorDotFadeWhenIdle : reachable=false
+@attr/wsPageIndicatorDotRadius : reachable=false
+@attr/wsPageIndicatorDotRadiusSelected : reachable=false
+@attr/wsPageIndicatorDotShadowColor : reachable=false
+@attr/wsPageIndicatorDotShadowDx : reachable=false
+@attr/wsPageIndicatorDotShadowDy : reachable=false
+@attr/wsPageIndicatorDotShadowRadius : reachable=false
+@attr/wsPageIndicatorDotSpacing : reachable=false
+@color/androidx_core_ripple_material_light : reachable=false
+@color/androidx_core_secondary_text_default_material_light : reachable=false
+@color/call_notification_answer_color : reachable=false
+@color/call_notification_decline_color : reachable=false
+@color/circular_progress_layout_background_color : reachable=false
+@color/circular_progress_layout_blue : reachable=false
+@color/circular_progress_layout_green : reachable=false
+@color/circular_progress_layout_red : reachable=false
+@color/circular_progress_layout_yellow : reachable=false
+@color/common_google_signin_btn_text_dark : reachable=false
+    @color/common_google_signin_btn_text_dark_disabled
+    @color/common_google_signin_btn_text_dark_pressed
+    @color/common_google_signin_btn_text_dark_focused
+    @color/common_google_signin_btn_text_dark_default
+@color/common_google_signin_btn_text_dark_default : reachable=false
+@color/common_google_signin_btn_text_dark_disabled : reachable=false
+@color/common_google_signin_btn_text_dark_focused : reachable=false
+@color/common_google_signin_btn_text_dark_pressed : reachable=false
+@color/common_google_signin_btn_text_light : reachable=false
+    @color/common_google_signin_btn_text_light_disabled
+    @color/common_google_signin_btn_text_light_pressed
+    @color/common_google_signin_btn_text_light_focused
+    @color/common_google_signin_btn_text_light_default
+@color/common_google_signin_btn_text_light_default : reachable=false
+@color/common_google_signin_btn_text_light_disabled : reachable=false
+@color/common_google_signin_btn_text_light_focused : reachable=false
+@color/common_google_signin_btn_text_light_pressed : reachable=false
+@color/common_google_signin_btn_tint : reachable=false
+@color/notification_action_color_filter : reachable=true
+    @color/androidx_core_secondary_text_default_material_light
+@color/notification_icon_bg_color : reachable=true
+@color/vector_tint_color : reachable=false
+@color/vector_tint_theme_color : reachable=false
+@color/ws_switch_thumb_color_material : reachable=false
+@color/ws_switch_track_color_material : reachable=false
+@dimen/circular_progress_layout_stroke_width : reachable=false
+@dimen/compat_button_inset_horizontal_material : reachable=false
+@dimen/compat_button_inset_vertical_material : reachable=false
+@dimen/compat_button_padding_horizontal_material : reachable=false
+@dimen/compat_button_padding_vertical_material : reachable=false
+@dimen/compat_control_corner_material : reachable=false
+@dimen/compat_notification_large_icon_max_height : reachable=false
+@dimen/compat_notification_large_icon_max_width : reachable=false
+@dimen/confirmation_overlay_image_bottom_margin : reachable=false
+@dimen/confirmation_overlay_image_size : reachable=false
+@dimen/confirmation_overlay_text_bottom_margin : reachable=false
+@dimen/confirmation_overlay_text_letter_spacing : reachable=false
+@dimen/confirmation_overlay_text_line_height : reachable=false
+@dimen/confirmation_overlay_text_size : reachable=false
+@dimen/fastscroll_default_thickness : reachable=false
+@dimen/fastscroll_margin : reachable=false
+@dimen/fastscroll_minimum_range : reachable=false
+@dimen/item_touch_helper_max_drag_scroll_per_frame : reachable=true
+@dimen/item_touch_helper_swipe_escape_max_velocity : reachable=true
+@dimen/item_touch_helper_swipe_escape_velocity : reachable=true
+@dimen/notification_action_icon_size : reachable=true
+@dimen/notification_action_text_size : reachable=true
+@dimen/notification_big_circle_margin : reachable=true
+@dimen/notification_content_margin_start : reachable=true
+@dimen/notification_large_icon_height : reachable=true
+@dimen/notification_large_icon_width : reachable=true
+@dimen/notification_main_column_padding_top : reachable=true
+@dimen/notification_media_narrow_margin : reachable=true
+@dimen/notification_right_icon_size : reachable=true
+@dimen/notification_right_side_padding_top : reachable=true
+@dimen/notification_small_icon_background_padding : reachable=true
+@dimen/notification_small_icon_size_as_large : reachable=true
+@dimen/notification_subtext_size : reachable=true
+@dimen/notification_top_pad : reachable=true
+@dimen/notification_top_pad_large_text : reachable=true
+@dimen/ws_action_drawer_expand_icon_top_margin : reachable=false
+@dimen/ws_action_drawer_item_bottom_padding : reachable=false
+@dimen/ws_action_drawer_item_icon_padding : reachable=false
+@dimen/ws_action_drawer_item_icon_right_margin : reachable=false
+@dimen/ws_action_drawer_item_icon_size : reachable=false
+@dimen/ws_action_drawer_item_text_size : reachable=false
+@dimen/ws_action_drawer_item_top_padding : reachable=false
+@dimen/ws_action_drawer_peek_top_padding : reachable=false
+@dimen/ws_action_drawer_peek_view_height : reachable=false
+@dimen/ws_action_drawer_title_body_weight : reachable=false
+@dimen/ws_action_drawer_title_end_weight : reachable=false
+@dimen/ws_action_drawer_title_start_weight : reachable=false
+@dimen/ws_drawer_view_edge_size : reachable=false
+@dimen/ws_nav_drawer_bottom_text_box_weight : reachable=false
+@dimen/ws_nav_drawer_items_weight : reachable=false
+@dimen/ws_nav_drawer_single_page_circle_radius : reachable=false
+@dimen/ws_nav_drawer_single_page_half_icon_size : reachable=false
+@dimen/ws_nav_drawer_single_page_icon_padding : reachable=false
+@dimen/ws_nav_drawer_single_page_icon_size : reachable=false
+@dimen/ws_nav_drawer_text_size : reachable=false
+@dimen/ws_nav_drawer_three_item_row_end_space_weight : reachable=false
+@dimen/ws_nav_drawer_three_item_row_item_weight : reachable=false
+@dimen/ws_nav_drawer_three_item_row_start_space_weight : reachable=false
+@dimen/ws_nav_drawer_top_space_weight : reachable=false
+@dimen/ws_nav_drawer_two_item_row_end_space_weight : reachable=false
+@dimen/ws_nav_drawer_two_item_row_item_weight : reachable=false
+@dimen/ws_nav_drawer_two_item_row_start_space_weight : reachable=false
+@dimen/ws_peek_view_bottom_padding : reachable=false
+@dimen/ws_peek_view_icon_size : reachable=false
+@dimen/ws_peek_view_top_padding : reachable=false
+@dimen/ws_switch_size : reachable=false
+@dimen/ws_wearable_drawer_view_elevation : reachable=false
+@dimen/ws_wrv_curve_default_x_offset : reachable=false
+@drawable/$confirmation_animation__0 : reachable=false
+    @drawable/$confirmation_animation__1
+    @drawable/$confirmation_animation__2
+@drawable/$confirmation_animation__1 : reachable=false
+@drawable/$confirmation_animation__2 : reachable=false
+@drawable/$confirmation_animation__3 : reachable=false
+@drawable/$confirmation_animation__4 : reachable=false
+@drawable/$failure_animation__0 : reachable=false
+    @drawable/$failure_animation__1
+    @drawable/$failure_animation__2
+    @drawable/$failure_animation__3
+@drawable/$failure_animation__1 : reachable=false
+@drawable/$failure_animation__10 : reachable=false
+@drawable/$failure_animation__11 : reachable=false
+@drawable/$failure_animation__12 : reachable=false
+    @drawable/$failure_animation__13
+    @drawable/$failure_animation__14
+    @drawable/$failure_animation__15
+@drawable/$failure_animation__13 : reachable=false
+@drawable/$failure_animation__14 : reachable=false
+@drawable/$failure_animation__15 : reachable=false
+@drawable/$failure_animation__16 : reachable=false
+    @drawable/$failure_animation__17
+    @drawable/$failure_animation__18
+    @drawable/$failure_animation__19
+    @drawable/$failure_animation__20
+    @drawable/$failure_animation__21
+    @drawable/$failure_animation__22
+@drawable/$failure_animation__17 : reachable=false
+@drawable/$failure_animation__18 : reachable=false
+@drawable/$failure_animation__19 : reachable=false
+@drawable/$failure_animation__2 : reachable=false
+@drawable/$failure_animation__20 : reachable=false
+@drawable/$failure_animation__21 : reachable=false
+@drawable/$failure_animation__22 : reachable=false
+@drawable/$failure_animation__23 : reachable=false
+    @drawable/$failure_animation__24
+    @drawable/$failure_animation__25
+@drawable/$failure_animation__24 : reachable=false
+@drawable/$failure_animation__25 : reachable=false
+@drawable/$failure_animation__26 : reachable=false
+    @drawable/$failure_animation__27
+    @drawable/$failure_animation__28
+    @drawable/$failure_animation__29
+@drawable/$failure_animation__27 : reachable=false
+@drawable/$failure_animation__28 : reachable=false
+@drawable/$failure_animation__29 : reachable=false
+@drawable/$failure_animation__3 : reachable=false
+@drawable/$failure_animation__30 : reachable=false
+    @drawable/$failure_animation__31
+    @drawable/$failure_animation__32
+    @drawable/$failure_animation__33
+    @drawable/$failure_animation__34
+    @drawable/$failure_animation__35
+    @drawable/$failure_animation__36
+@drawable/$failure_animation__31 : reachable=false
+@drawable/$failure_animation__32 : reachable=false
+@drawable/$failure_animation__33 : reachable=false
+@drawable/$failure_animation__34 : reachable=false
+@drawable/$failure_animation__35 : reachable=false
+@drawable/$failure_animation__36 : reachable=false
+@drawable/$failure_animation__37 : reachable=false
+@drawable/$failure_animation__38 : reachable=false
+@drawable/$failure_animation__4 : reachable=false
+    @drawable/$failure_animation__5
+    @drawable/$failure_animation__6
+    @drawable/$failure_animation__7
+@drawable/$failure_animation__5 : reachable=false
+@drawable/$failure_animation__6 : reachable=false
+@drawable/$failure_animation__7 : reachable=false
+@drawable/$failure_animation__8 : reachable=false
+    @drawable/$failure_animation__9
+    @drawable/$failure_animation__10
+    @drawable/$failure_animation__11
+@drawable/$failure_animation__9 : reachable=false
+@drawable/$ic_launcher_foreground__0 : reachable=false
+@drawable/$open_on_phone_animation__0 : reachable=false
+    @drawable/$open_on_phone_animation__1
+@drawable/$open_on_phone_animation__1 : reachable=false
+@drawable/$open_on_phone_animation__10 : reachable=false
+    @drawable/$open_on_phone_animation__11
+@drawable/$open_on_phone_animation__11 : reachable=false
+@drawable/$open_on_phone_animation__12 : reachable=false
+@drawable/$open_on_phone_animation__13 : reachable=false
+@drawable/$open_on_phone_animation__2 : reachable=false
+    @drawable/$open_on_phone_animation__3
+    @drawable/$open_on_phone_animation__4
+    @drawable/$open_on_phone_animation__5
+@drawable/$open_on_phone_animation__3 : reachable=false
+@drawable/$open_on_phone_animation__4 : reachable=false
+@drawable/$open_on_phone_animation__5 : reachable=false
+@drawable/$open_on_phone_animation__6 : reachable=false
+    @drawable/$open_on_phone_animation__7
+    @drawable/$open_on_phone_animation__8
+    @drawable/$open_on_phone_animation__9
+@drawable/$open_on_phone_animation__7 : reachable=false
+@drawable/$open_on_phone_animation__8 : reachable=false
+@drawable/$open_on_phone_animation__9 : reachable=false
+@drawable/circular_vignette_bottom : reachable=false
+@drawable/circular_vignette_top : reachable=false
+@drawable/common_full_open_on_phone : reachable=true
+@drawable/common_google_signin_btn_icon_dark : reachable=false
+    @drawable/common_google_signin_btn_icon_disabled
+    @drawable/common_google_signin_btn_icon_dark_focused
+    @drawable/common_google_signin_btn_icon_dark_normal
+@drawable/common_google_signin_btn_icon_dark_focused : reachable=false
+    @drawable/common_google_signin_btn_icon_dark_normal
+@drawable/common_google_signin_btn_icon_dark_normal : reachable=false
+    @drawable/common_google_signin_btn_icon_dark_normal_background
+    @drawable/googleg_standard_color_18
+@drawable/common_google_signin_btn_icon_dark_normal_background : reachable=false
+@drawable/common_google_signin_btn_icon_disabled : reachable=false
+    @drawable/googleg_disabled_color_18
+@drawable/common_google_signin_btn_icon_light : reachable=false
+    @drawable/common_google_signin_btn_icon_disabled
+    @drawable/common_google_signin_btn_icon_light_focused
+    @drawable/common_google_signin_btn_icon_light_normal
+@drawable/common_google_signin_btn_icon_light_focused : reachable=false
+    @drawable/common_google_signin_btn_icon_light_normal
+@drawable/common_google_signin_btn_icon_light_normal : reachable=false
+    @drawable/common_google_signin_btn_icon_light_normal_background
+    @drawable/googleg_standard_color_18
+@drawable/common_google_signin_btn_icon_light_normal_background : reachable=false
+@drawable/common_google_signin_btn_text_dark : reachable=false
+    @drawable/common_google_signin_btn_text_disabled
+    @drawable/common_google_signin_btn_text_dark_focused
+    @drawable/common_google_signin_btn_text_dark_normal
+@drawable/common_google_signin_btn_text_dark_focused : reachable=false
+    @drawable/common_google_signin_btn_text_dark_normal
+@drawable/common_google_signin_btn_text_dark_normal : reachable=false
+    @drawable/common_google_signin_btn_text_dark_normal_background
+    @drawable/googleg_standard_color_18
+@drawable/common_google_signin_btn_text_dark_normal_background : reachable=false
+@drawable/common_google_signin_btn_text_disabled : reachable=false
+    @drawable/googleg_disabled_color_18
+@drawable/common_google_signin_btn_text_light : reachable=false
+    @drawable/common_google_signin_btn_text_disabled
+    @drawable/common_google_signin_btn_text_light_focused
+    @drawable/common_google_signin_btn_text_light_normal
+@drawable/common_google_signin_btn_text_light_focused : reachable=false
+    @drawable/common_google_signin_btn_text_light_normal
+@drawable/common_google_signin_btn_text_light_normal : reachable=false
+    @drawable/common_google_signin_btn_text_light_normal_background
+    @drawable/googleg_standard_color_18
+@drawable/common_google_signin_btn_text_light_normal_background : reachable=false
+@drawable/confirmation_animation : reachable=false
+    @drawable/$confirmation_animation__4
+    @drawable/$confirmation_animation__0
+    @drawable/$confirmation_animation__3
+@drawable/failure_animation : reachable=true
+    @drawable/$failure_animation__38
+    @drawable/$failure_animation__0
+    @drawable/$failure_animation__4
+    @drawable/$failure_animation__8
+    @drawable/$failure_animation__12
+    @drawable/$failure_animation__16
+    @drawable/$failure_animation__23
+    @drawable/$failure_animation__26
+    @drawable/$failure_animation__30
+    @drawable/$failure_animation__37
+@drawable/googleg_disabled_color_18 : reachable=false
+@drawable/googleg_standard_color_18 : reachable=false
+@drawable/ic_call_answer : reachable=false
+@drawable/ic_call_answer_low : reachable=false
+@drawable/ic_call_answer_video : reachable=false
+@drawable/ic_call_answer_video_low : reachable=false
+@drawable/ic_call_decline : reachable=false
+@drawable/ic_call_decline_low : reachable=false
+@drawable/ic_launcher_background : reachable=false
+@drawable/ic_launcher_foreground : reachable=false
+    @drawable/$ic_launcher_foreground__0
+@drawable/notification_action_background : reachable=true
+    @color/androidx_core_ripple_material_light
+    @dimen/compat_button_inset_horizontal_material
+    @dimen/compat_button_inset_vertical_material
+    @dimen/compat_control_corner_material
+    @dimen/compat_button_padding_vertical_material
+    @dimen/compat_button_padding_horizontal_material
+@drawable/notification_bg : reachable=true
+    @drawable/notification_bg_normal_pressed
+    @drawable/notification_bg_normal
+@drawable/notification_bg_low : reachable=true
+    @drawable/notification_bg_low_pressed
+    @drawable/notification_bg_low_normal
+@drawable/notification_bg_low_normal : reachable=true
+@drawable/notification_bg_low_pressed : reachable=true
+@drawable/notification_bg_normal : reachable=true
+@drawable/notification_bg_normal_pressed : reachable=true
+@drawable/notification_icon_background : reachable=true
+    @color/notification_icon_bg_color
+@drawable/notification_oversize_large_icon_bg : reachable=true
+@drawable/notification_template_icon_bg : reachable=true
+@drawable/notification_template_icon_low_bg : reachable=true
+@drawable/notification_tile_bg : reachable=true
+    @drawable/notify_panel_notification_icon_bg
+@drawable/notify_panel_notification_icon_bg : reachable=false
+@drawable/open_on_phone_animation : reachable=false
+    @drawable/$open_on_phone_animation__13
+    @drawable/$open_on_phone_animation__0
+    @drawable/$open_on_phone_animation__2
+    @drawable/$open_on_phone_animation__6
+    @drawable/$open_on_phone_animation__10
+    @drawable/$open_on_phone_animation__12
+@drawable/rectangular_vignette_bottom : reachable=false
+@drawable/rectangular_vignette_top : reachable=false
+@drawable/ws_action_item_background : reachable=false
+@drawable/ws_action_item_icon_background : reachable=false
+@drawable/ws_full_sad : reachable=false
+@drawable/ws_ic_expand_less_white_22 : reachable=false
+@drawable/ws_ic_expand_more_white_22 : reachable=false
+@drawable/ws_ic_more_horiz_24dp_wht : reachable=false
+@drawable/ws_ic_more_vert_24dp_wht : reachable=false
+@drawable/ws_switch_thumb_material_anim : reachable=false
+    @drawable/ws_switch_thumb_mtrl_14w
+    @drawable/ws_switch_thumb_mtrl_15w
+    @drawable/ws_switch_thumb_mtrl_16w
+    @drawable/ws_switch_thumb_mtrl_17w
+    @drawable/ws_switch_thumb_mtrl_18w
+@drawable/ws_switch_thumb_mtrl_14w : reachable=false
+@drawable/ws_switch_thumb_mtrl_15w : reachable=false
+@drawable/ws_switch_thumb_mtrl_16w : reachable=false
+@drawable/ws_switch_thumb_mtrl_17w : reachable=false
+@drawable/ws_switch_thumb_mtrl_18w : reachable=false
+@drawable/ws_switch_track_mtrl : reachable=false
+@fraction/confirmation_overlay_text_inset_margin : reachable=false
+@fraction/ws_action_drawer_item_first_item_top_padding : reachable=false
+@fraction/ws_action_drawer_item_last_item_bottom_padding : reachable=false
+@fraction/ws_action_drawer_item_left_padding : reachable=false
+@fraction/ws_action_drawer_item_right_padding : reachable=false
+@id/accessibility_action_clickable_span : reachable=true
+@id/accessibility_custom_action_0 : reachable=true
+@id/accessibility_custom_action_1 : reachable=true
+@id/accessibility_custom_action_10 : reachable=true
+@id/accessibility_custom_action_11 : reachable=true
+@id/accessibility_custom_action_12 : reachable=true
+@id/accessibility_custom_action_13 : reachable=true
+@id/accessibility_custom_action_14 : reachable=true
+@id/accessibility_custom_action_15 : reachable=true
+@id/accessibility_custom_action_16 : reachable=true
+@id/accessibility_custom_action_17 : reachable=true
+@id/accessibility_custom_action_18 : reachable=true
+@id/accessibility_custom_action_19 : reachable=true
+@id/accessibility_custom_action_2 : reachable=true
+@id/accessibility_custom_action_20 : reachable=true
+@id/accessibility_custom_action_21 : reachable=true
+@id/accessibility_custom_action_22 : reachable=true
+@id/accessibility_custom_action_23 : reachable=true
+@id/accessibility_custom_action_24 : reachable=true
+@id/accessibility_custom_action_25 : reachable=true
+@id/accessibility_custom_action_26 : reachable=true
+@id/accessibility_custom_action_27 : reachable=true
+@id/accessibility_custom_action_28 : reachable=true
+@id/accessibility_custom_action_29 : reachable=true
+@id/accessibility_custom_action_3 : reachable=true
+@id/accessibility_custom_action_30 : reachable=true
+@id/accessibility_custom_action_31 : reachable=true
+@id/accessibility_custom_action_4 : reachable=true
+@id/accessibility_custom_action_5 : reachable=true
+@id/accessibility_custom_action_6 : reachable=true
+@id/accessibility_custom_action_7 : reachable=true
+@id/accessibility_custom_action_8 : reachable=true
+@id/accessibility_custom_action_9 : reachable=true
+@id/action_container : reachable=true
+@id/action_divider : reachable=true
+@id/action_image : reachable=true
+@id/action_list : reachable=true
+@id/action_text : reachable=true
+@id/actions : reachable=true
+@id/adjust_height : reachable=false
+@id/adjust_width : reachable=false
+@id/all : reachable=false
+@id/androidx_compose_ui_view_composition_context : reachable=true
+@id/async : reachable=false
+@id/auto : reachable=false
+@id/blocking : reachable=true
+@id/bottom : reachable=false
+@id/butt : reachable=false
+@id/center : reachable=false
+@id/chronometer : reachable=false
+@id/compose_prefetch_scheduler : reachable=true
+@id/compose_view_saveable_id_tag : reachable=true
+@id/consume_window_insets_tag : reachable=false
+@id/dark : reachable=false
+@id/dialog_button : reachable=false
+@id/edit_text_id : reachable=false
+@id/end : reachable=false
+@id/forever : reachable=false
+@id/fragment_container_view_tag : reachable=true
+@id/height : reachable=true
+@id/hide_graphics_layer_in_inspector_tag : reachable=false
+@id/hide_ime_id : reachable=false
+@id/hide_in_inspector_tag : reachable=true
+@id/icon : reachable=true
+@id/icon_group : reachable=true
+@id/icon_only : reachable=true
+@id/info : reachable=false
+@id/inner : reachable=false
+@id/inspection_slot_table_set : reachable=true
+@id/is_pooling_container_tag : reachable=true
+@id/italic : reachable=true
+@id/item_touch_helper_previous_elevation : reachable=true
+@id/left : reachable=true
+@id/light : reachable=false
+@id/line1 : reachable=true
+@id/line3 : reachable=true
+@id/multiPage : reachable=false
+@id/nav_controller_view_tag : reachable=false
+@id/none : reachable=false
+@id/normal : reachable=false
+@id/notification_background : reachable=true
+@id/notification_main_column : reachable=true
+@id/notification_main_column_container : reachable=true
+@id/off : reachable=false
+@id/on : reachable=false
+@id/outer : reachable=false
+@id/pooling_container_listener_holder_tag : reachable=true
+@id/report_drawn : reachable=true
+@id/right : reachable=false
+@id/right_icon : reachable=false
+@id/right_side : reachable=false
+@id/round : reachable=false
+@id/singlePage : reachable=false
+@id/square : reachable=false
+@id/standard : reachable=false
+@id/start : reachable=true
+@id/tag_accessibility_actions : reachable=true
+@id/tag_accessibility_clickable_spans : reachable=true
+@id/tag_accessibility_heading : reachable=true
+@id/tag_accessibility_pane_title : reachable=true
+@id/tag_on_apply_window_listener : reachable=false
+@id/tag_on_receive_content_listener : reachable=false
+@id/tag_on_receive_content_mime_types : reachable=false
+@id/tag_screen_reader_focusable : reachable=true
+@id/tag_state_description : reachable=true
+@id/tag_transition_group : reachable=false
+@id/tag_unhandled_key_event_manager : reachable=false
+@id/tag_unhandled_key_listeners : reachable=false
+@id/tag_window_insets_animation_callback : reachable=true
+@id/text : reachable=true
+@id/text2 : reachable=true
+@id/time : reachable=false
+@id/title : reachable=true
+@id/top : reachable=true
+@id/view_tree_disjoint_parent : reachable=true
+@id/view_tree_lifecycle_owner : reachable=true
+@id/view_tree_on_back_pressed_dispatcher_owner : reachable=true
+@id/view_tree_saved_state_registry_owner : reachable=true
+@id/view_tree_view_model_store_owner : reachable=true
+@id/visible_removing_fragment_view_tag : reachable=true
+@id/wearable_support_confirmation_overlay_image : reachable=false
+@id/wearable_support_confirmation_overlay_message : reachable=false
+@id/wearable_support_overlay_confirmation : reachable=false
+@id/wide : reachable=false
+@id/width : reachable=true
+@id/wrapped_composition_tag : reachable=true
+@id/ws_action_drawer_expand_icon : reachable=false
+@id/ws_action_drawer_item_icon : reachable=false
+@id/ws_action_drawer_item_text : reachable=false
+@id/ws_action_drawer_peek_action_icon : reachable=false
+@id/ws_action_drawer_title : reachable=false
+@id/ws_drawer_view_peek_container : reachable=false
+@id/ws_drawer_view_peek_icon : reachable=false
+@id/ws_nav_drawer_icon_0 : reachable=false
+@id/ws_nav_drawer_icon_1 : reachable=false
+@id/ws_nav_drawer_icon_2 : reachable=false
+@id/ws_nav_drawer_icon_3 : reachable=false
+@id/ws_nav_drawer_icon_4 : reachable=false
+@id/ws_nav_drawer_icon_5 : reachable=false
+@id/ws_nav_drawer_icon_6 : reachable=false
+@id/ws_nav_drawer_text : reachable=false
+@id/ws_navigation_drawer_item_icon : reachable=false
+@id/ws_navigation_drawer_item_text : reachable=false
+@id/ws_navigation_drawer_page_indicator : reachable=false
+@id/ws_navigation_drawer_view_pager : reachable=false
+@integer/google_play_services_version : reachable=true
+@integer/status_bar_notification_info_maxnum : reachable=false
+@layout/custom_dialog : reachable=false
+@layout/ime_base_split_test_activity : reachable=true
+@layout/ime_secondary_split_test_activity : reachable=true
+@layout/notification_action : reachable=true
+    @style/Widget_Compat_NotificationActionContainer
+    @dimen/notification_action_icon_size
+    @style/Widget_Compat_NotificationActionText
+@layout/notification_action_tombstone : reachable=true
+    @style/Widget_Compat_NotificationActionContainer
+    @dimen/notification_action_icon_size
+    @style/Widget_Compat_NotificationActionText
+@layout/notification_template_custom_big : reachable=true
+    @layout/notification_template_icon_group
+    @dimen/notification_large_icon_width
+    @dimen/notification_large_icon_height
+    @dimen/notification_right_side_padding_top
+    @layout/notification_template_part_time
+    @layout/notification_template_part_chronometer
+    @style/TextAppearance_Compat_Notification_Info
+@layout/notification_template_icon_group : reachable=true
+    @dimen/notification_large_icon_width
+    @dimen/notification_large_icon_height
+    @dimen/notification_big_circle_margin
+    @dimen/notification_right_icon_size
+@layout/notification_template_part_chronometer : reachable=true
+    @style/TextAppearance_Compat_Notification_Time
+@layout/notification_template_part_time : reachable=true
+    @style/TextAppearance_Compat_Notification_Time
+@layout/ws_action_drawer_item_view : reachable=false
+    @drawable/ws_action_item_background
+    @drawable/ws_action_item_icon_background
+    @dimen/ws_action_drawer_item_icon_padding
+    @dimen/ws_action_drawer_item_icon_size
+    @style/WsWearableActionDrawerItemText
+@layout/ws_action_drawer_peek_view : reachable=false
+    @dimen/ws_action_drawer_peek_view_height
+    @dimen/ws_action_drawer_peek_top_padding
+    @dimen/ws_peek_view_icon_size
+    @drawable/ws_ic_expand_less_white_22
+    @dimen/ws_action_drawer_expand_icon_top_margin
+@layout/ws_action_drawer_title_view : reachable=false
+    @dimen/ws_action_drawer_title_start_weight
+    @style/WsWearableActionDrawerTitleText
+    @dimen/ws_action_drawer_title_body_weight
+    @dimen/ws_action_drawer_title_end_weight
+@layout/ws_navigation_drawer_item_view : reachable=false
+@layout/ws_navigation_drawer_view : reachable=false
+    @dimen/ws_peek_view_bottom_padding
+    @dimen/ws_peek_view_icon_size
+@layout/ws_overlay_confirmation : reachable=false
+    @dimen/confirmation_overlay_image_bottom_margin
+    @dimen/confirmation_overlay_image_size
+    @dimen/confirmation_overlay_text_bottom_margin
+    @dimen/confirmation_overlay_text_size
+    @dimen/confirmation_overlay_text_letter_spacing
+    @dimen/confirmation_overlay_text_line_height
+@layout/ws_single_page_nav_drawer_1_item : reachable=false
+    @dimen/ws_nav_drawer_top_space_weight
+    @style/WsSinglePageNavDrawerIconStyle
+    @dimen/ws_nav_drawer_items_weight
+    @layout/ws_single_page_nav_drawer_text
+@layout/ws_single_page_nav_drawer_2_item : reachable=false
+    @dimen/ws_nav_drawer_top_space_weight
+    @dimen/ws_nav_drawer_items_weight
+    @dimen/ws_nav_drawer_two_item_row_start_space_weight
+    @style/WsSinglePageNavDrawerIconStyle
+    @dimen/ws_nav_drawer_two_item_row_item_weight
+    @dimen/ws_nav_drawer_two_item_row_end_space_weight
+    @layout/ws_single_page_nav_drawer_text
+@layout/ws_single_page_nav_drawer_3_item : reachable=false
+    @dimen/ws_nav_drawer_top_space_weight
+    @dimen/ws_nav_drawer_items_weight
+    @dimen/ws_nav_drawer_three_item_row_start_space_weight
+    @style/WsSinglePageNavDrawerIconStyle
+    @dimen/ws_nav_drawer_three_item_row_item_weight
+    @dimen/ws_nav_drawer_three_item_row_end_space_weight
+    @layout/ws_single_page_nav_drawer_text
+@layout/ws_single_page_nav_drawer_4_item : reachable=false
+    @dimen/ws_nav_drawer_top_space_weight
+    @dimen/ws_nav_drawer_items_weight
+    @style/WsSinglePageNavDrawerIconStyle
+    @dimen/ws_nav_drawer_three_item_row_start_space_weight
+    @dimen/ws_nav_drawer_three_item_row_item_weight
+    @dimen/ws_nav_drawer_three_item_row_end_space_weight
+    @layout/ws_single_page_nav_drawer_text
+@layout/ws_single_page_nav_drawer_5_item : reachable=false
+    @dimen/ws_nav_drawer_top_space_weight
+    @dimen/ws_nav_drawer_items_weight
+    @dimen/ws_nav_drawer_two_item_row_start_space_weight
+    @style/WsSinglePageNavDrawerIconStyle
+    @dimen/ws_nav_drawer_two_item_row_item_weight
+    @dimen/ws_nav_drawer_two_item_row_end_space_weight
+    @dimen/ws_nav_drawer_three_item_row_start_space_weight
+    @dimen/ws_nav_drawer_three_item_row_item_weight
+    @dimen/ws_nav_drawer_three_item_row_end_space_weight
+    @layout/ws_single_page_nav_drawer_text
+@layout/ws_single_page_nav_drawer_6_item : reachable=false
+    @dimen/ws_nav_drawer_top_space_weight
+    @dimen/ws_nav_drawer_items_weight
+    @dimen/ws_nav_drawer_three_item_row_start_space_weight
+    @style/WsSinglePageNavDrawerIconStyle
+    @dimen/ws_nav_drawer_three_item_row_item_weight
+    @dimen/ws_nav_drawer_three_item_row_end_space_weight
+    @layout/ws_single_page_nav_drawer_text
+@layout/ws_single_page_nav_drawer_7_item : reachable=false
+    @dimen/ws_nav_drawer_top_space_weight
+    @dimen/ws_nav_drawer_items_weight
+    @dimen/ws_nav_drawer_two_item_row_start_space_weight
+    @style/WsSinglePageNavDrawerIconStyle
+    @dimen/ws_nav_drawer_two_item_row_item_weight
+    @dimen/ws_nav_drawer_two_item_row_end_space_weight
+    @dimen/ws_nav_drawer_three_item_row_start_space_weight
+    @dimen/ws_nav_drawer_three_item_row_item_weight
+    @dimen/ws_nav_drawer_three_item_row_end_space_weight
+    @layout/ws_single_page_nav_drawer_text
+@layout/ws_single_page_nav_drawer_peek_view : reachable=false
+    @dimen/ws_peek_view_bottom_padding
+    @dimen/ws_peek_view_top_padding
+    @drawable/ws_ic_expand_more_white_22
+    @dimen/ws_peek_view_icon_size
+@layout/ws_single_page_nav_drawer_text : reachable=false
+    @dimen/ws_nav_drawer_text_size
+    @dimen/ws_nav_drawer_single_page_half_icon_size
+    @dimen/ws_nav_drawer_bottom_text_box_weight
+@layout/ws_wearable_drawer_view : reachable=false
+    @dimen/ws_peek_view_bottom_padding
+    @dimen/ws_peek_view_icon_size
+    @dimen/ws_peek_view_top_padding
+@mipmap/ic_launcher : reachable=true
+    @drawable/ic_launcher_background
+    @drawable/ic_launcher_foreground
+@mipmap/ic_launcher_round : reachable=true
+    @drawable/ic_launcher_background
+    @drawable/ic_launcher_foreground
+@string/androidx_startup : reachable=true
+@string/app_name : reachable=true
+@string/autofill : reachable=false
+@string/avg_bpm : reachable=true
+@string/bpm_unit : reachable=true
+@string/call_notification_answer_action : reachable=false
+@string/call_notification_answer_video_action : reachable=false
+@string/call_notification_decline_action : reachable=false
+@string/call_notification_hang_up_action : reachable=false
+@string/call_notification_incoming_text : reachable=false
+@string/call_notification_ongoing_text : reachable=false
+@string/call_notification_screening_text : reachable=false
+@string/close_drawer : reachable=true
+@string/close_sheet : reachable=true
+@string/common_google_play_services_enable_button : reachable=true
+@string/common_google_play_services_enable_text : reachable=true
+@string/common_google_play_services_enable_title : reachable=true
+@string/common_google_play_services_install_button : reachable=true
+@string/common_google_play_services_install_text : reachable=true
+@string/common_google_play_services_install_title : reachable=true
+@string/common_google_play_services_notification_channel_name : reachable=true
+@string/common_google_play_services_notification_ticker : reachable=true
+@string/common_google_play_services_unknown_issue : reachable=true
+@string/common_google_play_services_unsupported_text : reachable=true
+@string/common_google_play_services_update_button : reachable=true
+@string/common_google_play_services_update_text : reachable=true
+@string/common_google_play_services_update_title : reachable=true
+@string/common_google_play_services_updating_text : reachable=true
+@string/common_google_play_services_wear_update_text : reachable=true
+@string/common_open_on_phone : reachable=true
+@string/common_signin_button_text : reachable=false
+@string/common_signin_button_text_long : reachable=false
+@string/complete_scheda : reachable=true
+@string/completed_label : reachable=true
+@string/confirmation_overlay_a11y_description_fail : reachable=false
+@string/confirmation_overlay_a11y_description_phone : reachable=false
+@string/confirmation_overlay_a11y_description_success : reachable=false
+@string/default_error_message : reachable=true
+@string/default_popup_window_title : reachable=false
+@string/dropdown_menu : reachable=true
+@string/exercises_title : reachable=true
+@string/heart_rate_label : reachable=true
+@string/in_progress : reachable=true
+@string/indeterminate : reachable=true
+@string/max_bpm : reachable=true
+@string/navigation_menu : reachable=true
+@string/no_schede : reachable=true
+@string/not_selected : reachable=true
+@string/range_end : reachable=true
+@string/range_start : reachable=true
+@string/schede_title : reachable=true
+@string/selected : reachable=true
+@string/sensor_unavailable : reachable=true
+@string/snackbar_pane_title : reachable=false
+@string/start_workout_prompt : reachable=true
+@string/state_empty : reachable=true
+@string/state_off : reachable=true
+@string/state_on : reachable=true
+@string/status_bar_notification_info_overflow : reachable=false
+@string/steps_label : reachable=true
+@string/switch_role : reachable=true
+@string/tab : reachable=true
+@string/tab_monitor : reachable=true
+@string/tab_workout : reachable=true
+@string/template_percent : reachable=true
+@string/toggle_exercise : reachable=true
+@string/tooltip_description : reachable=true
+@string/tooltip_label : reachable=true
+@string/ws_action_drawer_content_description : reachable=false
+@string/ws_navigation_drawer_content_description : reachable=false
+@style/ConfirmationActivity : reachable=false
+@style/DialogWindowTheme : reachable=false
+@style/FloatingDialogWindowTheme : reachable=false
+@style/TextAppearance_Compat_Notification : reachable=true
+@style/TextAppearance_Compat_Notification_Info : reachable=true
+@style/TextAppearance_Compat_Notification_Line2 : reachable=true
+    @style/TextAppearance_Compat_Notification_Info
+@style/TextAppearance_Compat_Notification_Time : reachable=true
+@style/TextAppearance_Compat_Notification_Title : reachable=true
+@style/Theme_FityoWear : reachable=true
+@style/Widget_Compat_NotificationActionContainer : reachable=false
+    @drawable/notification_action_background
+@style/Widget_Compat_NotificationActionText : reachable=false
+    @color/androidx_core_secondary_text_default_material_light
+    @dimen/notification_action_text_size
+@style/Widget_Wear_RoundSwitch : reachable=false
+    @dimen/ws_switch_size
+    @drawable/ws_switch_thumb_material_anim
+    @color/ws_switch_thumb_color_material
+    @drawable/ws_switch_track_mtrl
+    @color/ws_switch_track_color_material
+@style/Widget_Wear_WearableDrawerView : reachable=false
+    @dimen/ws_wearable_drawer_view_elevation
+@style/WsHorizontalGuideStyle : reachable=false
+@style/WsPageIndicatorViewStyle : reachable=true
+    @attr/wsPageIndicatorDotSpacing
+    @attr/wsPageIndicatorDotRadius
+    @attr/wsPageIndicatorDotRadiusSelected
+    @attr/wsPageIndicatorDotColor
+    @attr/wsPageIndicatorDotColorSelected
+    @attr/wsPageIndicatorDotFadeOutDelay
+    @attr/wsPageIndicatorDotFadeOutDuration
+    @attr/wsPageIndicatorDotFadeInDuration
+    @attr/wsPageIndicatorDotFadeWhenIdle
+    @attr/wsPageIndicatorDotShadowColor
+    @attr/wsPageIndicatorDotShadowRadius
+    @attr/wsPageIndicatorDotShadowDx
+    @attr/wsPageIndicatorDotShadowDy
+@style/WsSinglePageNavDrawerIconStyle : reachable=false
+    @dimen/ws_nav_drawer_single_page_icon_size
+    @dimen/ws_nav_drawer_single_page_icon_padding
+    @dimen/ws_nav_drawer_single_page_circle_radius
+    @attr/background_radius
+    @attr/background_color
+@style/WsVerticalGuideStyle : reachable=false
+@style/WsWearableActionDrawerItemText : reachable=false
+    @dimen/ws_action_drawer_item_text_size
+@style/WsWearableActionDrawerTitleText : reachable=false
+
+The root reachable resources are:
+ anim:fragment_close_enter:2130771968
+ anim:fragment_close_exit:2130771969
+ anim:fragment_fade_enter:2130771970
+ anim:fragment_fade_exit:2130771971
+ anim:fragment_fast_out_extra_slow_in:2130771972
+ anim:fragment_open_enter:2130771973
+ anim:fragment_open_exit:2130771974
+ anim:generic_confirmation_animation:2130771975
+ anim:generic_confirmation_animation_interpolator_0:2130771976
+ anim:generic_confirmation_animation_interpolator_1:2130771977
+ anim:generic_confirmation_animation_interpolator_2:2130771978
+ anim:generic_confirmation_animation_interpolator_3:2130771979
+ anim:generic_confirmation_icon_animation:2130771980
+ attr:action:2130903040
+ attr:actionMenu:2130903041
+ attr:backgroundColor:2130903046
+ attr:background_border_cap:2130903047
+ attr:background_border_color:2130903048
+ attr:background_border_width:2130903049
+ attr:background_color:2130903050
+ attr:background_radius:2130903051
+ attr:background_radius_percent:2130903052
+ attr:background_radius_pressed:2130903053
+ attr:background_radius_pressed_percent:2130903054
+ attr:background_shadow_width:2130903055
+ attr:colorScheme:2130903064
+ attr:colorSchemeColors:2130903065
+ attr:data:2130903066
+ attr:dataPattern:2130903067
+ attr:destination:2130903068
+ attr:exitAnim:2130903073
+ attr:maxSweepDegrees:2130903106
+ attr:minSweepDegrees:2130903108
+ attr:nullable:2130903112
+ attr:queryPatterns:2130903119
+ attr:shortcutMatchRequired:2130903127
+ attr:startDestination:2130903131
+ attr:uri:2130903135
+ color:notification_action_color_filter:2130968596
+ color:notification_icon_bg_color:2130968597
+ dimen:item_touch_helper_max_drag_scroll_per_frame:2131034129
+ dimen:item_touch_helper_swipe_escape_max_velocity:2131034130
+ dimen:item_touch_helper_swipe_escape_velocity:2131034131
+ dimen:notification_action_icon_size:2131034132
+ dimen:notification_action_text_size:2131034133
+ dimen:notification_big_circle_margin:2131034134
+ dimen:notification_content_margin_start:2131034135
+ dimen:notification_large_icon_height:2131034136
+ dimen:notification_large_icon_width:2131034137
+ dimen:notification_main_column_padding_top:2131034138
+ dimen:notification_media_narrow_margin:2131034139
+ dimen:notification_right_icon_size:2131034140
+ dimen:notification_right_side_padding_top:2131034141
+ dimen:notification_small_icon_background_padding:2131034142
+ dimen:notification_small_icon_size_as_large:2131034143
+ dimen:notification_subtext_size:2131034144
+ dimen:notification_top_pad:2131034145
+ dimen:notification_top_pad_large_text:2131034146
+ drawable:common_full_open_on_phone:2131099709
+ drawable:failure_animation:2131099729
+ drawable:notification_action_background:2131099740
+ drawable:notification_bg:2131099741
+ drawable:notification_bg_low:2131099742
+ drawable:notification_bg_low_normal:2131099743
+ drawable:notification_bg_low_pressed:2131099744
+ drawable:notification_bg_normal:2131099745
+ drawable:notification_bg_normal_pressed:2131099746
+ drawable:notification_icon_background:2131099747
+ drawable:notification_oversize_large_icon_bg:2131099748
+ drawable:notification_template_icon_bg:2131099749
+ drawable:notification_template_icon_low_bg:2131099750
+ drawable:notification_tile_bg:2131099751
+ id:accessibility_action_clickable_span:2131230720
+ id:accessibility_custom_action_0:2131230721
+ id:accessibility_custom_action_1:2131230722
+ id:accessibility_custom_action_10:2131230723
+ id:accessibility_custom_action_11:2131230724
+ id:accessibility_custom_action_12:2131230725
+ id:accessibility_custom_action_13:2131230726
+ id:accessibility_custom_action_14:2131230727
+ id:accessibility_custom_action_15:2131230728
+ id:accessibility_custom_action_16:2131230729
+ id:accessibility_custom_action_17:2131230730
+ id:accessibility_custom_action_18:2131230731
+ id:accessibility_custom_action_19:2131230732
+ id:accessibility_custom_action_2:2131230733
+ id:accessibility_custom_action_20:2131230734
+ id:accessibility_custom_action_21:2131230735
+ id:accessibility_custom_action_22:2131230736
+ id:accessibility_custom_action_23:2131230737
+ id:accessibility_custom_action_24:2131230738
+ id:accessibility_custom_action_25:2131230739
+ id:accessibility_custom_action_26:2131230740
+ id:accessibility_custom_action_27:2131230741
+ id:accessibility_custom_action_28:2131230742
+ id:accessibility_custom_action_29:2131230743
+ id:accessibility_custom_action_3:2131230744
+ id:accessibility_custom_action_30:2131230745
+ id:accessibility_custom_action_31:2131230746
+ id:accessibility_custom_action_4:2131230747
+ id:accessibility_custom_action_5:2131230748
+ id:accessibility_custom_action_6:2131230749
+ id:accessibility_custom_action_7:2131230750
+ id:accessibility_custom_action_8:2131230751
+ id:accessibility_custom_action_9:2131230752
+ id:action_container:2131230753
+ id:action_divider:2131230754
+ id:action_image:2131230755
+ id:action_list:2131230756
+ id:action_text:2131230757
+ id:actions:2131230758
+ id:androidx_compose_ui_view_composition_context:2131230762
+ id:blocking:2131230765
+ id:compose_prefetch_scheduler:2131230770
+ id:compose_view_saveable_id_tag:2131230771
+ id:fragment_container_view_tag:2131230778
+ id:height:2131230779
+ id:hide_in_inspector_tag:2131230782
+ id:icon:2131230783
+ id:icon_group:2131230784
+ id:icon_only:2131230785
+ id:inspection_slot_table_set:2131230788
+ id:is_pooling_container_tag:2131230789
+ id:italic:2131230790
+ id:item_touch_helper_previous_elevation:2131230791
+ id:left:2131230792
+ id:line1:2131230794
+ id:line3:2131230795
+ id:notification_background:2131230800
+ id:notification_main_column:2131230801
+ id:notification_main_column_container:2131230802
+ id:pooling_container_listener_holder_tag:2131230806
+ id:report_drawn:2131230807
+ id:start:2131230815
+ id:tag_accessibility_actions:2131230816
+ id:tag_accessibility_clickable_spans:2131230817
+ id:tag_accessibility_heading:2131230818
+ id:tag_accessibility_pane_title:2131230819
+ id:tag_screen_reader_focusable:2131230823
+ id:tag_state_description:2131230824
+ id:tag_window_insets_animation_callback:2131230828
+ id:text:2131230829
+ id:text2:2131230830
+ id:title:2131230832
+ id:top:2131230833
+ id:view_tree_disjoint_parent:2131230834
+ id:view_tree_lifecycle_owner:2131230835
+ id:view_tree_on_back_pressed_dispatcher_owner:2131230836
+ id:view_tree_saved_state_registry_owner:2131230837
+ id:view_tree_view_model_store_owner:2131230838
+ id:visible_removing_fragment_view_tag:2131230839
+ id:width:2131230844
+ id:wrapped_composition_tag:2131230845
+ integer:google_play_services_version:2131296256
+ layout:ime_base_split_test_activity:2131361793
+ layout:ime_secondary_split_test_activity:2131361794
+ layout:notification_action:2131361795
+ layout:notification_action_tombstone:2131361796
+ layout:notification_template_custom_big:2131361797
+ layout:notification_template_icon_group:2131361798
+ layout:notification_template_part_chronometer:2131361799
+ layout:notification_template_part_time:2131361800
+ mipmap:ic_launcher:2131427328
+ mipmap:ic_launcher_round:2131427329
+ string:androidx_startup:2131492864
+ string:app_name:2131492865
+ string:avg_bpm:2131492867
+ string:bpm_unit:2131492868
+ string:close_drawer:2131492876
+ string:close_sheet:2131492877
+ string:common_google_play_services_enable_button:2131492878
+ string:common_google_play_services_enable_text:2131492879
+ string:common_google_play_services_enable_title:2131492880
+ string:common_google_play_services_install_button:2131492881
+ string:common_google_play_services_install_text:2131492882
+ string:common_google_play_services_install_title:2131492883
+ string:common_google_play_services_notification_channel_name:2131492884
+ string:common_google_play_services_notification_ticker:2131492885
+ string:common_google_play_services_unknown_issue:2131492886
+ string:common_google_play_services_unsupported_text:2131492887
+ string:common_google_play_services_update_button:2131492888
+ string:common_google_play_services_update_text:2131492889
+ string:common_google_play_services_update_title:2131492890
+ string:common_google_play_services_updating_text:2131492891
+ string:common_google_play_services_wear_update_text:2131492892
+ string:common_open_on_phone:2131492893
+ string:complete_scheda:2131492896
+ string:completed_label:2131492897
+ string:default_error_message:2131492901
+ string:dropdown_menu:2131492903
+ string:exercises_title:2131492904
+ string:heart_rate_label:2131492905
+ string:in_progress:2131492906
+ string:indeterminate:2131492907
+ string:max_bpm:2131492908
+ string:navigation_menu:2131492909
+ string:no_schede:2131492910
+ string:not_selected:2131492911
+ string:range_end:2131492912
+ string:range_start:2131492913
+ string:schede_title:2131492914
+ string:selected:2131492915
+ string:sensor_unavailable:2131492916
+ string:start_workout_prompt:2131492918
+ string:state_empty:2131492919
+ string:state_off:2131492920
+ string:state_on:2131492921
+ string:steps_label:2131492923
+ string:switch_role:2131492924
+ string:tab:2131492925
+ string:tab_monitor:2131492926
+ string:tab_workout:2131492927
+ string:template_percent:2131492928
+ string:toggle_exercise:2131492929
+ string:tooltip_description:2131492930
+ string:tooltip_label:2131492931
+ style:TextAppearance_Compat_Notification:2131558403
+ style:TextAppearance_Compat_Notification_Info:2131558404
+ style:TextAppearance_Compat_Notification_Line2:2131558405
+ style:TextAppearance_Compat_Notification_Time:2131558406
+ style:TextAppearance_Compat_Notification_Title:2131558407
+ style:Theme_FityoWear:2131558408
+ style:WsPageIndicatorViewStyle:2131558414
+Unused resources are: 
+ anim:open_on_phone_animation_interpolator_0:2130771981
+ anim:open_on_phone_animation_interpolator_1:2130771982
+ anim:open_on_phone_arrow_animation:2130771983
+ anim:open_on_phone_path_1_animation:2130771984
+ anim:open_on_phone_path_2_animation:2130771985
+ array:circular_progress_layout_color_scheme_colors:2130837504
+ color:call_notification_answer_color:2130968578
+ color:call_notification_decline_color:2130968579
+ color:circular_progress_layout_background_color:2130968580
+ color:circular_progress_layout_blue:2130968581
+ color:circular_progress_layout_green:2130968582
+ color:circular_progress_layout_red:2130968583
+ color:circular_progress_layout_yellow:2130968584
+ color:common_google_signin_btn_text_dark:2130968585
+ color:common_google_signin_btn_text_dark_default:2130968586
+ color:common_google_signin_btn_text_dark_disabled:2130968587
+ color:common_google_signin_btn_text_dark_focused:2130968588
+ color:common_google_signin_btn_text_dark_pressed:2130968589
+ color:common_google_signin_btn_text_light:2130968590
+ color:common_google_signin_btn_text_light_default:2130968591
+ color:common_google_signin_btn_text_light_disabled:2130968592
+ color:common_google_signin_btn_text_light_focused:2130968593
+ color:common_google_signin_btn_text_light_pressed:2130968594
+ color:common_google_signin_btn_tint:2130968595
+ color:vector_tint_color:2130968598
+ color:vector_tint_theme_color:2130968599
+ color:ws_switch_thumb_color_material:2130968600
+ color:ws_switch_track_color_material:2130968601
+ dimen:circular_progress_layout_stroke_width:2131034112
+ dimen:compat_notification_large_icon_max_height:2131034118
+ dimen:compat_notification_large_icon_max_width:2131034119
+ dimen:confirmation_overlay_image_bottom_margin:2131034120
+ dimen:confirmation_overlay_image_size:2131034121
+ dimen:confirmation_overlay_text_bottom_margin:2131034122
+ dimen:confirmation_overlay_text_letter_spacing:2131034123
+ dimen:confirmation_overlay_text_line_height:2131034124
+ dimen:confirmation_overlay_text_size:2131034125
+ dimen:fastscroll_default_thickness:2131034126
+ dimen:fastscroll_margin:2131034127
+ dimen:fastscroll_minimum_range:2131034128
+ dimen:ws_action_drawer_expand_icon_top_margin:2131034147
+ dimen:ws_action_drawer_item_bottom_padding:2131034148
+ dimen:ws_action_drawer_item_icon_padding:2131034149
+ dimen:ws_action_drawer_item_icon_right_margin:2131034150
+ dimen:ws_action_drawer_item_icon_size:2131034151
+ dimen:ws_action_drawer_item_text_size:2131034152
+ dimen:ws_action_drawer_item_top_padding:2131034153
+ dimen:ws_action_drawer_peek_top_padding:2131034154
+ dimen:ws_action_drawer_peek_view_height:2131034155
+ dimen:ws_action_drawer_title_body_weight:2131034156
+ dimen:ws_action_drawer_title_end_weight:2131034157
+ dimen:ws_action_drawer_title_start_weight:2131034158
+ dimen:ws_drawer_view_edge_size:2131034159
+ dimen:ws_nav_drawer_bottom_text_box_weight:2131034160
+ dimen:ws_nav_drawer_items_weight:2131034161
+ dimen:ws_nav_drawer_single_page_circle_radius:2131034162
+ dimen:ws_nav_drawer_single_page_half_icon_size:2131034163
+ dimen:ws_nav_drawer_single_page_icon_padding:2131034164
+ dimen:ws_nav_drawer_single_page_icon_size:2131034165
+ dimen:ws_nav_drawer_text_size:2131034166
+ dimen:ws_nav_drawer_three_item_row_end_space_weight:2131034167
+ dimen:ws_nav_drawer_three_item_row_item_weight:2131034168
+ dimen:ws_nav_drawer_three_item_row_start_space_weight:2131034169
+ dimen:ws_nav_drawer_top_space_weight:2131034170
+ dimen:ws_nav_drawer_two_item_row_end_space_weight:2131034171
+ dimen:ws_nav_drawer_two_item_row_item_weight:2131034172
+ dimen:ws_nav_drawer_two_item_row_start_space_weight:2131034173
+ dimen:ws_peek_view_bottom_padding:2131034174
+ dimen:ws_peek_view_icon_size:2131034175
+ dimen:ws_peek_view_top_padding:2131034176
+ dimen:ws_switch_size:2131034177
+ dimen:ws_wearable_drawer_view_elevation:2131034178
+ dimen:ws_wrv_curve_default_x_offset:2131034179
+ drawable:$confirmation_animation__0:2131099648
+ drawable:$confirmation_animation__1:2131099649
+ drawable:$confirmation_animation__2:2131099650
+ drawable:$confirmation_animation__3:2131099651
+ drawable:$confirmation_animation__4:2131099652
+ drawable:$open_on_phone_animation__0:2131099693
+ drawable:$open_on_phone_animation__1:2131099694
+ drawable:$open_on_phone_animation__10:2131099695
+ drawable:$open_on_phone_animation__11:2131099696
+ drawable:$open_on_phone_animation__12:2131099697
+ drawable:$open_on_phone_animation__13:2131099698
+ drawable:$open_on_phone_animation__2:2131099699
+ drawable:$open_on_phone_animation__3:2131099700
+ drawable:$open_on_phone_animation__4:2131099701
+ drawable:$open_on_phone_animation__5:2131099702
+ drawable:$open_on_phone_animation__6:2131099703
+ drawable:$open_on_phone_animation__7:2131099704
+ drawable:$open_on_phone_animation__8:2131099705
+ drawable:$open_on_phone_animation__9:2131099706
+ drawable:circular_vignette_bottom:2131099707
+ drawable:circular_vignette_top:2131099708
+ drawable:common_google_signin_btn_icon_dark:2131099710
+ drawable:common_google_signin_btn_icon_dark_focused:2131099711
+ drawable:common_google_signin_btn_icon_dark_normal:2131099712
+ drawable:common_google_signin_btn_icon_dark_normal_background:2131099713
+ drawable:common_google_signin_btn_icon_disabled:2131099714
+ drawable:common_google_signin_btn_icon_light:2131099715
+ drawable:common_google_signin_btn_icon_light_focused:2131099716
+ drawable:common_google_signin_btn_icon_light_normal:2131099717
+ drawable:common_google_signin_btn_icon_light_normal_background:2131099718
+ drawable:common_google_signin_btn_text_dark:2131099719
+ drawable:common_google_signin_btn_text_dark_focused:2131099720
+ drawable:common_google_signin_btn_text_dark_normal:2131099721
+ drawable:common_google_signin_btn_text_dark_normal_background:2131099722
+ drawable:common_google_signin_btn_text_disabled:2131099723
+ drawable:common_google_signin_btn_text_light:2131099724
+ drawable:common_google_signin_btn_text_light_focused:2131099725
+ drawable:common_google_signin_btn_text_light_normal:2131099726
+ drawable:common_google_signin_btn_text_light_normal_background:2131099727
+ drawable:confirmation_animation:2131099728
+ drawable:googleg_disabled_color_18:2131099730
+ drawable:googleg_standard_color_18:2131099731
+ drawable:ic_call_answer:2131099732
+ drawable:ic_call_answer_low:2131099733
+ drawable:ic_call_answer_video:2131099734
+ drawable:ic_call_answer_video_low:2131099735
+ drawable:ic_call_decline:2131099736
+ drawable:ic_call_decline_low:2131099737
+ drawable:open_on_phone_animation:2131099753
+ drawable:rectangular_vignette_bottom:2131099754
+ drawable:rectangular_vignette_top:2131099755
+ drawable:ws_action_item_background:2131099756
+ drawable:ws_action_item_icon_background:2131099757
+ drawable:ws_full_sad:2131099758
+ drawable:ws_ic_expand_less_white_22:2131099759
+ drawable:ws_ic_expand_more_white_22:2131099760
+ drawable:ws_ic_more_horiz_24dp_wht:2131099761
+ drawable:ws_ic_more_vert_24dp_wht:2131099762
+ drawable:ws_switch_thumb_material_anim:2131099763
+ drawable:ws_switch_thumb_mtrl_14w:2131099764
+ drawable:ws_switch_thumb_mtrl_15w:2131099765
+ drawable:ws_switch_thumb_mtrl_16w:2131099766
+ drawable:ws_switch_thumb_mtrl_17w:2131099767
+ drawable:ws_switch_thumb_mtrl_18w:2131099768
+ drawable:ws_switch_track_mtrl:2131099769
+ fraction:confirmation_overlay_text_inset_margin:2131165184
+ fraction:ws_action_drawer_item_first_item_top_padding:2131165185
+ fraction:ws_action_drawer_item_last_item_bottom_padding:2131165186
+ fraction:ws_action_drawer_item_left_padding:2131165187
+ fraction:ws_action_drawer_item_right_padding:2131165188
+ id:adjust_height:2131230759
+ id:adjust_width:2131230760
+ id:all:2131230761
+ id:async:2131230763
+ id:auto:2131230764
+ id:bottom:2131230766
+ id:butt:2131230767
+ id:center:2131230768
+ id:chronometer:2131230769
+ id:consume_window_insets_tag:2131230772
+ id:dark:2131230773
+ id:dialog_button:2131230774
+ id:edit_text_id:2131230775
+ id:end:2131230776
+ id:forever:2131230777
+ id:hide_graphics_layer_in_inspector_tag:2131230780
+ id:hide_ime_id:2131230781
+ id:info:2131230786
+ id:inner:2131230787
+ id:light:2131230793
+ id:multiPage:2131230796
+ id:nav_controller_view_tag:2131230797
+ id:none:2131230798
+ id:normal:2131230799
+ id:off:2131230803
+ id:on:2131230804
+ id:outer:2131230805
+ id:right:2131230808
+ id:right_icon:2131230809
+ id:right_side:2131230810
+ id:round:2131230811
+ id:singlePage:2131230812
+ id:square:2131230813
+ id:standard:2131230814
+ id:tag_on_apply_window_listener:2131230820
+ id:tag_on_receive_content_listener:2131230821
+ id:tag_on_receive_content_mime_types:2131230822
+ id:tag_transition_group:2131230825
+ id:tag_unhandled_key_event_manager:2131230826
+ id:tag_unhandled_key_listeners:2131230827
+ id:time:2131230831
+ id:wearable_support_confirmation_overlay_image:2131230840
+ id:wearable_support_confirmation_overlay_message:2131230841
+ id:wearable_support_overlay_confirmation:2131230842
+ id:wide:2131230843
+ id:ws_action_drawer_expand_icon:2131230846
+ id:ws_action_drawer_item_icon:2131230847
+ id:ws_action_drawer_item_text:2131230848
+ id:ws_action_drawer_peek_action_icon:2131230849
+ id:ws_action_drawer_title:2131230850
+ id:ws_drawer_view_peek_container:2131230851
+ id:ws_drawer_view_peek_icon:2131230852
+ id:ws_nav_drawer_icon_0:2131230853
+ id:ws_nav_drawer_icon_1:2131230854
+ id:ws_nav_drawer_icon_2:2131230855
+ id:ws_nav_drawer_icon_3:2131230856
+ id:ws_nav_drawer_icon_4:2131230857
+ id:ws_nav_drawer_icon_5:2131230858
+ id:ws_nav_drawer_icon_6:2131230859
+ id:ws_nav_drawer_text:2131230860
+ id:ws_navigation_drawer_item_icon:2131230861
+ id:ws_navigation_drawer_item_text:2131230862
+ id:ws_navigation_drawer_page_indicator:2131230863
+ id:ws_navigation_drawer_view_pager:2131230864
+ integer:status_bar_notification_info_maxnum:2131296257
+ layout:custom_dialog:2131361792
+ layout:ws_action_drawer_item_view:2131361801
+ layout:ws_action_drawer_peek_view:2131361802
+ layout:ws_action_drawer_title_view:2131361803
+ layout:ws_navigation_drawer_item_view:2131361804
+ layout:ws_navigation_drawer_view:2131361805
+ layout:ws_overlay_confirmation:2131361806
+ layout:ws_single_page_nav_drawer_1_item:2131361807
+ layout:ws_single_page_nav_drawer_2_item:2131361808
+ layout:ws_single_page_nav_drawer_3_item:2131361809
+ layout:ws_single_page_nav_drawer_4_item:2131361810
+ layout:ws_single_page_nav_drawer_5_item:2131361811
+ layout:ws_single_page_nav_drawer_6_item:2131361812
+ layout:ws_single_page_nav_drawer_7_item:2131361813
+ layout:ws_single_page_nav_drawer_peek_view:2131361814
+ layout:ws_single_page_nav_drawer_text:2131361815
+ layout:ws_wearable_drawer_view:2131361816
+ string:autofill:2131492866
+ string:call_notification_answer_action:2131492869
+ string:call_notification_answer_video_action:2131492870
+ string:call_notification_decline_action:2131492871
+ string:call_notification_hang_up_action:2131492872
+ string:call_notification_incoming_text:2131492873
+ string:call_notification_ongoing_text:2131492874
+ string:call_notification_screening_text:2131492875
+ string:common_signin_button_text:2131492894
+ string:common_signin_button_text_long:2131492895
+ string:confirmation_overlay_a11y_description_fail:2131492898
+ string:confirmation_overlay_a11y_description_phone:2131492899
+ string:confirmation_overlay_a11y_description_success:2131492900
+ string:default_popup_window_title:2131492902
+ string:snackbar_pane_title:2131492917
+ string:status_bar_notification_info_overflow:2131492922
+ string:ws_action_drawer_content_description:2131492932
+ string:ws_navigation_drawer_content_description:2131492933
+ style:ConfirmationActivity:2131558400
+ style:DialogWindowTheme:2131558401
+ style:FloatingDialogWindowTheme:2131558402
+ style:Widget_Wear_RoundSwitch:2131558411
+ style:Widget_Wear_WearableDrawerView:2131558412
+ style:WsHorizontalGuideStyle:2131558413
+ style:WsSinglePageNavDrawerIconStyle:2131558415
+ style:WsVerticalGuideStyle:2131558416
+ style:WsWearableActionDrawerItemText:2131558417
+ style:WsWearableActionDrawerTitleText:2131558418

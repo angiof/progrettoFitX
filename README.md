@@ -1,4 +1,4 @@
-# ProgrettoFitX
+# Fityo
 
 Applicazione Android nata come progetto da palestra per gestire schede di allenamento tramite un CRUD locale. L'app usa UI XML tradizionali, Room per il database ed MPAndroidChart per visualizzare trend e riepiloghi grafici.
 
@@ -47,7 +47,7 @@ app/
 - **Bug Apri Schede**: l'accesso all'activity dei filtri non forza piu' la navigazione verso la creazione schede; viene mostrato uno stato "vuoto" con CTA se il DB e' privo di schede.
 - **UI Home**: `AdapterHome` ora delega gli eventi alla `HomeFragment`, supporta l'enum `HomeMenuAction` e usa direttamente le risorse drawable.
 - **Activity Compose Apri Schede**: lo shortcut "Apri Schede" apre ora `SchedeListActivity` (Compose) con lista, riepilogo esercizi e CTA dirette verso `AcitivySheda` per aggiungere/modificare esercizi riusando il flusso esistente.
-- **Export/Share PDF**: da `SchedeListActivity` puoi salvare la scheda (Documenti/ProgrettoFitX) e condividerla subito con WhatsApp/Telegram tramite il FileProvider interno.
+- **Export/Share PDF**: da `SchedeListActivity` puoi salvare la scheda (Documenti/Fityo) e condividerla subito con WhatsApp/Telegram tramite il FileProvider interno.
 - **Dettaglio scheda Compose**: dialog full screen brandizzato (toolbar #455A64, font Montserrat) con CRUD esercizi inline e CTA coerenti con il resto dell’app.
 - **Tema dark coerente**: tutte le schermate principali (home, dashboard, form di creazione, Compose dialog) utilizzano ora la palette `second/#455A64` + surface scure per ridurre l’affaticamento visivo.
 - **Dashboard powerlifting**: la sezione ora ha background gradiente, card moderne e metriche aggiornate (schede, preferite, esercizi, ultima sessione) per avere un colpo d’occhio immediato sui progressi.

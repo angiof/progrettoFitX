@@ -1,21 +1,23 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# Core keeps
+-keepclassmembers class * {
+    @androidx.annotation.Keep *;
+}
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# Room
+-keep @androidx.room.Dao class *
+-keepclassmembers class * {
+    @androidx.room.* <methods>;
+}
+-keep class * extends androidx.room.RoomDatabase
+-dontwarn androidx.room.paging.LimitOffsetDataSource
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# Compose
+-keep class androidx.compose.runtime.ComposerImpl { *; }
+-keep class androidx.compose.runtime.ComposerKt { *; }
+-dontwarn androidx.compose.**
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# Gson
+-dontwarn com.google.gson.**
+
+# Kotlinx metadata (used by Room)
+-dontwarn kotlinx.metadata.**

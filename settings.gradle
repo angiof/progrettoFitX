@@ -13,5 +13,5 @@ dependencyResolutionManagement {
         maven { url 'https://jitpack.io' }
     }
 }
-rootProject.name = "progrettoFitX"
-include ':app'
+rootProject.name = "Fityo"
+include ':app', ':wear'
