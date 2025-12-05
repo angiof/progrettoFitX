@@ -1,0 +1,241 @@
+<resources>
+    <string name="app_name">Fityo</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+    <string name="crea_scheda">Create plan</string>
+    <string name="title_activity_base_acitivity">BaseActivity</string>
+    <string name="tab_text_1">Tab 1</string>
+    <string name="tab_text_2">Tab 2</string>
+    <string name="hello_blank_fragment">Blank fragment</string>
+    <string name="inserisce_data">Enter date</string>
+    <string name="accessori_da_usare_cose_da_non_dimenticate">Accessories to use, things not to forget</string>
+    <string name="gruppo_musculare">Muscle group</string>
+    <string name="insensita">Intensity</string>
+    <string name="nome">Name</string>
+    <string name="insrisce_nome">Enter name</string>
+    <string name="n_di_serie">No. of sets</string>
+    <string name="n_esecuzioni">No. reps</string>
+    <string name="save">Save</string>
+    <string name="essercisio_nome">Exercise name</string>
+    <string name="add">Add</string>
+    <string name="isometria">Isometry</string>
+    <string name="title_activity_compose">ComposeActi</string>
+    <string name="gruppo_muslcolare">Muscle group</string>
+    <string name="intensita">Intensity</string>
+    <string name="totale_essercissi">Total exercises</string>
+    <string name="data">Date</string>
+    <string name="salva_ed_esci">Save and exit</string>
+    <string name="inserisci_nome_sheda">Enter plan name</string>
+    <string name="insrisci_n_serie">Enter no. sets</string>
+    <string name="attrezzi">Equipment</string>
+    <string name="x">X</string>
+    <string name="seleziona_un_periodo">Select a period</string>
+    <string name="select_period">Select period</string>
+    <string name="dd_mm_yyyy">dd/MM/yyyy</string>
+    <string name="dd_mm_yyyy_simplea_daat_format">dd/MM/yyyy</string>
+    <string name="title_activity_filter_schede">ActivityFilterSchede</string>
+    <string name="agggiungi_filtri">Add filters</string>
+    <string name="intesit">Intensity</string>
+    <string name="apri_schede">Open plans</string>
+    <string name="nessuna_scheda_title">No saved plans</string>
+    <string name="nessuna_scheda_description">Create your first plan to start tracking workouts.</string>
+    <string name="back_content_description">Go back</string>
+    <string name="add_scheda_content_description">Add plan</string>
+    <string name="detail_exercises_title">Exercises in the plan</string>
+    <string name="detail_no_exercises">No exercises present: open the plan to add more.</string>
+    <string name="detail_manage_button">Manage plan / add exercises</string>
+    <string name="detail_open_legacy">Open full editor</string>
+    <string name="export_pdf">Export plan to PDF</string>
+    <string name="export_pdf_success">PDF saved: %1$s</string>
+    <string name="export_pdf_error">Error exporting PDF</string>
+    <string name="export_pdf_saved">PDF saved in Download/Fityo</string>
+    <string name="share_pdf">Share plan</string>
+    <string name="share_pdf_title">Share PDF via</string>
+    <string name="duration_minutes_label">Min</string>
+    <string name="duration_seconds_label">Sec</string>
+    <string name="export_meta_title">Professional title</string>
+    <string name="export_meta_coach">Plan creator name</string>
+    <string name="export_meta_athlete">Athlete / client name</string>
+    <string name="export_meta_start">Plan start date</string>
+    <string name="export_meta_end">Plan end date</string>
+    <string name="export_meta_section">Details for the PDF</string>
+    <string name="exercise_add_title">Add exercise</string>
+    <string name="exercise_edit_title">Edit exercise</string>
+    <string name="exercise_name_label">Exercise name</string>
+    <string name="exercise_attrezzo_label">Equipment</string>
+    <string name="exercise_sets_label">Sets</string>
+    <string name="exercise_reps_label">Reps</string>
+    <string name="exercise_isometria_label">Isometry (s)</string>
+    <string name="exercise_recupero_label">Rest (s)</string>
+    <string name="exercise_save">Save</string>
+    <string name="exercise_cancel">Cancel</string>
+    <string name="exercise_validation_error">Fill required fields with valid numbers</string>
+    <string name="dashboard_stats_title">Powerlifting overview</string>
+    <string name="dashboard_total_schede">Total plans</string>
+    <string name="dashboard_total_esercizi">Total exercises</string>
+    <string name="dashboard_favorite_schede">Favorites</string>
+    <string name="dashboard_last_session">Last session</string>
+    <string name="dashboard_last_session_none">Never logged</string>
+    <string name="dashboard_days_since">Days since last</string>
+    <string name="dashboard_most_trained">Favorite group</string>
+    <string name="dashboard_avg_per_week">Weekly average</string>
+    <string name="dashboard_no_data">N/A</string>
+    <string name="dashboard_days_format">%d days</string>
+    <string name="dashboard_avg_format">%.1f plans/week</string>
+    <string name="notifications_history_title">Notification history</string>
+    <string name="notifications_empty">No notifications</string>
+    <string name="no_data_chart">No data available</string>
+    <string name="bar_label_intensity">Average intensity by group</string>
+    <string name="bar_label_week">Workout frequency by day</string>
+    <string name="week_chart_title">Weekly workout frequency</string>
+    <string name="week_chart_description">Number of workouts per day of the week</string>
+    <string name="select_muscle_groups_title">Select muscle groups</string>
+    <string name="select_muscle_groups_hint">You can select multiple groups for mixed workouts</string>
+    <string name="muscle_groups_selected">Selected groups: %s</string>
+    <string name="exercise_weight_label">Weight (kg)</string>
+    <string name="exercise_weight_hint">Optional</string>
+    <string name="home_card_subtitle_default">Custom workout</string>
+    <string name="home_card_subtitle_create">Configure your next session</string>
+    <string name="home_card_subtitle_open">Reopen and edit your plans</string>
+    <string name="home_card_subtitle_dashboard">Stats and muscle focus</string>
+    <string name="day_sun_short">Sun</string>
+    <string name="day_mon_short">Mon</string>
+    <string name="day_tue_short">Tue</string>
+    <string name="day_wed_short">Wed</string>
+    <string name="day_thu_short">Thu</string>
+    <string name="day_fri_short">Fri</string>
+    <string name="day_sat_short">Sat</string>
+    <string name="delete_scheda_title">Delete plan</string>
+    <string name="delete_scheda_message">Do you really want to delete \"%1$s\"?</string>
+    <string name="delete_scheda_action">Delete plan</string>
+    <string name="filter_removed">Filter removed</string>
+    <string name="filter_range_feedback">From %1$s to %2$s</string>
+    <string-array name="intensity_options">
+        <item>High - Very intense</item>
+        <item>Medium - Standard workout</item>
+        <item>Low - Light or recovery</item>
+        <item>Cardio - Endurance or aerobic work</item>
+    </string-array>
+    <string-array name="muscle_group_options">
+        <item>Back</item>
+        <item>Chest</item>
+        <item>Legs</item>
+        <item>Shoulders</item>
+        <item>Biceps</item>
+        <item>Triceps</item>
+        <item>Abs</item>
+        <item>Cardio</item>
+        <item>Full body</item>
+        <item>Other</item>
+    </string-array>
+    <string-array name="equipment_options">
+        <item>Dumbbell</item>
+        <item>Barbell</item>
+        <item>EZ bar</item>
+        <item>Kettlebell</item>
+        <item>Medicine ball</item>
+        <item>Band</item>
+        <item>Jump rope</item>
+        <item>FatGrip</item>
+        <item>Chains</item>
+        <item>Pull-up bar</item>
+        <item>Rings</item>
+        <item>Parallettes</item>
+        <item>Plyo box</item>
+        <item>Power rack</item>
+        <item>Flat bench</item>
+        <item>Incline bench</item>
+        <item>Leg press</item>
+        <item>Lat machine</item>
+        <item>Pectoral machine</item>
+        <item>Shoulder press</item>
+        <item>Chest press</item>
+        <item>Leg extension</item>
+        <item>Leg curl</item>
+        <item>Calf machine</item>
+        <item>Cable machine</item>
+        <item>Rower</item>
+        <item>Air bike</item>
+        <item>GHD</item>
+        <item>Treadmill</item>
+        <item>Exercise bike</item>
+        <item>Elliptical</item>
+        <item>Stepper</item>
+        <item>Boxing bag</item>
+        <item>Punching ball</item>
+        <item>Bodyweight</item>
+        <item>Biceps machine</item>
+        <item>Triceps machine</item>
+        <item>Leg machine</item>
+        <item>Glute machine</item>
+        <item>Other</item>
+        <item>None</item>
+    </string-array>
+    <string name="favorite_added">Added to favorites</string>
+    <string name="favorite_removed">Removed from favorites</string>
+    <string name="exercise_count_placeholder">... exercises</string>
+    <string name="exercise_count">%d exercises</string>
+    <string name="reminder_channel_name">Reminder</string>
+    <string name="reminder_title">Reminder</string>
+    <string name="reminder_body">Time for your exercise!</string>
+    <string name="pdf_page_number">Page %d</string>
+    <string name="pdf_section_info">Plan info</string>
+    <string name="pdf_label_muscle_group">Muscle group:</string>
+    <string name="pdf_label_intensity">Intensity:</string>
+    <string name="pdf_label_period">Period:</string>
+    <string name="pdf_label_coach">Coach:</string>
+    <string name="pdf_label_athlete">Athlete:</string>
+    <string name="pdf_section_notes">Notes</string>
+    <string name="pdf_section_exercises">Exercise program (%1$d)</string>
+    <string name="pdf_no_exercises">No exercises in this plan.</string>
+    <string name="pdf_label_exercise_title">%1$d. %2$s</string>
+    <string name="pdf_label_series">Sets: %1$d</string>
+    <string name="pdf_label_reps">Reps: %1$d</string>
+    <string name="pdf_label_attrezzo">Equipment: %1$s</string>
+    <string name="pdf_label_peso">Weight: %1$s kg</string>
+    <string name="pdf_label_recupero">Rest: %1$s s</string>
+    <string name="pdf_label_isometria">Isometry: %1$s s</string>
+    <string name="complete_scheda">Complete plan</string>
+    <string name="export_fitx">Export plan (.fitx)</string>
+    <string name="import_scheda">Import plan</string>
+    <string name="create_new">Create new</string>
+    <string name="create_new_scheda">Create new plan</string>
+    <string name="content_desc_close">Close</string>
+    <string name="content_desc_edit">Edit</string>
+    <string name="content_desc_delete">Delete</string>
+    <string name="content_desc_selected">Selected</string>
+    <string name="content_desc_import">Import plan</string>
+    <string name="content_desc_create_new">Create new</string>
+    <string name="menu_open">Open menu</string>
+    <string name="menu_close">Close menu</string>
+    <string name="toast_import_error">Error: %1$s</string>
+    <string name="toast_import_success">Plan imported successfully</string>
+    <string name="toast_export_success">Plan exported: %1$s</string>
+    <string name="toast_export_saved">Saved in Download/%1$s</string>
+    <string name="toast_export_error">Error during export</string>
+    <string name="intensity_value">Intensity: %1$s</string>
+    <string name="date_value">Date: %1$s</string>
+    <string name="exercise_series_reps_format">Sets x Reps: %1$d x %2$d</string>
+    <string name="exercise_attrezzo_format">Equipment: %1$s</string>
+    <string name="exercise_isometria_format">Isometry: %1$s</string>
+    <string name="exercise_recupero_format">Rest: %1$s</string>
+    <string name="pdf_format_title">PDF format</string>
+    <string name="pdf_format_classic">Classic format</string>
+    <string name="pdf_format_modern">Modern format</string>
+    <string name="import_preview_title">Import preview</string>
+    <string name="import_preview_subtitle">Check the data before importing the plan</string>
+    <string name="import_preview_group">Group: %1$s</string>
+    <string name="import_preview_intensity">Intensity: %1$s</string>
+    <string name="import_preview_date">Date: %1$s</string>
+    <string name="import_preview_notes">Notes: %1$s</string>
+    <string name="import_preview_exercises_count">Exercises (%1$d)</string>
+    <string name="import_preview_exercise_detail">%1$d x %2$d</string>
+    <string name="import_preview_exercise_detail_with_equipment">%1$d x %2$d - %3$s</string>
+    <string name="import_preview_more_exercises">... and %1$d more exercises</string>
+    <string name="import_action">Import</string>
+    <string name="tab_create_scheda">Create plan</string>
+    <string name="tab_esercizi">Exercises</string>
+    <string name="tab_riepilogo">Summary</string>
+    <string name="app_error_field_empty">There is an empty field</string>
+</resources>

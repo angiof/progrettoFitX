@@ -171,7 +171,7 @@ class SchedeListActivity : ComponentActivity() {
             }.onFailure { error ->
                 Toast.makeText(
                     this@SchedeListActivity,
-                    "Errore: ${error.message}",
+                    getString(R.string.toast_import_error, error.message ?: ""),
                     Toast.LENGTH_LONG
                 ).show()
             }
@@ -252,7 +252,7 @@ class SchedeListActivity : ComponentActivity() {
         withContext(Dispatchers.Main) {
             Toast.makeText(
                 this@SchedeListActivity,
-                "Scheda importata con successo!",
+                getString(R.string.toast_import_success),
                 Toast.LENGTH_SHORT
             ).show()
             schedeViewModel.loadSchede()
@@ -361,18 +361,18 @@ private fun SchedeListRoute(
                         result.onSuccess { file ->
                             Toast.makeText(
                                 context,
-                                "Scheda esportata: ${file.name}",
+                                context.getString(R.string.toast_export_success, file.name),
                                 Toast.LENGTH_SHORT
                             ).show()
                             Toast.makeText(
                                 context,
-                                "Salvata in Download/${context.getString(R.string.app_name)}",
+                                context.getString(R.string.toast_export_saved, context.getString(R.string.app_name)),
                                 Toast.LENGTH_LONG
                             ).show()
                         }.onFailure {
                             Toast.makeText(
                                 context,
-                                "Errore durante l'esportazione",
+                                context.getString(R.string.toast_export_error),
                                 Toast.LENGTH_LONG
                             ).show()
                         }
@@ -421,7 +421,7 @@ private fun SchedaDetailDialog(
                     title = { Text(text = scheda.titolo, color = Color.White) },
                     navigationIcon = {
                         IconButton(onClick = onDismiss) {
-                            Icon(Icons.Filled.Close, contentDescription = "Chiudi", tint = Color.White)
+                            Icon(Icons.Filled.Close, contentDescription = stringResource(id = R.string.content_desc_close), tint = Color.White)
                         }
                     },
                     actions = {
@@ -461,14 +461,14 @@ private fun SchedaDetailDialog(
                             )
                         )
                         Text(
-                            text = "Intensità: ${scheda.intesita}",
+                            text = stringResource(id = R.string.intensity_value, scheda.intesita),
                             style = MaterialTheme.typography.bodySmall,
                             color = TextSecondary
                         )
                     }
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = "Data: ${scheda.data}",
+                        text = stringResource(id = R.string.date_value, scheda.data),
                         style = MaterialTheme.typography.bodySmall,
                         color = TextSecondary
                     )
@@ -546,7 +546,7 @@ private fun SchedaDetailDialog(
                         ) {
                             Icon(Icons.Filled.CheckCircle, contentDescription = null)
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text(text = "Completa Scheda")
+                            Text(text = stringResource(id = R.string.complete_scheda))
                         }
                         Spacer(modifier = Modifier.height(12.dp))
                     }
@@ -568,7 +568,7 @@ private fun SchedaDetailDialog(
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     ActionOutlineButton(
-                        text = "Esporta Scheda (.fitx)",
+                        text = stringResource(id = R.string.export_fitx),
                         icon = Icons.Filled.FileDownload,
                         color = accent,
                         onClick = onExportFitx
@@ -588,9 +588,9 @@ private fun SchedaDetailDialog(
                         onClick = onDeleteScheda,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Icon(Icons.Filled.Delete, contentDescription = null, tint = Color.Red)
+                        Icon(Icons.Filled.Delete, contentDescription = stringResource(id = R.string.content_desc_delete), tint = Color.Red)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Elimina scheda", color = Color.Red)
+                        Text(stringResource(id = R.string.delete_scheda_action), color = Color.Red)
                     }
                 }
             }
@@ -687,21 +687,21 @@ private fun ExerciseRow(
                     modifier = Modifier.weight(1f)
                 )
                 IconButton(onClick = onEdit) {
-                    Icon(Icons.Filled.Edit, contentDescription = "Modifica", tint = TextSecondary)
+                    Icon(Icons.Filled.Edit, contentDescription = stringResource(id = R.string.content_desc_edit), tint = TextSecondary)
                 }
                 IconButton(onClick = onDelete) {
-                    Icon(Icons.Filled.Delete, contentDescription = "Elimina", tint = Color.Red)
+                    Icon(Icons.Filled.Delete, contentDescription = stringResource(id = R.string.content_desc_delete), tint = Color.Red)
                 }
             }
             Text(
-                text = "Serie x Rep: ${esercizio.nSerie} x ${esercizio.nRipetizione}",
+                text = stringResource(id = R.string.exercise_series_reps_format, esercizio.nSerie, esercizio.nRipetizione),
                 style = MaterialTheme.typography.bodySmall,
                 color = TextSecondary,
                 modifier = Modifier.padding(start = 48.dp)
             )
             if (esercizio.attrezzo.isNotBlank()) {
                 Text(
-                    text = "Attrezzo: ${esercizio.attrezzo}",
+                    text = stringResource(id = R.string.exercise_attrezzo_format, esercizio.attrezzo),
                     style = MaterialTheme.typography.bodySmall,
                     color = TextSecondary,
                     modifier = Modifier.padding(start = 48.dp)
@@ -709,7 +709,7 @@ private fun ExerciseRow(
             }
             esercizio.insometria?.let {
                 Text(
-                    text = "Isometria: ${it}s",
+                    text = stringResource(id = R.string.exercise_isometria_format, it),
                     style = MaterialTheme.typography.bodySmall,
                     color = TextSecondary,
                     modifier = Modifier.padding(start = 48.dp)
@@ -717,7 +717,7 @@ private fun ExerciseRow(
             }
             esercizio.intervallo?.let {
                 Text(
-                    text = "Recupero: ${it}s",
+                    text = stringResource(id = R.string.exercise_recupero_format, it),
                     style = MaterialTheme.typography.bodySmall,
                     color = TextSecondary,
                     modifier = Modifier.padding(start = 48.dp)
@@ -912,8 +912,8 @@ private fun PdfFormatCard(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
-                painter = painterResource(id = format.getPreviewResource()),
-                contentDescription = format.getDisplayName(),
+                painter = painterResource(id = format.previewRes),
+                contentDescription = stringResource(id = format.labelRes),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(120.dp),
@@ -921,7 +921,7 @@ private fun PdfFormatCard(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = format.getDisplayName(),
+                text = stringResource(id = format.labelRes),
                 style = MaterialTheme.typography.bodySmall.copy(
                     color = if (isSelected) accent else TextPrimary,
                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
@@ -932,7 +932,7 @@ private fun PdfFormatCard(
                 Spacer(modifier = Modifier.height(4.dp))
                 Icon(
                     imageVector = Icons.Filled.CheckCircle,
-                    contentDescription = "Selezionato",
+                    contentDescription = stringResource(id = R.string.content_desc_selected),
                     tint = accent,
                     modifier = Modifier.width(16.dp).height(16.dp)
                 )
@@ -1029,7 +1029,7 @@ private fun MetadataDialog(
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "Formato PDF",
+                    text = stringResource(id = R.string.pdf_format_title),
                     style = MaterialTheme.typography.titleSmall.copy(color = TextPrimary)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -1159,19 +1159,12 @@ private enum class MetadataAction {
     SHARE
 }
 
-enum class PdfFormat {
-    CLASSIC,
-    MODERN;
-
-    fun getDisplayName(): String = when(this) {
-        CLASSIC -> "Formato Classico"
-        MODERN -> "Formato Moderno"
-    }
-
-    fun getPreviewResource(): Int = when(this) {
-        CLASSIC -> R.drawable.pdf_format_classic_preview
-        MODERN -> R.drawable.pdf_format_modern_preview
-    }
+enum class PdfFormat(
+    val labelRes: Int,
+    val previewRes: Int
+) {
+    CLASSIC(R.string.pdf_format_classic, R.drawable.pdf_format_classic_preview),
+    MODERN(R.string.pdf_format_modern, R.drawable.pdf_format_modern_preview)
 }
 
 @Composable
@@ -1198,11 +1191,11 @@ private fun ImportPreviewDialog(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
-                    text = "Anteprima Importazione",
+                    text = stringResource(id = R.string.import_preview_title),
                     style = MaterialTheme.typography.titleMedium.copy(color = TextPrimary)
                 )
                 Text(
-                    text = "Verifica i dati prima di importare la scheda",
+                    text = stringResource(id = R.string.import_preview_subtitle),
                     style = MaterialTheme.typography.bodySmall.copy(color = TextSecondary)
                 )
 
@@ -1222,23 +1215,26 @@ private fun ImportPreviewDialog(
                             )
                         )
                         Text(
-                            text = "Gruppo: ${fitxFormat.scheda.getGruppiMuscolariDisplay()}",
+                            text = stringResource(
+                                id = R.string.import_preview_group,
+                                fitxFormat.scheda.getGruppiMuscolariDisplay()
+                            ),
                             style = MaterialTheme.typography.bodySmall,
                             color = TextSecondary
                         )
                         Text(
-                            text = "Intensità: ${fitxFormat.scheda.intensita}",
+                            text = stringResource(id = R.string.import_preview_intensity, fitxFormat.scheda.intensita),
                             style = MaterialTheme.typography.bodySmall,
                             color = TextSecondary
                         )
                         Text(
-                            text = "Data: ${fitxFormat.scheda.data}",
+                            text = stringResource(id = R.string.import_preview_date, fitxFormat.scheda.data),
                             style = MaterialTheme.typography.bodySmall,
                             color = TextSecondary
                         )
                         fitxFormat.scheda.notes?.takeIf { it.isNotBlank() }?.let {
                             Text(
-                                text = "Note: $it",
+                                text = stringResource(id = R.string.import_preview_notes, it),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = TextSecondary
                             )
@@ -1248,7 +1244,7 @@ private fun ImportPreviewDialog(
 
                 // Lista esercizi
                 Text(
-                    text = "Esercizi (${fitxFormat.scheda.esercizi.size})",
+                    text = stringResource(id = R.string.import_preview_exercises_count, fitxFormat.scheda.esercizi.size),
                     style = MaterialTheme.typography.titleSmall.copy(color = TextPrimary)
                 )
 
@@ -1265,8 +1261,22 @@ private fun ImportPreviewDialog(
                                     color = TextPrimary
                                 )
                             )
+                            val exerciseDetail = if (esercizio.attrezzo.isNotBlank()) {
+                                stringResource(
+                                    id = R.string.import_preview_exercise_detail_with_equipment,
+                                    esercizio.serie,
+                                    esercizio.ripetizioni,
+                                    esercizio.attrezzo
+                                )
+                            } else {
+                                stringResource(
+                                    id = R.string.import_preview_exercise_detail,
+                                    esercizio.serie,
+                                    esercizio.ripetizioni
+                                )
+                            }
                             Text(
-                                text = "${esercizio.serie} x ${esercizio.ripetizioni}${if (esercizio.attrezzo.isNotBlank()) " - ${esercizio.attrezzo}" else ""}",
+                                text = exerciseDetail,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = TextSecondary
                             )
@@ -1276,7 +1286,7 @@ private fun ImportPreviewDialog(
 
                 if (fitxFormat.scheda.esercizi.size > 5) {
                     Text(
-                        text = "... e altri ${fitxFormat.scheda.esercizi.size - 5} esercizi",
+                        text = stringResource(id = R.string.import_preview_more_exercises, fitxFormat.scheda.esercizi.size - 5),
                         style = MaterialTheme.typography.bodySmall.copy(color = TextSecondary),
                         modifier = Modifier.padding(start = 12.dp)
                     )
@@ -1289,14 +1299,14 @@ private fun ImportPreviewDialog(
                     horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(onClick = onDismiss) {
-                        Text(text = "Annulla", color = TextSecondary)
+                        Text(text = stringResource(id = R.string.exercise_cancel), color = TextSecondary)
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(
                         onClick = { onConfirm(fitxFormat) },
                         colors = ButtonDefaults.buttonColors(containerColor = accent)
                     ) {
-                        Text(text = "Importa")
+                        Text(text = stringResource(id = R.string.import_action))
                     }
                 }
             }
@@ -1442,7 +1452,7 @@ private fun SchedeListScreen(
                                 shape = RoundedCornerShape(8.dp)
                             ) {
                                 Text(
-                                    text = "Importa Scheda",
+                                    text = stringResource(id = R.string.import_scheda),
                                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = TextPrimary
@@ -1455,7 +1465,7 @@ private fun SchedeListScreen(
                                 },
                                 containerColor = accent
                             ) {
-                                Icon(Icons.Filled.FileUpload, contentDescription = "Importa Scheda")
+                                Icon(Icons.Filled.FileUpload, contentDescription = stringResource(id = R.string.content_desc_import))
                             }
                         }
 
@@ -1469,7 +1479,7 @@ private fun SchedeListScreen(
                                 shape = RoundedCornerShape(8.dp)
                             ) {
                                 Text(
-                                    text = "Crea Nuova",
+                                    text = stringResource(id = R.string.create_new),
                                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = TextPrimary
@@ -1482,7 +1492,7 @@ private fun SchedeListScreen(
                                 },
                                 containerColor = accent
                             ) {
-                                Icon(Icons.Filled.CreateNewFolder, contentDescription = "Crea Nuova Scheda")
+                                Icon(Icons.Filled.CreateNewFolder, contentDescription = stringResource(id = R.string.content_desc_create_new))
                             }
                         }
                     }
@@ -1495,7 +1505,7 @@ private fun SchedeListScreen(
                 ) {
                     Icon(
                         imageVector = if (fabExpanded) Icons.Filled.Close else Icons.Filled.Add,
-                        contentDescription = if (fabExpanded) "Chiudi menu" else "Apri menu"
+                        contentDescription = if (fabExpanded) stringResource(id = R.string.menu_close) else stringResource(id = R.string.menu_open)
                     )
                 }
             }
@@ -1568,8 +1578,8 @@ private fun SchedaCard(
                 }
             }
             Text(text = scheda.gruppoMuscolare, style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
-            Text(text = "Intensità: ${scheda.intesita}", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
-            Text(text = "Data: ${scheda.data}", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+            Text(text = stringResource(id = R.string.intensity_value, scheda.intesita), style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+            Text(text = stringResource(id = R.string.date_value, scheda.data), style = MaterialTheme.typography.bodySmall, color = TextSecondary)
             if (!scheda.notes.isNullOrBlank()) {
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(text = scheda.notes, style = MaterialTheme.typography.bodySmall, color = TextSecondary)

@@ -42,13 +42,13 @@ class SchedaAdapter(
       titolo.text     = s.titolo
       gruppo.text     = s.gruppoMuscolare
       descr.text      = s.notes ?: ""
-      count.text      = "… esercizi"
+      count.text      = itemView.context.getString(R.string.exercise_count_placeholder)
 
       // placeholder mentre carica
-      countText.text = "… esercizi"
+      countText.text = itemView.context.getString(R.string.exercise_count_placeholder)
       uiScope.launch {
         val cnt = getCount(s.id!!)
-        countText.text = "$cnt esercizi"
+        countText.text = itemView.context.getString(R.string.exercise_count, cnt)
       }
 
       // aggiorna colore icona in base a favorite
@@ -56,16 +56,16 @@ class SchedaAdapter(
       val gray   = Color.parseColor("#CCCCCC")
       favIcon.setColorFilter(if (s.favorite) second else gray)
 
-      // singolo tap → apri dettagli
+      // singolo tap -> apri dettagli
       card.setOnClickListener { onItemClick(s) }
 
-      // long press → dialog di conferma
+      // long press -> dialog di conferma
       card.setOnLongClickListener {
         onItemLongClick(s)
         true
       }
 
-      // tap su icona → toggle favorite
+      // tap su icona -> toggle favorite
       favIcon.setOnClickListener {
         uiScope.launch {
           val newFav = !s.favorite
@@ -74,7 +74,7 @@ class SchedaAdapter(
           favIcon.setColorFilter(if (newFav) second else gray)
           Toast.makeText(
             it.context,
-            if (newFav) "Aggiunto ai preferiti" else "Rimosso dai preferiti",
+            if (newFav) it.context.getString(R.string.favorite_added) else it.context.getString(R.string.favorite_removed),
             Toast.LENGTH_SHORT
           ).show()
         }

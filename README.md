@@ -56,6 +56,11 @@ app/
 - **Repository**: rimosse duplicazioni nella definizione di `SchedeRepository`.
 - **Documentazione**: questo README riassume struttura, dipendenze e modalita' operative del progetto.
 
+## Localizzazione
+- Tutte le stringhe UI sono centralizzate in `app/src/main/res/values/strings.xml`.
+- Traduzioni disponibili: `values-es/strings.xml` (spagnolo) e `values-en/strings.xml` (inglese globale).
+- I layout/Compose sono stati aggiornati per usare risorse stringa e array (intensità, gruppi muscolari, attrezzi) senza hardcode.
+
 ## Prossimi passi suggeriti
 1. Aggiungere test strumentali sul flusso di creazione/lettura schede.
 2. Validare i filtri con dati reali e gestire stati di caricamento/errore.

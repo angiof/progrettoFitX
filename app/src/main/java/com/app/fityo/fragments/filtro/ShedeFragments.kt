@@ -75,10 +75,10 @@ class ShedeFragments : Fragment(R.layout.fragment_blank) {
             },
             onItemLongClick = { scheda ->
                 AlertDialog.Builder(requireContext())
-                    .setTitle("Elimina scheda")
-                    .setMessage("Vuoi davvero eliminare “${scheda.titolo}”?")
-                    .setNegativeButton("Annulla", null)
-                    .setPositiveButton("Elimina") { _, _ ->
+                    .setTitle(getString(R.string.delete_scheda_title))
+                    .setMessage(getString(R.string.delete_scheda_message, scheda.titolo))
+                    .setNegativeButton(R.string.exercise_cancel, null)
+                    .setPositiveButton(R.string.delete_scheda_action) { _, _ ->
                         vmSchede.deleteScheda(scheda)
                     }
                     .show()
@@ -93,7 +93,7 @@ class ShedeFragments : Fragment(R.layout.fragment_blank) {
         b.rvSchede.layoutManager = GridLayoutManager(requireContext(), 2)
         b.rvSchede.adapter = adapter
 
-        // Osservo la lista e la passo all’adapter
+        // Osservo la lista e la passo all'adapter
         vmSchede.schede.observe(viewLifecycleOwner) { list ->
             adapter.submitList(list)
             toggleEmptyState(list.isEmpty())
@@ -116,10 +116,14 @@ class ShedeFragments : Fragment(R.layout.fragment_blank) {
                 endDate = millis
                 selectingStart = true
             }
-            val fmt = DateFormat.getDateInstance(DateFormat.SHORT, Locale("it", "IT"))
+            val fmt = DateFormat.getDateInstance(DateFormat.SHORT, Locale.getDefault())
             Toast.makeText(
                 requireContext(),
-                "Da ${startDate?.let { fmt.format(it) } ?: "-"} a ${endDate?.let { fmt.format(it) } ?: "-"}",
+                getString(
+                    R.string.filter_range_feedback,
+                    startDate?.let { fmt.format(it) } ?: "-",
+                    endDate?.let { fmt.format(it) } ?: "-"
+                ),
                 Toast.LENGTH_SHORT
             ).show()
         }
@@ -142,10 +146,10 @@ class ShedeFragments : Fragment(R.layout.fragment_blank) {
         b.clearFiltersButton.setOnClickListener {
             startDate = null; endDate = null; selectingStart = true
             vmSchede.loadSchede()
-            Toast.makeText(requireContext(), "Filtro rimosso", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.filter_removed), Toast.LENGTH_SHORT).show()
         }
 
-        // 4) Toggle visibilità pannello filtri
+        // 4) Toggle visibilita pannello filtri
         b.btnFilter.setOnClickListener {
             b.layoutSchede.visibility = View.GONE
             b.layoutfilter.visibility = View.VISIBLE
@@ -173,21 +177,16 @@ class ShedeFragments : Fragment(R.layout.fragment_blank) {
             b.edTitle.showDropDown()
         }
 
-        // 6) Dropdown per intensità e gruppi
+        // 6) Dropdown per intensita e gruppi
         setupDropdown(
-            b.edIntensita, b.layoutIntensita, listOf(
-                "Alta - Molto intensa",
-                "Media - Allenamento standard",
-                "Bassa - Leggera o recupero",
-                "Cardio - Resistenza o attività aerobica"
-            )
+            b.edIntensita,
+            b.layoutIntensita,
+            resources.getStringArray(R.array.intensity_options).toList()
         )
         setupDropdown(
-            b.gruppuMuscolari, b.layotGruppoMuscolare, listOf(
-                "Dorsali", "Petorali", "Gambe", "Spalle",
-                "Bicipiti", "Tricipiti", "Addominali", "Cardio",
-                "Full Body", "Altro"
-            )
+            b.gruppuMuscolari,
+            b.layotGruppoMuscolare,
+            resources.getStringArray(R.array.muscle_group_options).toList()
         )
 
         b.btnCreateScheda.setOnClickListener {

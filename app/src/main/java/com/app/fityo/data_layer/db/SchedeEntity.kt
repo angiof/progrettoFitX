@@ -11,7 +11,7 @@ import java.io.Serializable
 data class SchedeEntity(
     @PrimaryKey(autoGenerate = true)
     var id: Int? = null,
-    val gruppoMuscolare: String, // Mantenuto per retrocompatibilità
+    val gruppoMuscolare: String, // Mantenuto per retrocompatibilita
     val gruppiMuscolari: List<String>? = null, // Nuovo campo per gruppi multipli
     val intesita: String,
     val titolo: String,

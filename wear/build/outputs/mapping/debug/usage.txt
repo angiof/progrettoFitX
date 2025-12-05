@@ -23580,8 +23580,6 @@ com.app.fityo.data_layer.db.SchedeEntity:
     public final void setId(java.lang.Integer)
     public final void setMaxHeartRate(java.lang.Integer)
     public final void setTotalSteps(java.lang.Integer)
-com.app.fityo.data_layer.db.converters.Converters:
-    public static final int $stable
 com.app.fityo.data_layer.db.dao.DaoNotifications_Impl$1
 com.app.fityo.data_layer.db.dao.DaoNotifications_Impl$2
 com.app.fityo.data_layer.db.dao.DaoNotifications_Impl$3

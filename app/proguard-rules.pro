@@ -18,6 +18,11 @@
 
 # Gson
 -dontwarn com.google.gson.**
+-keepattributes Signature
+-keepattributes *Annotation*
+-keep class com.google.gson.reflect.TypeToken { *; }
+-keep class * extends com.google.gson.reflect.TypeToken
+-keep class com.app.fityo.data_layer.db.converters.** { *; }
 
 # Kotlinx metadata (used by Room)
 -dontwarn kotlinx.metadata.**

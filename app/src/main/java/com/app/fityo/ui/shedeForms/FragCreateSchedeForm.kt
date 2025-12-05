@@ -87,50 +87,7 @@ class FragCreateSchedeForm : Fragment() {
             setupDropdown(
                 binding.listaAttrezziTxt,
                 binding.listaAttrezziLayout,
-                listOf(
-                    "Manubrio",
-                    "Bilanciere",
-                    "Bilanciere EZ",
-                    "Kettlebell",
-                    "Palla Medica",
-                    "Elastico",
-                    "Corda per saltare",
-                    "FatGrip",
-                    "Catene",
-                    "Sbarra per trazioni",
-                    "Anelli da ginnastica",
-                    "Parallele",
-                    "Box pliometrico",
-                    "Power Rack",
-                    "Panca piana",
-                    "Panca inclinata",
-                    "Leg Press",
-                    "Lat Machine",
-                    "Pectoral Machine",
-                    "Shoulder Press",
-                    "Chest Press",
-                    "Leg Extension",
-                    "Leg Curl",
-                    "Calf Machine",
-                    "Macchina cavi",
-                    "Vogatore",
-                    "Air Bike",
-                    "GHD",
-                    "Tapis Roulant",
-                    "Cyclette",
-                    "Ellittica",
-                    "Stepper",
-                    "Sacco da boxe",
-                    "Punching ball",
-                    "Corda per saltare",
-                    "Corpo libero",
-                    "Macchinario Bicipiti",
-                    "Macchinario Tricipiti",
-                    "Macchinario Gambe",
-                    "Macchinario Glutei",
-                    "Altro",
-                    "Nessuno"
-                )
+                resources.getStringArray(R.array.equipment_options).toList()
             )
         }
 
@@ -140,18 +97,7 @@ class FragCreateSchedeForm : Fragment() {
     }
 
     private fun showMultiSelectMuscleGroupsDialog() {
-        val muscleGroups = listOf(
-            "Dorsali",
-            "Petorali",
-            "Gambe",
-            "Spalle",
-            "Bicipiti",
-            "Tricipiti",
-            "Addominali",
-            "Cardio",
-            "Full Body",
-            "Altro"
-        )
+        val muscleGroups = resources.getStringArray(R.array.muscle_group_options).toList()
 
         val dialogView = LayoutInflater.from(requireContext())
             .inflate(R.layout.dialog_multi_select_groups, null, false)
@@ -273,7 +219,7 @@ class FragCreateSchedeForm : Fragment() {
                     }
                 }
             } else {
-                Toast.makeText(requireContext(), "c'è un campo vuoto", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), getString(R.string.app_error_field_empty), Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -298,12 +244,7 @@ class FragCreateSchedeForm : Fragment() {
         setupDropdown(
             binding.edIntensita,
             binding.layoutSpinnerInsita,
-            listOf(
-                "Alta - Molto intensa",
-                "Media - Allenamento standard",
-                "Bassa - Leggera o recupero",
-                "Cardio - Resistenza o attività aerobica"
-            )
+            resources.getStringArray(R.array.intensity_options).toList()
         )
 
         (activity as? BaseAcitivity)?.apply {

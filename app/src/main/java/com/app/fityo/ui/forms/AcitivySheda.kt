@@ -69,9 +69,9 @@ class AcitivySheda : BaseAcitivity() {
 
         // aggiungo comunque le tab
         val tabs = mutableListOf(
-            tabLayout.newTab().setCustomView(createCustomTabView("Crea Scheda")),
-            tabLayout.newTab().setCustomView(createCustomTabView("Esercizi")),
-            tabLayout.newTab().setCustomView(createCustomTabView("Riepilogo"))
+            tabLayout.newTab().setCustomView(createCustomTabView(getString(R.string.tab_create_scheda))),
+            tabLayout.newTab().setCustomView(createCustomTabView(getString(R.string.tab_esercizi))),
+            tabLayout.newTab().setCustomView(createCustomTabView(getString(R.string.tab_riepilogo)))
         )
         addTab(tabs)
     }

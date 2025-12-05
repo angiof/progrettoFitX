@@ -42,14 +42,14 @@ class NotificationWorker(appContext: Context, workerParams: WorkerParameters) :
 
         val notificationChannel = NotificationChannel(
             "reminderChannel",
-            "Reminder",
+            applicationContext.getString(R.string.reminder_channel_name),
             NotificationManager.IMPORTANCE_HIGH
         )
         notificationManager.createNotificationChannel(notificationChannel)
 
         val notification = NotificationCompat.Builder(applicationContext, "reminderChannel")
-            .setContentTitle("Promemoria")
-            .setContentText("È ora di fare il tuo esercizio!")
+            .setContentTitle(applicationContext.getString(R.string.reminder_title))
+            .setContentText(applicationContext.getString(R.string.reminder_body))
             .setSmallIcon(R.drawable.chiusura) // Assicurati di avere questa risorsa
             .build()
 

@@ -37,7 +37,7 @@
     <string name="dd_mm_yyyy_simplea_daat_format">dd/MM/yyyy</string>
     <string name="title_activity_filter_schede">ActivityFilterSchede</string>
     <string name="agggiungi_filtri">agggiungi filtri</string>
-    <string name="intesit">Intesità</string>
+    <string name="intesit">Intensita</string>
     <string name="apri_schede">Apri Schede</string>
     <string name="nessuna_scheda_title">Nessuna scheda salvata</string>
     <string name="nessuna_scheda_description">Crea la tua prima scheda per iniziare a monitorare gli allenamenti.</string>
@@ -87,12 +87,12 @@
     <string name="notifications_history_title">Cronologia notifiche</string>
     <string name="notifications_empty">Nessuna notifica presente</string>
     <string name="no_data_chart">Nessun dato disponibile</string>
-    <string name="bar_label_intensity">Media intensità per gruppo</string>
+    <string name="bar_label_intensity">Media intensita per gruppo</string>
     <string name="bar_label_week">Frequenza allenamenti per giorno</string>
     <string name="week_chart_title">Frequenza Allenamenti Settimanale</string>
     <string name="week_chart_description">Numero di allenamenti per ogni giorno della settimana</string>
     <string name="select_muscle_groups_title">Seleziona gruppi muscolari</string>
-    <string name="select_muscle_groups_hint">Puoi selezionare più gruppi per allenamenti misti</string>
+    <string name="select_muscle_groups_hint">Puoi selezionare piu gruppi per allenamenti misti</string>
     <string name="muscle_groups_selected">Gruppi selezionati: %s</string>
     <string name="exercise_weight_label">Peso (kg)</string>
     <string name="exercise_weight_hint">Opzionale</string>
@@ -107,4 +107,136 @@
     <string name="day_thu_short">Gio</string>
     <string name="day_fri_short">Ven</string>
     <string name="day_sat_short">Sab</string>
+    <string name="delete_scheda_title">Elimina scheda</string>
+    <string name="delete_scheda_message">Vuoi davvero eliminare "%1$s"?</string>
+    <string name="delete_scheda_action">Elimina scheda</string>
+    <string name="filter_removed">Filtro rimosso</string>
+    <string name="filter_range_feedback">Da %1$s a %2$s</string>
+    <string-array name="intensity_options">
+        <item>Alta - Molto intensa</item>
+        <item>Media - Allenamento standard</item>
+        <item>Bassa - Leggera o recupero</item>
+        <item>Cardio - Resistenza o attivita aerobica</item>
+    </string-array>
+    <string-array name="muscle_group_options">
+        <item>Dorsali</item>
+        <item>Petorali</item>
+        <item>Gambe</item>
+        <item>Spalle</item>
+        <item>Bicipiti</item>
+        <item>Tricipiti</item>
+        <item>Addominali</item>
+        <item>Cardio</item>
+        <item>Full Body</item>
+        <item>Altro</item>
+    </string-array>
+    <string-array name="equipment_options">
+        <item>Manubrio</item>
+        <item>Bilanciere</item>
+        <item>Bilanciere EZ</item>
+        <item>Kettlebell</item>
+        <item>Palla Medica</item>
+        <item>Elastico</item>
+        <item>Corda per saltare</item>
+        <item>FatGrip</item>
+        <item>Catene</item>
+        <item>Sbarra per trazioni</item>
+        <item>Anelli da ginnastica</item>
+        <item>Parallele</item>
+        <item>Box pliometrico</item>
+        <item>Power Rack</item>
+        <item>Panca piana</item>
+        <item>Panca inclinata</item>
+        <item>Leg Press</item>
+        <item>Lat Machine</item>
+        <item>Pectoral Machine</item>
+        <item>Shoulder Press</item>
+        <item>Chest Press</item>
+        <item>Leg Extension</item>
+        <item>Leg Curl</item>
+        <item>Calf Machine</item>
+        <item>Macchina cavi</item>
+        <item>Vogatore</item>
+        <item>Air Bike</item>
+        <item>GHD</item>
+        <item>Tapis Roulant</item>
+        <item>Cyclette</item>
+        <item>Ellittica</item>
+        <item>Stepper</item>
+        <item>Sacco da boxe</item>
+        <item>Punching ball</item>
+        <item>Corpo libero</item>
+        <item>Macchinario Bicipiti</item>
+        <item>Macchinario Tricipiti</item>
+        <item>Macchinario Gambe</item>
+        <item>Macchinario Glutei</item>
+        <item>Altro</item>
+        <item>Nessuno</item>
+    </string-array>
+    <string name="favorite_added">Aggiunto ai preferiti</string>
+    <string name="favorite_removed">Rimosso dai preferiti</string>
+    <string name="exercise_count_placeholder">... esercizi</string>
+    <string name="exercise_count">%d esercizi</string>
+    <string name="reminder_channel_name">Reminder</string>
+    <string name="reminder_title">Promemoria</string>
+    <string name="reminder_body">E\' ora di fare il tuo esercizio!</string>
+    <string name="pdf_page_number">Pagina %d</string>
+    <string name="pdf_section_info">Informazioni Scheda</string>
+    <string name="pdf_label_muscle_group">Gruppo Muscolare:</string>
+    <string name="pdf_label_intensity">Intensita:</string>
+    <string name="pdf_label_period">Periodo:</string>
+    <string name="pdf_label_coach">Coach:</string>
+    <string name="pdf_label_athlete">Atleta:</string>
+    <string name="pdf_section_notes">Note</string>
+    <string name="pdf_section_exercises">Programma Esercizi (%1$d)</string>
+    <string name="pdf_no_exercises">Nessun esercizio presente in questa scheda.</string>
+    <string name="pdf_label_exercise_title">%1$d. %2$s</string>
+    <string name="pdf_label_series">Serie: %1$d</string>
+    <string name="pdf_label_reps">Ripetizioni: %1$d</string>
+    <string name="pdf_label_attrezzo">Attrezzo: %1$s</string>
+    <string name="pdf_label_peso">Peso: %1$s kg</string>
+    <string name="pdf_label_recupero">Recupero: %1$s s</string>
+    <string name="pdf_label_isometria">Isometria: %1$s s</string>
+    <string name="complete_scheda">Completa Scheda</string>
+    <string name="export_fitx">Esporta Scheda (.fitx)</string>
+    <string name="import_scheda">Importa Scheda</string>
+    <string name="create_new">Crea Nuova</string>
+    <string name="create_new_scheda">Crea Nuova Scheda</string>
+    <string name="content_desc_close">Chiudi</string>
+    <string name="content_desc_edit">Modifica</string>
+    <string name="content_desc_delete">Elimina</string>
+    <string name="content_desc_selected">Selezionato</string>
+    <string name="content_desc_import">Importa Scheda</string>
+    <string name="content_desc_create_new">Crea Nuova</string>
+    <string name="menu_open">Apri menu</string>
+    <string name="menu_close">Chiudi menu</string>
+    <string name="toast_import_error">Errore: %1$s</string>
+    <string name="toast_import_success">Scheda importata con successo!</string>
+    <string name="toast_export_success">Scheda esportata: %1$s</string>
+    <string name="toast_export_saved">Salvata in Download/%1$s</string>
+    <string name="toast_export_error">Errore durante l\'esportazione</string>
+    <string name="intensity_value">Intensita: %1$s</string>
+    <string name="date_value">Data: %1$s</string>
+    <string name="exercise_series_reps_format">Serie x Rep: %1$d x %2$d</string>
+    <string name="exercise_attrezzo_format">Attrezzo: %1$s</string>
+    <string name="exercise_isometria_format">Isometria: %1$s</string>
+    <string name="exercise_recupero_format">Recupero: %1$s</string>
+    <string name="pdf_format_title">Formato PDF</string>
+    <string name="pdf_format_classic">Formato Classico</string>
+    <string name="pdf_format_modern">Formato Moderno</string>
+    <string name="import_preview_title">Anteprima Importazione</string>
+    <string name="import_preview_subtitle">Verifica i dati prima di importare la scheda</string>
+    <string name="import_preview_group">Gruppo: %1$s</string>
+    <string name="import_preview_intensity">Intensita: %1$s</string>
+    <string name="import_preview_date">Data: %1$s</string>
+    <string name="import_preview_notes">Note: %1$s</string>
+    <string name="import_preview_exercises_count">Esercizi (%1$d)</string>
+    <string name="import_preview_exercise_detail">%1$d x %2$d</string>
+    <string name="import_preview_exercise_detail_with_equipment">%1$d x %2$d - %3$s</string>
+    <string name="import_preview_more_exercises">... e altri %1$d esercizi</string>
+    <string name="import_action">Importa</string>
+    <string name="tab_create_scheda">Crea Scheda</string>
+    <string name="tab_esercizi">Esercizi</string>
+    <string name="tab_riepilogo">Riepilogo</string>
+    <string name="app_error_field_empty">Campo obbligatorio mancante</string>
 </resources>

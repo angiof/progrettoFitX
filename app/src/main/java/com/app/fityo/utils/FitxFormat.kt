@@ -159,7 +159,7 @@ data class FitxFormat(
         /**
          * Converte FitxFormat in entities per il database
          * Restituisce Pair(SchedeEntity, List<EsserciziEntity>)
-         * NOTA: schedaId verrà assegnato dopo l'insert della scheda
+         * NOTA: schedaId verra assegnato dopo l'insert della scheda
          */
         fun toEntities(fitx: FitxFormat): Pair<SchedeEntity, List<FitxEsercizio>> {
             val scheda = SchedeEntity(

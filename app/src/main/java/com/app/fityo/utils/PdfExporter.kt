@@ -113,7 +113,7 @@ object PdfExporter {
             fun drawFooter() {
                 val footerY = pageHeight - 30f
                 currentPage.canvas.drawText(
-                    "Pagina $pageNumber",
+                    context.getString(R.string.pdf_page_number, pageNumber),
                     pageWidth / 2f - 30f,
                     footerY,
                     Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -195,7 +195,7 @@ object PdfExporter {
 
                 // Esercizio numero e nome
                 currentPage.canvas.drawText(
-                    "${index + 1}. ${esercizio.nome}",
+                    context.getString(R.string.pdf_label_exercise_title, index + 1, esercizio.nome),
                     margin + 12f, cursorY,
                     titlePaint
                 )
@@ -203,22 +203,22 @@ object PdfExporter {
 
                 // Dettagli
                 val detailsY = cursorY
-                currentPage.canvas.drawText("Serie: ${esercizio.nSerie}", margin + 12f, cursorY, bodyBoldPaint)
-                currentPage.canvas.drawText("Ripetizioni: ${esercizio.nRipetizione}", margin + 150f, cursorY, bodyBoldPaint)
+                currentPage.canvas.drawText(context.getString(R.string.pdf_label_series, esercizio.nSerie), margin + 12f, cursorY, bodyBoldPaint)
+                currentPage.canvas.drawText(context.getString(R.string.pdf_label_reps, esercizio.nRipetizione), margin + 150f, cursorY, bodyBoldPaint)
                 cursorY += 20f
 
                 if (!esercizio.attrezzo.isNullOrBlank()) {
-                    currentPage.canvas.drawText("Attrezzo: ${esercizio.attrezzo}", margin + 12f, cursorY, bodyPaint)
+                    currentPage.canvas.drawText(context.getString(R.string.pdf_label_attrezzo, esercizio.attrezzo), margin + 12f, cursorY, bodyPaint)
                     cursorY += 18f
                 }
 
                 val extras = mutableListOf<String>()
-                esercizio.peso?.let { extras.add("Peso: ${it}kg") }
-                esercizio.intervallo?.let { extras.add("Recupero: ${it}s") }
-                esercizio.insometria?.let { extras.add("Isometria: ${it}s") }
+                esercizio.peso?.let { extras.add(context.getString(R.string.pdf_label_peso, it)) }
+                esercizio.intervallo?.let { extras.add(context.getString(R.string.pdf_label_recupero, it)) }
+                esercizio.insometria?.let { extras.add(context.getString(R.string.pdf_label_isometria, it)) }
 
                 if (extras.isNotEmpty()) {
-                    currentPage.canvas.drawText(extras.joinToString(" • "), margin + 12f, cursorY, bodyPaint)
+                    currentPage.canvas.drawText(extras.joinToString(" - "), margin + 12f, cursorY, bodyPaint)
                     cursorY += 18f
                 }
 
@@ -238,21 +238,21 @@ object PdfExporter {
             writeLine(exportTitle, headerPaint, 40f, margin)
 
             // Sezione Informazioni Generali
-            writeSection("Informazioni Scheda")
-            writeInfoRow("Gruppo Muscolare:", scheda.getGruppiMuscolariDisplay())
-            writeInfoRow("Intensità:", scheda.intesita)
-            writeInfoRow("Periodo:", "${displayStartDate ?: rawStartDate} - ${displayEndDate ?: rawEndDate}")
+            writeSection(context.getString(R.string.pdf_section_info))
+            writeInfoRow(context.getString(R.string.pdf_label_muscle_group), scheda.getGruppiMuscolariDisplay())
+            writeInfoRow(context.getString(R.string.pdf_label_intensity), scheda.intesita)
+            writeInfoRow(context.getString(R.string.pdf_label_period), "${displayStartDate ?: rawStartDate} - ${displayEndDate ?: rawEndDate}")
             meta?.coachName?.takeIf { it.isNotBlank() }?.let {
-                writeInfoRow("Coach:", it)
+                writeInfoRow(context.getString(R.string.pdf_label_coach), it)
             }
             meta?.athleteName?.takeIf { it.isNotBlank() }?.let {
-                writeInfoRow("Atleta:", it)
+                writeInfoRow(context.getString(R.string.pdf_label_athlete), it)
             }
 
             // Note se presenti
             if (!scheda.notes.isNullOrBlank()) {
                 cursorY += 10f
-                writeSection("Note")
+                writeSection(context.getString(R.string.pdf_section_notes))
                 scheda.notes.lines().forEach { line ->
                     writeLine(line.trim(), bodyPaint, 18f)
                 }
@@ -260,11 +260,11 @@ object PdfExporter {
 
             // Sezione Esercizi
             cursorY += 20f
-            writeSection("Programma Esercizi (${esercizi.size})")
+            writeSection(context.getString(R.string.pdf_section_exercises, esercizi.size))
             cursorY += 5f
 
             if (esercizi.isEmpty()) {
-                writeLine("Nessun esercizio presente in questa scheda.", subtitlePaint, 24f)
+                writeLine(context.getString(R.string.pdf_no_exercises), subtitlePaint, 24f)
             } else {
                 esercizi.forEachIndexed { index, esercizio ->
                     drawExerciseBox(index, esercizio)

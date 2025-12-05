@@ -11,7 +11,6 @@ import android.view.ViewTreeObserver
 import android.view.WindowManager
 import android.widget.ArrayAdapter
 import android.widget.NumberPicker
-import androidx.appcompat.R
 import androidx.core.os.bundleOf
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -165,54 +164,11 @@ class RipetizioniSheetFragment : BottomSheetDialogFragment() {
     }
 
     private fun listaAttrezzi() {
-        val items = listOf(
-            "Manubrio",
-            "Bilanciere",
-            "Bilanciere EZ",
-            "Kettlebell",
-            "Palla Medica",
-            "Elastico",
-            "Corda per saltare",
-            "FatGrip",
-            "Catene",
-            "Sbarra per trazioni",
-            "Anelli da ginnastica",
-            "Parallele",
-            "Box pliometrico",
-            "Power Rack",
-            "Panca piana",
-            "Panca inclinata",
-            "Leg Press",
-            "Lat Machine",
-            "Pectoral Machine",
-            "Shoulder Press",
-            "Chest Press",
-            "Leg Extension",
-            "Leg Curl",
-            "Calf Machine",
-            "Macchina cavi",
-            "Vogatore",
-            "Air Bike",
-            "GHD",
-            "Tapis Roulant",
-            "Cyclette",
-            "Ellittica",
-            "Stepper",
-            "Sacco da boxe",
-            "Punching ball",
-            "Corda per saltare",
-            "Corpo libero",
-            "Macchinario Bicipiti",
-            "Macchinario Tricipiti",
-            "Macchinario Gambe",
-            "Macchinario Glutei",
-            "Altro",
-            "Nessuno"
-        )
+        val items = resources.getStringArray(com.app.fityo.R.array.equipment_options).toList()
 
         val adapter = ArrayAdapter(
             requireContext(),
-            R.layout.support_simple_spinner_dropdown_item,
+            android.R.layout.simple_spinner_dropdown_item,
             items
         )
         binding.layoutEssercissiSheet.listaAttrezziTxtx.setAdapter(

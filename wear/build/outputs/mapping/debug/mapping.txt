@@ -3,8 +3,8 @@
 # min_api: 30
 # common_typos_disable
 # {"id":"com.android.tools.r8.mapping","version":"2.2"}
-# pg_map_id: 1d7cef0
-# pg_map_hash: SHA-256 1d7cef03112790b24072d74257d527276d4f134cb7137b0e7f817b841df7368e
+# pg_map_id: 26d6aaa
+# pg_map_hash: SHA-256 26d6aaaf7f0a39c42973ea359e7ea9f36d4cd245d164736889050c3295ce212e
 _COROUTINE.ArtificialStackFrames -> _COROUTINE.ArtificialStackFrames:
 # {"id":"sourceFile","fileName":"CoroutineDebugging.kt"}
     17:17:void <init>() -> <init>
@@ -146489,13 +146489,14 @@ com.app.fityo.data_layer.db.converters.Converters -> com.app.fityo.data_layer.db
 # {"id":"sourceFile","fileName":"Converters.kt"}
     0:0:void <clinit>() -> <clinit>
     7:7:void <init>() -> <init>
-    11:11:java.lang.String fromStringList(java.util.List) -> fromStringList
-    16:16:java.util.List toStringList(java.lang.String) -> toStringList
-    17:17:java.util.List toStringList(java.lang.String) -> toStringList
-    18:18:java.util.List toStringList(java.lang.String) -> toStringList
-com.app.fityo.data_layer.db.converters.Converters$toStringList$listType$1 -> com.app.fityo.data_layer.db.converters.Converters$toStringList$listType$1:
+    9:9:void <init>() -> <init>
+    10:10:void <init>() -> <init>
+    14:14:java.lang.String fromStringList(java.util.List) -> fromStringList
+    19:19:java.util.List toStringList(java.lang.String) -> toStringList
+    20:20:java.util.List toStringList(java.lang.String) -> toStringList
+com.app.fityo.data_layer.db.converters.Converters$stringListType$1 -> com.app.fityo.data_layer.db.converters.Converters$stringListType$1:
 # {"id":"sourceFile","fileName":"Converters.kt"}
-    17:17:void <init>() -> <init>
+    10:10:void <init>() -> <init>
 com.app.fityo.data_layer.db.dao.DaoEssercissi -> com.app.fityo.data_layer.db.dao.DaoEssercissi:
 # {"id":"sourceFile","fileName":"DaoEssercissi.kt"}
 com.app.fityo.data_layer.db.dao.DaoEssercissi_Impl -> com.app.fityo.data_layer.db.dao.DaoEssercissi_Impl:

@@ -89,7 +89,7 @@ class FragEssercissi : Fragment() {
                 val onItemMove: (fromPosition: Int, toPosition: Int) -> Boolean =
                     { fromPosition, toPosition ->
                         // Implementa la logica per spostare l'elemento da fromPosition a toPosition
-                        // Ritorna true se l'elemento è stato spostato
+                        // Ritorna true se l'elemento e stato spostato
                         true
                     }
 
@@ -175,14 +175,14 @@ class FragEssercissi : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // se manca l’argomento, consideralo true
+        // se manca l'argomento, consideralo true
         val isNew = arguments?.getBoolean("isNew", true) ?: true
 
         if (isNew) {
-            // scheda nuova → salva sempre abilitato
+            // scheda nuova -> salva sempre abilitato
             binding.btnSave.isEnabled = true
         } else {
-            // scheda esistente → parte spento e si abilita al primo cambiamento
+            // scheda esistente -> parte spento e si abilita al primo cambiamento
             binding.btnSave.isEnabled = false
             setFragmentResultListener("exercise_changed") { _, _ ->
                 binding.btnSave.isEnabled = true

@@ -57,7 +57,11 @@ class EserciziAdapter(val param: ItemClick) :
         fun bind(e: EsserciziEntity) = with(b) {
 
             title.text = e.nome
-            subtitle.text = " Ripetizioni:${e.nRipetizione} Serie:${e.nSerie}"
+            subtitle.text = root.context.getString(
+                R.string.exercise_series_reps_format,
+                e.nSerie,
+                e.nRipetizione
+            )
             val intervallo = e.intervallo ?: 0
             val intervalloTesto = if (intervallo > 60) {
                 val minuti = intervallo / 60
@@ -66,7 +70,16 @@ class EserciziAdapter(val param: ItemClick) :
             } else {
                 "$intervallo s"
             }
-            details.text = "${e.insometria ?: 0} s iso  •  Riposo: $intervalloTesto  •  Attrezzo: ${e.attrezzo}"
+            details.text = root.context.getString(
+                R.string.exercise_isometria_format,
+                e.insometria ?: 0
+            ) + " - " + root.context.getString(
+                R.string.exercise_recupero_format,
+                intervalloTesto
+            ) + " - " + root.context.getString(
+                R.string.exercise_attrezzo_format,
+                e.attrezzo
+            )
             imDelete.setOnClickListener {
                 runBlocking { launch(Dispatchers.IO) { param.onDelete(e) } }
             }

@@ -1,0 +1,241 @@
+<resources>
+    <string name="app_name">Fityo</string>
+    <string name="title_home">Inicio</string>
+    <string name="title_dashboard">Panel</string>
+    <string name="title_notifications">Notificaciones</string>
+    <string name="crea_scheda">Crear rutina</string>
+    <string name="title_activity_base_acitivity">BaseAcitivity</string>
+    <string name="tab_text_1">Pestana 1</string>
+    <string name="tab_text_2">Pestana 2</string>
+    <string name="hello_blank_fragment">Fragmento en blanco</string>
+    <string name="inserisce_data">Introduce fecha</string>
+    <string name="accessori_da_usare_cose_da_non_dimenticate">Accesorios a usar, cosas que no olvidar</string>
+    <string name="gruppo_musculare">Grupo muscular</string>
+    <string name="insensita">Intensidad</string>
+    <string name="nome">Nombre</string>
+    <string name="insrisce_nome">Introduce nombre</string>
+    <string name="n_di_serie">N. de series</string>
+    <string name="n_esecuzioni">N repeticiones</string>
+    <string name="save">Guardar</string>
+    <string name="essercisio_nome">Nombre ejercicio</string>
+    <string name="add">Anadir</string>
+    <string name="isometria">Isometria</string>
+    <string name="title_activity_compose">ComposeActi</string>
+    <string name="gruppo_muslcolare">Grupo muscular</string>
+    <string name="intensita">Intensidad</string>
+    <string name="totale_essercissi">Total ejercicios</string>
+    <string name="data">Fecha</string>
+    <string name="salva_ed_esci">Guardar y salir</string>
+    <string name="inserisci_nome_sheda">Introduce el nombre de la rutina</string>
+    <string name="insrisci_n_serie">Introduce no de series</string>
+    <string name="attrezzi">Equipos</string>
+    <string name="x">X</string>
+    <string name="seleziona_un_periodo">Selecciona un periodo</string>
+    <string name="select_period">Seleccionar periodo</string>
+    <string name="dd_mm_yyyy">dd/MM/yyyy</string>
+    <string name="dd_mm_yyyy_simplea_daat_format">dd/MM/yyyy</string>
+    <string name="title_activity_filter_schede">ActivityFilterSchede</string>
+    <string name="agggiungi_filtri">Agregar filtros</string>
+    <string name="intesit">Intensidad</string>
+    <string name="apri_schede">Abrir rutinas</string>
+    <string name="nessuna_scheda_title">Ninguna rutina guardata</string>
+    <string name="nessuna_scheda_description">Crea tu primera rutina para empezar a monitorizar los entrenamientos.</string>
+    <string name="back_content_description">Volver atras</string>
+    <string name="add_scheda_content_description">Anadir rutina</string>
+    <string name="detail_exercises_title">Ejercicios de la rutina</string>
+    <string name="detail_no_exercises">No hay ejercicios: abre la rutina para anadir mas.</string>
+    <string name="detail_manage_button">Gestionar rutina / anadir ejercicios</string>
+    <string name="detail_open_legacy">Abrir editor completo</string>
+    <string name="export_pdf">Exportar rutina en PDF</string>
+    <string name="export_pdf_success">PDF guardado: %1$s</string>
+    <string name="export_pdf_error">Error al exportar el PDF</string>
+    <string name="export_pdf_saved">PDF guardado en Download/Fityo</string>
+    <string name="share_pdf">Compartir rutina</string>
+    <string name="share_pdf_title">Compartir PDF con</string>
+    <string name="duration_minutes_label">Min</string>
+    <string name="duration_seconds_label">Seg</string>
+    <string name="export_meta_title">Titulo profesional</string>
+    <string name="export_meta_coach">Nombre del entrenador</string>
+    <string name="export_meta_athlete">Nombre del atleta/cliente</string>
+    <string name="export_meta_start">Fecha de inicio</string>
+    <string name="export_meta_end">Fecha de fin</string>
+    <string name="export_meta_section">Detalles para el PDF</string>
+    <string name="exercise_add_title">Anadir ejercicio</string>
+    <string name="exercise_edit_title">Editar ejercicio</string>
+    <string name="exercise_name_label">Nombre del ejercicio</string>
+    <string name="exercise_attrezzo_label">Equipo</string>
+    <string name="exercise_sets_label">Series</string>
+    <string name="exercise_reps_label">Repeticiones</string>
+    <string name="exercise_isometria_label">Isometria (s)</string>
+    <string name="exercise_recupero_label">Descanso (s)</string>
+    <string name="exercise_save">Guardar</string>
+    <string name="exercise_cancel">Cancelar</string>
+    <string name="exercise_validation_error">Completa los campos obligatorios con numeros validos</string>
+    <string name="dashboard_stats_title">Resumen powerlifting</string>
+    <string name="dashboard_total_schede">Total rutinas</string>
+    <string name="dashboard_total_esercizi">Total ejercicios</string>
+    <string name="dashboard_favorite_schede">Favoritas</string>
+    <string name="dashboard_last_session">Ultima sesion</string>
+    <string name="dashboard_last_session_none">Nunca registrada</string>
+    <string name="dashboard_days_since">Dias desde la ultima</string>
+    <string name="dashboard_most_trained">Grupo preferido</string>
+    <string name="dashboard_avg_per_week">Promedio semanal</string>
+    <string name="dashboard_no_data">N/D</string>
+    <string name="dashboard_days_format">%d dias</string>
+    <string name="dashboard_avg_format">%.1f rutinas/sem</string>
+    <string name="notifications_history_title">Historial de notificaciones</string>
+    <string name="notifications_empty">Sin notificaciones</string>
+    <string name="no_data_chart">Sin datos disponibles</string>
+    <string name="bar_label_intensity">Intensidad media por grupo</string>
+    <string name="bar_label_week">Frecuencia de entrenamientos por dia</string>
+    <string name="week_chart_title">Frecuencia de entrenamientos semanal</string>
+    <string name="week_chart_description">Numero de entrenamientos por dia de la semana</string>
+    <string name="select_muscle_groups_title">Selecciona grupos musculares</string>
+    <string name="select_muscle_groups_hint">Puedes seleccionar varios grupos para entrenos mixtos</string>
+    <string name="muscle_groups_selected">Grupos seleccionados: %s</string>
+    <string name="exercise_weight_label">Peso (kg)</string>
+    <string name="exercise_weight_hint">Opcional</string>
+    <string name="home_card_subtitle_default">Entrenamiento personalizado</string>
+    <string name="home_card_subtitle_create">Configura tu proxima sesion</string>
+    <string name="home_card_subtitle_open">Reabre y edita tus rutinas</string>
+    <string name="home_card_subtitle_dashboard">Estadisticas y foco muscular</string>
+    <string name="day_sun_short">Dom</string>
+    <string name="day_mon_short">Lun</string>
+    <string name="day_tue_short">Mar</string>
+    <string name="day_wed_short">Mie</string>
+    <string name="day_thu_short">Jue</string>
+    <string name="day_fri_short">Vie</string>
+    <string name="day_sat_short">Sab</string>
+    <string name="delete_scheda_title">Eliminar rutina</string>
+    <string name="delete_scheda_message">Seguro que quieres eliminar \"%1$s\"?</string>
+    <string name="delete_scheda_action">Eliminar rutina</string>
+    <string name="filter_removed">Filtro eliminado</string>
+    <string name="filter_range_feedback">De %1$s a %2$s</string>
+    <string-array name="intensity_options">
+        <item>Alta - Muy intensa</item>
+        <item>Media - Entrenamiento estandar</item>
+        <item>Baja - Ligera o recuperacion</item>
+        <item>Cardio - Resistencia o actividad aerobica</item>
+    </string-array>
+    <string-array name="muscle_group_options">
+        <item>Dorsales</item>
+        <item>Pectorales</item>
+        <item>Piernas</item>
+        <item>Hombros</item>
+        <item>Biceps</item>
+        <item>Triceps</item>
+        <item>Abdominales</item>
+        <item>Cardio</item>
+        <item>Full body</item>
+        <item>Otro</item>
+    </string-array>
+    <string-array name="equipment_options">
+        <item>Mancuerna</item>
+        <item>Barra</item>
+        <item>Barra EZ</item>
+        <item>Kettlebell</item>
+        <item>Balon medicinal</item>
+        <item>Elastico</item>
+        <item>Cuerda para saltar</item>
+        <item>FatGrip</item>
+        <item>Cadenas</item>
+        <item>Barra de dominadas</item>
+        <item>Anillas</item>
+        <item>Paralelas</item>
+        <item>Caja pliometrica</item>
+        <item>Power rack</item>
+        <item>Banco plano</item>
+        <item>Banco inclinado</item>
+        <item>Prensa de piernas</item>
+        <item>Polea alta</item>
+        <item>Maquina pectoral</item>
+        <item>Shoulder press</item>
+        <item>Chest press</item>
+        <item>Extensiones de piernas</item>
+        <item>Curl femoral</item>
+        <item>Maquina de gemelos</item>
+        <item>Maquina de poleas</item>
+        <item>Remo</item>
+        <item>Air bike</item>
+        <item>GHD</item>
+        <item>Cinta de correr</item>
+        <item>Bicicleta estatica</item>
+        <item>Eliptica</item>
+        <item>Stepper</item>
+        <item>Saco de boxeo</item>
+        <item>Punching ball</item>
+        <item>Peso corporal</item>
+        <item>Maquina de biceps</item>
+        <item>Maquina de triceps</item>
+        <item>Maquina de piernas</item>
+        <item>Maquina de gluteos</item>
+        <item>Otro</item>
+        <item>Ninguno</item>
+    </string-array>
+    <string name="favorite_added">Anadido a favoritos</string>
+    <string name="favorite_removed">Quitado de favoritos</string>
+    <string name="exercise_count_placeholder">... ejercicios</string>
+    <string name="exercise_count">%d ejercicios</string>
+    <string name="reminder_channel_name">Recordatorio</string>
+    <string name="reminder_title">Recordatorio</string>
+    <string name="reminder_body">Es hora de hacer tu ejercicio!</string>
+    <string name="pdf_page_number">Pagina %d</string>
+    <string name="pdf_section_info">Informacion de la rutina</string>
+    <string name="pdf_label_muscle_group">Grupo muscular:</string>
+    <string name="pdf_label_intensity">Intensidad:</string>
+    <string name="pdf_label_period">Periodo:</string>
+    <string name="pdf_label_coach">Entrenador:</string>
+    <string name="pdf_label_athlete">Atleta:</string>
+    <string name="pdf_section_notes">Notas</string>
+    <string name="pdf_section_exercises">Programa de ejercicios (%1$d)</string>
+    <string name="pdf_no_exercises">No hay ejercicios en esta rutina.</string>
+    <string name="pdf_label_exercise_title">%1$d. %2$s</string>
+    <string name="pdf_label_series">Series: %1$d</string>
+    <string name="pdf_label_reps">Repeticiones: %1$d</string>
+    <string name="pdf_label_attrezzo">Equipo: %1$s</string>
+    <string name="pdf_label_peso">Peso: %1$s kg</string>
+    <string name="pdf_label_recupero">Descanso: %1$s s</string>
+    <string name="pdf_label_isometria">Isometria: %1$s s</string>
+    <string name="complete_scheda">Completar rutina</string>
+    <string name="export_fitx">Exportar rutina (.fitx)</string>
+    <string name="import_scheda">Importar rutina</string>
+    <string name="create_new">Crear nueva</string>
+    <string name="create_new_scheda">Crear nueva rutina</string>
+    <string name="content_desc_close">Cerrar</string>
+    <string name="content_desc_edit">Editar</string>
+    <string name="content_desc_delete">Eliminar</string>
+    <string name="content_desc_selected">Seleccionado</string>
+    <string name="content_desc_import">Importar rutina</string>
+    <string name="content_desc_create_new">Crear nueva</string>
+    <string name="menu_open">Abrir menu</string>
+    <string name="menu_close">Cerrar menu</string>
+    <string name="toast_import_error">Error: %1$s</string>
+    <string name="toast_import_success">Rutina importada con exito</string>
+    <string name="toast_export_success">Rutina exportada: %1$s</string>
+    <string name="toast_export_saved">Guardada en Download/%1$s</string>
+    <string name="toast_export_error">Error durante la exportacion</string>
+    <string name="intensity_value">Intensidad: %1$s</string>
+    <string name="date_value">Fecha: %1$s</string>
+    <string name="exercise_series_reps_format">Series x Reps: %1$d x %2$d</string>
+    <string name="exercise_attrezzo_format">Equipo: %1$s</string>
+    <string name="exercise_isometria_format">Isometria: %1$s</string>
+    <string name="exercise_recupero_format">Descanso: %1$s</string>
+    <string name="pdf_format_title">Formato PDF</string>
+    <string name="pdf_format_classic">Formato clasico</string>
+    <string name="pdf_format_modern">Formato moderno</string>
+    <string name="import_preview_title">Vista previa de importacion</string>
+    <string name="import_preview_subtitle">Revisa los datos antes de importar la rutina</string>
+    <string name="import_preview_group">Grupo: %1$s</string>
+    <string name="import_preview_intensity">Intensidad: %1$s</string>
+    <string name="import_preview_date">Fecha: %1$s</string>
+    <string name="import_preview_notes">Notas: %1$s</string>
+    <string name="import_preview_exercises_count">Ejercicios (%1$d)</string>
+    <string name="import_preview_exercise_detail">%1$d x %2$d</string>
+    <string name="import_preview_exercise_detail_with_equipment">%1$d x %2$d - %3$s</string>
+    <string name="import_preview_more_exercises">... y otros %1$d ejercicios</string>
+    <string name="import_action">Importar</string>
+    <string name="tab_create_scheda">Crear rutina</string>
+    <string name="tab_esercizi">Ejercicios</string>
+    <string name="tab_riepilogo">Resumen</string>
+    <string name="app_error_field_empty">Hay un campo vacio</string>
+</resources>
