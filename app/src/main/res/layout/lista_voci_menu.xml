@@ -1,44 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="wrap_content"
     android:id="@+id/card_menu"
-    android:layout_height="wrap_content">
+    android:layout_width="match_parent"
+    android:layout_height="220dp"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="8dp"
+    app:cardCornerRadius="18dp"
+    app:cardElevation="4dp"
+    app:rippleColor="@color/second"
+    app:cardBackgroundColor="@color/card_surface"
+    app:strokeColor="@color/second"
+    app:strokeWidth="2dp">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="wrap_content"
-        android:background="#FAFAFA"
-        android:paddingHorizontal="4dp"
-        android:layout_height="wrap_content">
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-        <ImageView
+        <com.flaviofaria.kenburnsview.KenBurnsView
             android:id="@+id/im_copertina"
-            android:layout_width="398dp"
-            android:layout_height="203dp"
-            android:adjustViewBounds="true"
-            android:cropToPadding="true"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:scaleType="centerCrop"
-            android:src="@drawable/gym_tabs"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:src="@drawable/gym_tabs" />
 
-        <TextView
-            android:id="@+id/tv_titolo"
-            style="@style/testoForm"
-            android:layout_width="wrap_content"
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/home_card_overlay" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="14dp"
-            android:layout_marginTop="160dp"
-            android:lineSpacingExtra="5dp"
-            android:text="crea scheda "
-            android:textSize="24sp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            android:layout_gravity="bottom"
+            android:orientation="vertical"
+            android:padding="20dp">
 
-        </TextView>
+            <TextView
+                android:id="@+id/tv_titolo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/crea_scheda"
+                android:textColor="@android:color/white"
+                android:textSize="22sp"
+                android:fontFamily="@font/montserratbold" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            <TextView
+                android:id="@+id/tv_subtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                android:maxLines="2"
+                android:ellipsize="end"
+                android:text="@string/home_card_subtitle_default" />
+        </LinearLayout>
+    </FrameLayout>
 
 </com.google.android.material.card.MaterialCardView>

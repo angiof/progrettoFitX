@@ -8,36 +8,25 @@ import com.app.progrettofitx.dominio.UsesCasesEssercissi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class EsserciziViewModel(private val getEserciziByIdUseCase: UsesCasesEssercissi) : ViewModel() {
-
+class EsserciziViewModel(private val useCase: UsesCasesEssercissi) : ViewModel() {
 
     fun insert(essercizi: EsserciziEntity) = viewModelScope.launch(Dispatchers.IO) {
-        getEserciziByIdUseCase.insert(essercizi)
+        useCase.insert(essercizi)
     }
 
-    suspend fun getTotalEss(id: Int): Int {
-        return getEserciziByIdUseCase.getTotalEss(id)
+    suspend fun getTotalEss(id: Int): Int = useCase.getTotalEss(id)
+
+    fun getAllById(id: Int): LiveData<List<EsserciziEntity>> = useCase.getAllById(id)
+
+    fun delete(essercizi: EsserciziEntity) = viewModelScope.launch(Dispatchers.IO) {
+        useCase.delateEss(essercizi)
     }
 
-    suspend fun getAllById(id: Int): LiveData<List<EsserciziEntity>> {
-        return getEserciziByIdUseCase.getAllById(id = id)
+    fun deleteById(id: Int) = viewModelScope.launch(Dispatchers.IO) {
+        useCase.delateEss(id)
     }
-
-    suspend fun delateEsser(essercizi: EsserciziEntity) {
-        getEserciziByIdUseCase.delateEss(essercizi = essercizi)
-    }
-
-    suspend fun delateEsser(id: Int) {
-        getEserciziByIdUseCase.delateEss(id)
-    }
-
 
     fun update(item: EsserciziEntity) = viewModelScope.launch(Dispatchers.IO) {
-        getEserciziByIdUseCase.update(item)
+        useCase.update(item)
     }
-
-
-
-
-
 }

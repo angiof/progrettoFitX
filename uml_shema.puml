@@ -1,0 +1,510 @@
+@startuml
+class com.app.progrettofitx.fragments.filtro.adapter.BlankViewModel {
+-  daoSchede
+-  repository
+-  _schede
++ LiveData<List<SchedeEntity>> schede
++ <<Create>> BlankViewModel(Application)
++ void loadSchede()
++ void loadSchedeInDateRange(Long,Long)
+}
+
+
+class com.app.progrettofitx.ui.sheet.MyBottomSheetFragment$Companion {
+-  ARG_SCHEDA
+-  ARG_ITEM
++ void newInstance(Int,EsserciziEntity?)
+}
+
+
+class com.app.progrettofitx.ui.sheet.MyBottomSheetFragment {
+- CalendarView calendarView
+-  idScheda
+-  editing
+- String? nome
+- Int? nSerie
+- Int? nIntervallo
+- Int? nRipetizioni
+- Int? isometria
+- String? attrezzo
+- EsserciziViewModel viewModel
+- BottomSheetLayoutBinding binding
++ View onCreateView(LayoutInflater,ViewGroup?,Bundle?)
++ void onViewCreated(View,Bundle?)
+- void setInfoAndSave()
+- void listaAttrezzi()
++ void adjustForFocusedView()
++ void onActivityCreated(Bundle?)
+}
+
+
+class com.app.progrettofitx.ui.shedeForms.ui.SwipeCallback {
++ <<Create>> SwipeCallback(EserciziAdapter)
++ Boolean onMove(RecyclerView,RecyclerView.ViewHolder,RecyclerView.ViewHolder)
++ void onSwiped(RecyclerView.ViewHolder,Int)
++ void onChildDraw(Canvas,RecyclerView,RecyclerView.ViewHolder,Float,Float,Int,Boolean)
+}
+
+class com.app.progrettofitx.data_layer.db.EsserciziEntity {
++ <<Create>> EsserciziEntity(Int?,String,String,Int,Int,Int?,Int?,Int)
+}
+
+class com.app.progrettofitx.workMangerFit.NotificationWorker {
++ <<Create>> NotificationWorker(Context,WorkerParameters)
++ Result doWork()
+- void showNotification()
+}
+
+class com.app.progrettofitx.ui.shedeForms.FragCreateSchedeForm {
+- FragmentBaseAcitivityBinding binding
+- SchedeEntity? shedaForm
+- SchedeViewModel viewModel
+- Int? existingRecordId
++ View onCreateView(LayoutInflater,ViewGroup?,Bundle?)
++ void onViewCreated(View,Bundle?)
+- void showDatePickerDialog()
++ void checkInputs()
+- Boolean checkStrings(String?)
++ void onSaveInstanceState(Bundle)
++ void onResume()
+- void setupDropdown(AutoCompleteTextView,View,List<String>)
+}
+
+
+class com.app.progrettofitx.ui.dashboard.DashViewModelFactory {
++ <<Create>> DashViewModelFactory(DaoSchede,Application)
++ T create(Class<T>)
+}
+
+class com.app.progrettofitx.ui.shedeForms.SchedeViewModel {
++ <<Create>> SchedeViewModel(Application,UsesCasesSheda)
++ Long insert(SchedeEntity)
++ void update(SchedeEntity)
++ void delete(SchedeEntity)
++ void updateTime(Int,String)
+}
+
+class com.app.progrettofitx.ui.forms.AcitivySheda {
++ ActivityBaseAcitivityBinding binding
++ void onCreate(Bundle?)
+- AppCompatTextView createCustomTabView(String)
+}
+
+
+class com.app.progrettofitx.ui.dashboard.RotateAnimationx {
+-  oldAngle
++ <<Create>> RotateAnimationx(PieChart,Float)
++ void applyTransformation(Float,Transformation?)
+}
+
+
+class com.app.progrettofitx.fragments.filtro.BlankFragment {
+- FragmentBlankBinding? _b
+-  b
+- BlankViewModel vm
+- SchedaAdapter adapter
+- Long? startDate
+- Long? endDate
+-  selectingStart
++ void onViewCreated(View,Bundle?)
++ void swithScreen()
+- void setupDropdown(AutoCompleteTextView,View,List<String>)
++ void autocomplete()
++ void onDestroyView()
+}
+
+
+class com.app.progrettofitx.data_layer.db.dao.GruppoMuscolareIntensitaMedia {
++ <<Create>> GruppoMuscolareIntensitaMedia(String,Float)
+}
+
+class com.app.progrettofitx.data_layer.db.DB.DbFit$Companion {
+- DbFit? INSTANCE
++ DbFit getDatabase(Context)
+}
+
+
+abstract class com.app.progrettofitx.data_layer.db.DB.DbFit {
++ DaoEssercissi essercissiDao()
++ DaoSchede schedeDao()
+}
+
+class DashFrag {
+- FragmentDashboardBinding binding
+- DashViewModel viewModel
++ View onCreateView(LayoutInflater,ViewGroup?,Bundle?)
++ void observeStatusData()
+- void observerbar()
+- void setupBarChart(List<GruppoMuscolareIntensitaMedia>)
+- void updatePieChart(List<GruppoMuscolarePercentuale>)
++ void rotatePieChart(PieChart,Long)
+- void showDateRangePickerDialogX()
+}
+
+
+interface com.app.progrettofitx.ui.shedeForms.ui.SwipeHelper$UnderlayButtonClickListener {
++ void onClick()
+}
+
+class com.app.progrettofitx.ui.shedeForms.ui.SwipeHelper$UnderlayButton {
+- RectF? clickableRegion
+- Float textSizeInPixel
+-  horizontalPadding
++ Float intrinsicWidth
++ <<Create>> UnderlayButton(Context,String,Float,Int,UnderlayButtonClickListener)
++ void draw(Canvas,RectF)
++ void handle(MotionEvent)
+}
+
+
+abstract class com.app.progrettofitx.ui.shedeForms.ui.SwipeHelper {
+-  swipedPosition
+- MutableMap<Int, List<UnderlayButton>> buttonsBuffer
+-  recoverQueue
+-  touchListener
++ <<Create>> SwipeHelper(RecyclerView)
+- void recoverSwipedItem()
+- void drawButtons(Canvas,List<UnderlayButton>,View,Float)
++ void onChildDraw(Canvas,RecyclerView,RecyclerView.ViewHolder,Float,Float,Int,Boolean)
++ Boolean onMove(RecyclerView,RecyclerView.ViewHolder,RecyclerView.ViewHolder)
++ void onSwiped(RecyclerView.ViewHolder,Int)
++ List<UnderlayButton> instantiateUnderlayButton(Int)
+}
+
+
+class com.app.progrettofitx.ui.filter.ui.ActivityFilterSchede {
+- ActivityFilterSchedeBinding binding
++ void onCreate(Bundle?)
+}
+
+
+class com.app.progrettofitx.ui.home.HomeViewModel {
+-  _text
++ LiveData<String> text
+}
+
+abstract class com.app.progrettofitx.ui.forms.BaseAcitivity {
+- ActivityBaseAcitivityBinding binding
++ TabLayout tabLayout
++ NavInflater navInflater
++ NavHostFragment navHostFragment
++ void onCreate(Bundle?)
++ void addTab(MutableList<TabLayout.Tab>)
++ void selectTab(Int)
++ void setWalper()
+}
+
+
+class com.app.progrettofitx.data_layer.db.SchedeEntity {
++ <<Create>> SchedeEntity(Int?,String,String,String,String,String?,String?)
+}
+
+class com.app.progrettofitx.data_layer.db.repos.EsserciziRepository {
++ <<Create>> EsserciziRepository(DaoEssercissi)
++ void insert(EsserciziEntity)
++ void update(EsserciziEntity)
++ void delete(EsserciziEntity)
++ void delateFromId(Int)
++ LiveData<List<EsserciziEntity>> getAllById(Int)
++ Int getCountById(Int)
+}
+
+class com.app.progrettofitx.ui.schede.SchedaAdapter$SchedaHolder {
+- MaterialTextView titolo
+- MaterialTextView gruppo
+- MaterialTextView descr
++ <<Create>> SchedaHolder(View)
++ void bind(SchedeEntity)
+}
+
+
+class com.app.progrettofitx.ui.schede.SchedaAdapter {
++ <<Create>> SchedaAdapter(List<SchedeEntity>)
++ SchedaHolder onCreateViewHolder(ViewGroup,Int)
++ void onBindViewHolder(SchedaHolder,Int)
++ Int getItemCount()
++ void updateList(List<SchedeEntity>)
+}
+
+class com.app.progrettofitx.dominio.ModelHomemenu {
++ <<Create>> ModelHomemenu(Int,String)
+}
+
+class com.app.progrettofitx.ui.notifications.NotificationsFragment {
+- FragmentNotificationsBinding? _binding
+-  binding
++ View onCreateView(LayoutInflater,ViewGroup?,Bundle?)
++ void onDestroyView()
+}
+
+
+class com.app.progrettofitx.dominio.UsesCasesSheda {
++ <<Create>> UsesCasesSheda(SchedeRepository)
++ Long insert(SchedeEntity)
++ void update(SchedeEntity)
++ void delete(SchedeEntity)
++ List<SchedeEntity> getAllSchede()
++ SchedeEntity? getSchedeById(Int)
++ List<SchedeEntity> getSchedeByGruppoMuscolare(String)
++ void updateTime(Int,String)
++ List<SchedeEntity> getSchedeWithTime()
+}
+
+interface com.app.progrettofitx.data_layer.db.dao.DaoSchede {
++ Long insert(SchedeEntity)
++ void update(SchedeEntity)
++ void delete(SchedeEntity)
++ List<SchedeEntity> getAllSchede()
++ SchedeEntity? getSchedeById(Int)
++ List<SchedeEntity> getSchedeByGruppoMuscolare(String)
++ void updateTime(Int,String)
++ List<SchedeEntity> getSchedeWithTime()
++ List<GruppoMuscolarePercentuale> getPercentualePerGruppoMuscolare()
++ List<GruppoMuscolarePercentuale> getPercentualePerGruppoMuscolareInDateRange(String,String)
++ List<GruppoMuscolareIntensitaMedia> getMediaIntensitaPerGruppoMuscolareDateRange(String,String)
++ List<SchedeEntity> getSchedeInDateRange(String,String)
+}
+
+class com.app.progrettofitx.ui.home.AdapterHome$HomeViewHolder {
+- TextView titoloTextView
+- ImageView copertina
+- MaterialCardView card
++ <<Create>> HomeViewHolder(View)
++ void bin(ModelHomemenu)
+}
+
+
+class com.app.progrettofitx.ui.home.AdapterHome$AdapterHomeCallback {
++ Boolean areItemsTheSame(ModelHomemenu,ModelHomemenu)
++ Boolean areContentsTheSame(ModelHomemenu,ModelHomemenu)
+}
+
+class com.app.progrettofitx.ui.home.AdapterHome {
++ void onBindViewHolder(HomeViewHolder,Int)
++ HomeViewHolder onCreateViewHolder(ViewGroup,Int)
+}
+
+class com.app.progrettofitx.dominio.GruppoMuscolarePercentuale {
++ <<Create>> GruppoMuscolarePercentuale(String,Float)
+}
+
+class com.app.progrettofitx.ui.home.HomeFragment {
+- FragmentHomeBinding? _binding
+-  binding
+- AdapterHome adapters
++ View onCreateView(LayoutInflater,ViewGroup?,Bundle?)
++ void onDestroy()
+}
+
+
+class com.app.progrettofitx.notifcationss.APPlicationServices {
++ void onCreate()
+- void setupWorkManager()
+}
+
+class com.app.progrettofitx.ui.shedeForms.SchedeRepository$SchedeRepository {
++ <<Create>> SchedeRepository(DaoSchede)
++ void getAllSchede()
+}
+
+class com.app.progrettofitx.ui.shedeForms.SchedeRepository {
++ <<Create>> SchedeRepository(DaoSchede)
++ Long insert(SchedeEntity)
++ void update(SchedeEntity)
++ void delete(SchedeEntity)
++ List<SchedeEntity> getAllSchede()
++ SchedeEntity? getSchedeById(Int)
++ List<SchedeEntity> getSchedeByGruppoMuscolare(String)
++ void updateTime(Int,String)
++ List<SchedeEntity> getSchedeWithTime()
++ List<GruppoMuscolarePercentuale> getPercentualePerGruppoMuscolare()
++ List<GruppoMuscolarePercentuale> getPercentualePerGruppoMuscolareInDateRange(String,String)
++ List<GruppoMuscolareIntensitaMedia> getMediaIntensitaPerGruppoMuscolareDateRange(String,String)
++ List<SchedeEntity> getSchedeInDateRange(Long,Long)
+}
+
+class com.app.progrettofitx.ui.dashboard.DashViewModel {
++  _statusData
++ LiveData<String> statusDataLive
+-  _mediaIntensita
++ LiveData<List<GruppoMuscolareIntensitaMedia>> mediaIntensita
+-  _percentualiGruppiMuscolari
++ LiveData<List<GruppoMuscolarePercentuale>> percentualiGruppiMuscolari
++ <<Create>> DashViewModel(SchedeRepository,Application)
++ void setStatusData(String)
+- void loadPercentualiGruppiMuscolari()
++ void loadPercentualiGruppiMuscolariInDateRange(String,String)
++ void loadMediaIntensita(String,String)
+}
+
+
+class com.app.progrettofitx.dominio.UsesCasesEssercissi {
++ <<Create>> UsesCasesEssercissi(EsserciziRepository)
++ LiveData<List<EsserciziEntity>> getAllById(Int)
++ void insert(EsserciziEntity)
++ Int getTotalEss(Int)
++ void delateEss(EsserciziEntity)
++ void delateEss(Int)
++ void update(EsserciziEntity)
+}
+
+class com.app.progrettofitx.ui.factory.GenericViewModelFactory {
++ <<Create>> GenericViewModelFactory(() -> T)
++ T create(Class<T>)
+}
+
+interface com.app.progrettofitx.data_layer.db.dao.DaoEssercissi {
++ void insert(EsserciziEntity)
++ void update(EsserciziEntity)
++ void delete(EsserciziEntity)
++ void deleteFromId(Int)
++ Int countEsserciziById(Int)
++ List<EsserciziEntity> getEssercissiById(Int)
++ LiveData<List<EsserciziEntity>> getEssercissiBySchedaId(Int)
++ LiveData<List<EsserciziEntity>> getAllById(Int)
+}
+
+class com.app.progrettofitx.ui.MainActivity {
+- ActivityMainBinding binding
++ void onCreate(Bundle?)
+}
+
+
+class com.app.progrettofitx.ui.shedeForms.ui.FragmentRepielogoViewModel {
+}
+class com.app.progrettofitx.fragments.filtro.BlankViewModel {
+-  repo
+-  _schede
++ LiveData<List<SchedeEntity>> schede
++ <<Create>> BlankViewModel(Application)
++ void loadSchede()
++ void loadSchedeInDateRange(Long,Long)
+}
+
+
+class com.app.progrettofitx.ui.notifications.NotificationsViewModel {
+-  _text
++ LiveData<String> text
+}
+
+class com.app.progrettofitx.ui.shedeForms.FragEssercissi$SimpleItemTouchHelperCallback {
++ <<Create>> SimpleItemTouchHelperCallback((fromPosition: Int, toPosition: Int) -> Boolean,(position: Int, direction: Int) -> Unit)
++ Boolean isLongPressDragEnabled()
++ Boolean isItemViewSwipeEnabled()
++ Int getMovementFlags(RecyclerView,RecyclerView.ViewHolder)
++ Boolean onMove(RecyclerView,RecyclerView.ViewHolder,RecyclerView.ViewHolder)
++ void onSwiped(RecyclerView.ViewHolder,Int)
+}
+
+class com.app.progrettofitx.ui.shedeForms.FragEssercissi {
+- FragmentFragEssercissiBinding binding
+- EserciziAdapter adapterx
+- SchedeEntity schedeEntity
+- EsserciziViewModel viewModel
+- Int? positionRecy
+- EsserciziEntity? mEssercizi
++ View onCreateView(LayoutInflater,ViewGroup?,Bundle?)
+- void setRecyListainer()
++ void onResume()
+}
+
+
+class com.app.progrettofitx.ui.shedeForms.ui.FragmentRepielogo {
+- FragmentFragmentRepielogoBinding binding
+- EsserciziViewModel viewModel
+- Int? ora
+- SchedeViewModel viewModel2
+- Int? minuti
+- SchedeEntity? schedeEntity
++ String? selectedTime
++ View? onCreateView(LayoutInflater,ViewGroup?,Bundle?)
++ void onViewCreated(View,Bundle?)
++ void onResume()
+}
+
+
+class com.app.progrettofitx.ui.shedeForms.EsserciziViewModel {
++ <<Create>> EsserciziViewModel(UsesCasesEssercissi)
++ void insert(EsserciziEntity)
++ Int getTotalEss(Int)
++ LiveData<List<EsserciziEntity>> getAllById(Int)
++ void delateEsser(EsserciziEntity)
++ void delateEsser(Int)
++ void update(EsserciziEntity)
+}
+
+class com.app.progrettofitx.ui.shedeForms.recyclreview.EserciziAdapter$EserciziDiffCallback {
++ Boolean areItemsTheSame(EsserciziEntity,EsserciziEntity)
++ Boolean areContentsTheSame(EsserciziEntity,EsserciziEntity)
+}
+
+interface com.app.progrettofitx.ui.shedeForms.recyclreview.EserciziAdapter$ItemClick {
++ void onEdit(EsserciziEntity)
++ void onDelete(EsserciziEntity)
+}
+
+class com.app.progrettofitx.ui.shedeForms.recyclreview.EserciziAdapter$EserciziViewHolder {
++ <<Create>> EserciziViewHolder(ListaEssercissiBinding)
++ void bind(EsserciziEntity)
+}
+
+class com.app.progrettofitx.ui.shedeForms.recyclreview.EserciziAdapter {
++ <<Create>> EserciziAdapter(ItemClick)
++ EserciziViewHolder onCreateViewHolder(ViewGroup,Int)
++ void onBindViewHolder(EserciziViewHolder,Int)
+}
+
+
+
+androidx.lifecycle.AndroidViewModel <|-- com.app.progrettofitx.fragments.filtro.adapter.BlankViewModel
+com.app.progrettofitx.ui.sheet.MyBottomSheetFragment +.. com.app.progrettofitx.ui.sheet.MyBottomSheetFragment$Companion
+com.google.android.material.bottomsheet.BottomSheetDialogFragment <|-- com.app.progrettofitx.ui.sheet.MyBottomSheetFragment
+com.app.progrettofitx.ui.shedeForms.ui.SimpleCallback <|-- com.app.progrettofitx.ui.shedeForms.ui.SwipeCallback
+java.io.Serializable <|.. com.app.progrettofitx.data_layer.db.EsserciziEntity
+androidx.work.CoroutineWorker <|-- com.app.progrettofitx.workMangerFit.NotificationWorker
+androidx.fragment.app.Fragment <|-- com.app.progrettofitx.ui.shedeForms.FragCreateSchedeForm
+com.app.progrettofitx.ui.dashboard.Factory <|.. com.app.progrettofitx.ui.dashboard.DashViewModelFactory
+androidx.lifecycle.AndroidViewModel <|-- com.app.progrettofitx.ui.shedeForms.SchedeViewModel
+com.app.progrettofitx.ui.forms.BaseAcitivity <|-- com.app.progrettofitx.ui.forms.AcitivySheda
+android.view.animation.Animation <|-- com.app.progrettofitx.ui.dashboard.RotateAnimationx
+androidx.fragment.app.Fragment <|-- com.app.progrettofitx.fragments.filtro.BlankFragment
+com.app.progrettofitx.data_layer.db.DB.DbFit +.. com.app.progrettofitx.data_layer.db.DB.DbFit$Companion
+androidx.room.RoomDatabase <|-- com.app.progrettofitx.data_layer.db.DB.DbFit
+androidx.fragment.app.Fragment <|-- DashFrag
+com.app.progrettofitx.ui.shedeForms.ui.SwipeHelper +.. com.app.progrettofitx.ui.shedeForms.ui.SwipeHelper$UnderlayButtonClickListener
+com.app.progrettofitx.ui.shedeForms.ui.SwipeHelper +.. com.app.progrettofitx.ui.shedeForms.ui.SwipeHelper$UnderlayButton
+com.app.progrettofitx.ui.shedeForms.ui.SimpleCallback <|-- com.app.progrettofitx.ui.shedeForms.ui.SwipeHelper
+androidx.appcompat.app.AppCompatActivity <|-- com.app.progrettofitx.ui.filter.ui.ActivityFilterSchede
+androidx.lifecycle.ViewModel <|-- com.app.progrettofitx.ui.home.HomeViewModel
+androidx.appcompat.app.AppCompatActivity <|-- com.app.progrettofitx.ui.forms.BaseAcitivity
+java.io.Serializable <|.. com.app.progrettofitx.data_layer.db.SchedeEntity
+com.app.progrettofitx.ui.schede.SchedaAdapter +.. com.app.progrettofitx.ui.schede.SchedaAdapter$SchedaHolder
+com.app.progrettofitx.ui.schede.ViewHolder <|-- com.app.progrettofitx.ui.schede.SchedaAdapter$SchedaHolder
+com.app.progrettofitx.ui.schede.Adapter <|-- com.app.progrettofitx.ui.schede.SchedaAdapter
+androidx.fragment.app.Fragment <|-- com.app.progrettofitx.ui.notifications.NotificationsFragment
+com.app.progrettofitx.ui.home.AdapterHome +.. com.app.progrettofitx.ui.home.AdapterHome$HomeViewHolder
+com.app.progrettofitx.ui.home.ViewHolder <|-- com.app.progrettofitx.ui.home.AdapterHome$HomeViewHolder
+com.app.progrettofitx.ui.home.AdapterHome +.. com.app.progrettofitx.ui.home.AdapterHome$AdapterHomeCallback
+com.app.progrettofitx.ui.home.ItemCallback <|-- com.app.progrettofitx.ui.home.AdapterHome$AdapterHomeCallback
+androidx.recyclerview.widget.ListAdapter <|-- com.app.progrettofitx.ui.home.AdapterHome
+androidx.fragment.app.Fragment <|-- com.app.progrettofitx.ui.home.HomeFragment
+android.app.Application <|-- com.app.progrettofitx.notifcationss.APPlicationServices
+com.app.progrettofitx.ui.shedeForms.SchedeRepository +.. com.app.progrettofitx.ui.shedeForms.SchedeRepository$SchedeRepository
+androidx.lifecycle.AndroidViewModel <|-- com.app.progrettofitx.ui.dashboard.DashViewModel
+com.app.progrettofitx.ui.factory.Factory <|.. com.app.progrettofitx.ui.factory.GenericViewModelFactory
+androidx.appcompat.app.AppCompatActivity <|-- com.app.progrettofitx.ui.MainActivity
+androidx.lifecycle.ViewModel <|-- com.app.progrettofitx.ui.shedeForms.ui.FragmentRepielogoViewModel
+androidx.lifecycle.AndroidViewModel <|-- com.app.progrettofitx.fragments.filtro.BlankViewModel
+androidx.lifecycle.ViewModel <|-- com.app.progrettofitx.ui.notifications.NotificationsViewModel
+com.app.progrettofitx.ui.shedeForms.FragEssercissi +.. com.app.progrettofitx.ui.shedeForms.FragEssercissi$SimpleItemTouchHelperCallback
+com.app.progrettofitx.ui.shedeForms.Callback <|-- com.app.progrettofitx.ui.shedeForms.FragEssercissi$SimpleItemTouchHelperCallback
+androidx.fragment.app.Fragment <|-- com.app.progrettofitx.ui.shedeForms.FragEssercissi
+androidx.fragment.app.Fragment <|-- com.app.progrettofitx.ui.shedeForms.ui.FragmentRepielogo
+androidx.lifecycle.ViewModel <|-- com.app.progrettofitx.ui.shedeForms.EsserciziViewModel
+com.app.progrettofitx.ui.shedeForms.recyclreview.EserciziAdapter +.. com.app.progrettofitx.ui.shedeForms.recyclreview.EserciziAdapter$EserciziDiffCallback
+com.app.progrettofitx.ui.shedeForms.recyclreview.ItemCallback <|-- com.app.progrettofitx.ui.shedeForms.recyclreview.EserciziAdapter$EserciziDiffCallback
+com.app.progrettofitx.ui.shedeForms.recyclreview.EserciziAdapter +.. com.app.progrettofitx.ui.shedeForms.recyclreview.EserciziAdapter$ItemClick
+com.app.progrettofitx.ui.shedeForms.recyclreview.EserciziAdapter +.. com.app.progrettofitx.ui.shedeForms.recyclreview.EserciziAdapter$EserciziViewHolder
+com.app.progrettofitx.ui.shedeForms.recyclreview.ViewHolder <|-- com.app.progrettofitx.ui.shedeForms.recyclreview.EserciziAdapter$EserciziViewHolder
+androidx.recyclerview.widget.ListAdapter <|-- com.app.progrettofitx.ui.shedeForms.recyclreview.EserciziAdapter
+@enduml

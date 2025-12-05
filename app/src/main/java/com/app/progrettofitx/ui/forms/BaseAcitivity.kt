@@ -12,7 +12,9 @@ import com.google.android.material.tabs.TabLayout
 
 abstract class BaseAcitivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityBaseAcitivityBinding
+    private lateinit var _binding: ActivityBaseAcitivityBinding
+    protected val binding: ActivityBaseAcitivityBinding
+        get() = _binding
     lateinit var tabLayout: TabLayout
     lateinit var navInflater: NavInflater
     lateinit var navHostFragment: NavHostFragment
@@ -21,7 +23,7 @@ abstract class BaseAcitivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        binding = ActivityBaseAcitivityBinding.inflate(layoutInflater)
+        _binding = ActivityBaseAcitivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         navHostFragment =

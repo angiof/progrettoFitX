@@ -62,12 +62,6 @@ class SchedeRepository(private val daoSchede: DaoSchede) {
     }
 
 
-    class SchedeRepository(private val dao: DaoSchede) {
-        suspend fun getAllSchede() = dao.getAllSchede()
-    }
-
-
-
     suspend fun getSchedeInDateRange(startMillis: Long, endMillis: Long): List<SchedeEntity> {
         // Converte i millisecondi in stringhe ISO-8601 compatibili con la tua colonna `data`
         val fmt = DateTimeFormatter.ISO_LOCAL_DATE
@@ -91,6 +85,24 @@ class SchedeRepository(private val daoSchede: DaoSchede) {
 
     suspend fun countSchede(): Int = daoSchede.countSchede()
 
+    suspend fun countFavoriteSchede(): Int = daoSchede.countFavoriteSchede()
 
+    suspend fun countTotalExercises(): Int = daoSchede.countTotalExercises()
+
+    suspend fun getLastWorkoutDate(): String? = daoSchede.getLastWorkoutDate()
+
+    suspend fun getMediaIntensitaAll(): List<GruppoMuscolareIntensitaMedia> =
+        daoSchede.getMediaIntensitaPerGruppoMuscolareAll()
+
+    suspend fun getWorkoutCountByWeekdayAll() = daoSchede.getWorkoutCountByWeekdayAll()
+
+    suspend fun getWorkoutCountByWeekday(startDate: String, endDate: String) =
+        daoSchede.getWorkoutCountByWeekday(startDate, endDate)
+
+    suspend fun getDaysSinceLastWorkout(): Int? = daoSchede.getDaysSinceLastWorkout()
+
+    suspend fun getMostTrainedMuscleGroup(): String? = daoSchede.getMostTrainedMuscleGroup()
+
+    suspend fun getAverageWorkoutsPerWeek(): Double? = daoSchede.getAverageWorkoutsPerWeek()
 
 }

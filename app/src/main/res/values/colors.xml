@@ -11,10 +11,12 @@
     <color name="secondtest">#BDBDBD</color>
     <color name="accent">#40C4FF</color>
 
-
-    <color name="text_primary">#111111</color>
-    <color name="text_secondary">#555555</color>
-    <color name="text_tertiary">#777777</color>
+    <color name="bg_primary">#10161B</color>
+    <color name="bg_surface">#1A222A</color>
+    <color name="card_surface">#222C35</color>
+    <color name="text_primary">#ECF0F1</color>
+    <color name="text_secondary">#B0BEC5</color>
+    <color name="text_tertiary">#8FA1AD</color>
 
 
 </resources>

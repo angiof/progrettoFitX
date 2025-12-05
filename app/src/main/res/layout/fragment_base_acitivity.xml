@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FAFAFA"
+    android:background="@color/bg_primary"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="presentation.ui.shedeForms.FragCreateSchedeForm"
 
@@ -24,8 +24,8 @@
             android:hint="@string/inserisce_data"
             android:singleLine="true"
             app:boxStrokeWidth="3dp"
-            app:boxStrokeColor="@color/white"
-            app:hintTextColor="@color/black"
+            app:boxStrokeColor="@color/accent"
+            app:hintTextColor="@color/text_secondary"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
@@ -39,8 +39,8 @@
                 style="@style/testoForm"
                 android:inputType="none"
                 android:singleLine="true"
-                android:textColor="@color/black"
-                android:textColorHint="@color/black" />
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_secondary" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -54,7 +54,7 @@
             android:hint="@string/inserisci_nome_sheda"
             android:singleLine="true"
             app:boxStrokeWidth="3dp"
-            app:hintTextColor="@color/black"
+            app:hintTextColor="@color/text_secondary"
             app:layout_constraintEnd_toEndOf="@id/layout_data"
             app:layout_constraintStart_toStartOf="@id/layout_data"
             app:layout_constraintTop_toBottomOf="@id/layout_data">
@@ -67,8 +67,8 @@
                 android:singleLine="true"
                 android:maxLines="1"
                 style="@style/testoForm"
-                android:textColor="@color/black"
-                android:textColorHint="@color/black" />
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_secondary" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -83,7 +83,7 @@
             app:boxStrokeWidth="3dp"
             android:focusable="false"
             app:endIconMode="dropdown_menu"
-            app:hintTextColor="@color/black"
+            app:hintTextColor="@color/text_secondary"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/layout_title"
@@ -95,7 +95,9 @@
                 android:textSize="20sp"
                 android:imeOptions="actionNext"
                 android:layout_height="wrap_content"
-                android:inputType="none" />
+                android:inputType="none"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_secondary" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -110,7 +112,7 @@
             android:focusable="false"
             app:endIconMode="dropdown_menu"
             android:visibility="gone"
-            app:hintTextColor="@color/black"
+            app:hintTextColor="@color/text_secondary"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/layout_spinner_complete_gruppi_muscolari"
@@ -122,7 +124,9 @@
                 android:id="@+id/lista_attrezzi_txt"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="none" />
+                android:inputType="none"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_secondary" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -136,7 +140,7 @@
             android:hint="@string/intensita"
             app:boxStrokeWidth="3dp"
             app:endIconMode="dropdown_menu"
-            app:hintTextColor="@color/black"
+            app:hintTextColor="@color/text_secondary"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/lista_attrezzi_layout"
@@ -148,7 +152,9 @@
                 android:textSize="20sp"
                 android:imeOptions="actionNext"
                 android:layout_height="wrap_content"
-                android:inputType="none" />
+                android:inputType="none"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_secondary" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -163,7 +169,7 @@
             android:imeOptions="actionDone"
             android:singleLine="true"
             app:boxStrokeWidth="3dp"
-            app:hintTextColor="@color/black"
+            app:hintTextColor="@color/text_secondary"
             app:layout_constraintEnd_toEndOf="@id/layout_spinner_complete_gruppi_muscolari"
             app:layout_constraintStart_toStartOf="@+id/layout_spinner_complete_gruppi_muscolari"
             app:layout_constraintTop_toBottomOf="@+id/layout_spinner_insita">
@@ -176,8 +182,8 @@
                 android:imeOptions="actionNext"
                 style="@style/testoForm"
                 android:textAlignment="textStart"
-                android:textColor="@color/black"
-                android:textColorHint="@color/black" />
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_secondary" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.button.MaterialButton
@@ -187,6 +193,8 @@
             style="@style/testoForm"
 
             android:text="next"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/second"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

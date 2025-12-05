@@ -1,27 +1,27 @@
 package com.app.progrettofitx.fragments.filtro
 
 import android.app.AlertDialog
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.Toast
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.app.progrettofitx.R
 import com.app.progrettofitx.data_layer.db.DB.DbFit
 import com.app.progrettofitx.data_layer.db.repos.EsserciziRepository
 import com.app.progrettofitx.databinding.FragmentBlankBinding
 import com.app.progrettofitx.dominio.UsesCasesEssercissi
-import com.app.progrettofitx.ui.factory.GenericViewModelFactory
-import com.app.progrettofitx.ui.forms.AcitivySheda
 import com.app.progrettofitx.fragments.filtro.adapter.SchedaAdapter
+import com.app.progrettofitx.ui.factory.GenericViewModelFactory
 import com.app.progrettofitx.ui.shedeForms.EsserciziViewModel
+import com.app.progrettofitx.ui.shedeForms.SchedeListViewModel
+import com.app.progrettofitx.ui.forms.AcitivySheda
 import kotlinx.coroutines.launch
 import java.text.DateFormat
 import java.util.Calendar
@@ -32,7 +32,7 @@ class ShedeFragments : Fragment(R.layout.fragment_blank) {
     private var _b: FragmentBlankBinding? = null
     private val b get() = _b!!
 
-    private lateinit var vmSchede: BlankViewModel
+    private lateinit var vmSchede: SchedeListViewModel
     private lateinit var vmEs: EsserciziViewModel
     private lateinit var adapter: SchedaAdapter
 
@@ -41,18 +41,15 @@ class ShedeFragments : Fragment(R.layout.fragment_blank) {
     private var selectingStart = true
 
 
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         _b = FragmentBlankBinding.bind(view)
+
+        Log.d("MyFragmentTag", "${this::class.java.simpleName} in onViewCreated") // Existing log
 
         // ViewModels
         vmSchede = ViewModelProvider(
             this, ViewModelProvider.AndroidViewModelFactory(requireActivity().application)
-        )[BlankViewModel::class.java]
+        )[SchedeListViewModel::class.java]
 
         vmEs = ViewModelProvider(
             this,
@@ -66,9 +63,6 @@ class ShedeFragments : Fragment(R.layout.fragment_blank) {
                 )
             }
         )[EsserciziViewModel::class.java]
-
-        onApriSchedeClicked()
-
 
         // Adapter con click, long-click, count e favorite
         adapter = SchedaAdapter(
@@ -91,7 +85,7 @@ class ShedeFragments : Fragment(R.layout.fragment_blank) {
             },
             getCount = { id -> vmEs.getTotalEss(id) },
             onToggleFavorite = { scheda, fav ->
-                vmSchede.setFavorite(scheda.id!!, fav)
+                vmSchede.toggleFavorite(scheda.id!!, fav)
             }
         )
 
@@ -102,6 +96,7 @@ class ShedeFragments : Fragment(R.layout.fragment_blank) {
         // Osservo la lista e la passo all’adapter
         vmSchede.schede.observe(viewLifecycleOwner) { list ->
             adapter.submitList(list)
+            toggleEmptyState(list.isEmpty())
         }
 
         // --- LOGICA FILTRI ---
@@ -194,6 +189,18 @@ class ShedeFragments : Fragment(R.layout.fragment_blank) {
                 "Full Body", "Altro"
             )
         )
+
+        b.btnCreateScheda.setOnClickListener {
+            startActivity(
+                Intent(requireContext(), AcitivySheda::class.java)
+                    .putExtra("isNew", true)
+            )
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Log.d("MyFragmentTag", "${this::class.java.simpleName} is resumed")
     }
 
     private fun setupDropdown(
@@ -215,27 +222,9 @@ class ShedeFragments : Fragment(R.layout.fragment_blank) {
         _b = null
     }
 
-
-    fun onApriSchedeClicked() {
-        lifecycleScope.launch {
-            val cnt = vmSchede.getSchedeCount()
-            if (cnt == 0) {
-                AlertDialog.Builder(requireContext())
-                    .setTitle("Nessuna scheda trovata")
-                    .setMessage("Non hai ancora creato nessuna scheda. Vuoi crearne una nuova?")
-                    .setNegativeButton("No", null)
-                    .setPositiveButton("Sì") { _, _ ->
-                        // naviga al fragment di creazione, dentro lo stesso NavHost
-                        findNavController().navigate(R.id.placeholderFragment)
-                    }
-                    .show()
-            } else {
-                // apri AcitivySheda con lista esistente
-                startActivity(
-                    Intent(requireContext(), AcitivySheda::class.java)
-                        .putExtra("isNew", false)
-                )
-            }
-        }
+    private fun toggleEmptyState(isEmpty: Boolean) {
+        b.rvSchede.isVisible = !isEmpty
+        b.btnFilter.isVisible = !isEmpty
+        b.emptyState.isVisible = isEmpty
     }
 }

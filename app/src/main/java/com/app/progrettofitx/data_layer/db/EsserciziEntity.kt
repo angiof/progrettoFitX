@@ -14,6 +14,7 @@ import java.io.Serializable
         childColumns = arrayOf("schedaId"),
         onDelete = ForeignKey.CASCADE
     )],
+    indices = [androidx.room.Index(value = ["schedaId"])]
 )
 data class EsserciziEntity(
     @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id") val id: Int? = null,
@@ -27,6 +28,8 @@ data class EsserciziEntity(
     @ColumnInfo(name = "insometria") val insometria: Int?,
 
     @ColumnInfo(name = "intervallo") val intervallo: Int?,
+
+    @ColumnInfo(name = "peso") val peso: Float? = null, // Campo peso in kg (opzionale)
 
     @ColumnInfo(name = "schedaId") val schedaId: Int // Foreign Key
 ) : Serializable

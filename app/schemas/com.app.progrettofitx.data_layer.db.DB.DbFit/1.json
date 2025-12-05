@@ -1,0 +1,140 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "fbf0b9e2f01aec86bf5882dd56f6fb5a",
+    "entities": [
+      {
+        "tableName": "essercissi",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `nome` TEXT NOT NULL, `attrezzo` TEXT NOT NULL, `nRipetizione` INTEGER NOT NULL, `nSerie` INTEGER NOT NULL, `insometria` INTEGER, `intervallo` INTEGER, `schedaId` INTEGER NOT NULL, FOREIGN KEY(`schedaId`) REFERENCES `schede`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "nome",
+            "columnName": "nome",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "attrezzo",
+            "columnName": "attrezzo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nRipetizione",
+            "columnName": "nRipetizione",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nSerie",
+            "columnName": "nSerie",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "insometria",
+            "columnName": "insometria",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "intervallo",
+            "columnName": "intervallo",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "schedaId",
+            "columnName": "schedaId",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "foreignKeys": [
+          {
+            "table": "schede",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "schedaId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "schede",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `gruppoMuscolare` TEXT NOT NULL, `intesita` TEXT NOT NULL, `titolo` TEXT NOT NULL, `data` TEXT NOT NULL, `notes` TEXT, `ora` TEXT, `favorite` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "gruppoMuscolare",
+            "columnName": "gruppoMuscolare",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "intesita",
+            "columnName": "intesita",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "titolo",
+            "columnName": "titolo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "data",
+            "columnName": "data",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "notes",
+            "columnName": "notes",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "ora",
+            "columnName": "ora",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "favorite",
+            "columnName": "favorite",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'fbf0b9e2f01aec86bf5882dd56f6fb5a')"
+    ]
+  }
+}

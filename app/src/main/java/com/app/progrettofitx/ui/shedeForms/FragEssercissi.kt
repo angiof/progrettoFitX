@@ -8,8 +8,6 @@ import android.widget.LinearLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResultListener
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -26,9 +24,6 @@ import com.app.progrettofitx.ui.factory.GenericViewModelFactory
 import com.app.progrettofitx.ui.forms.BaseAcitivity
 import com.app.progrettofitx.ui.shedeForms.recyclreview.EserciziAdapter
 import com.app.progrettofitx.ui.sheet.RipetizioniSheetFragment
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class FragEssercissi : Fragment() {
     private lateinit var binding: FragmentFragEssercissiBinding
@@ -56,8 +51,7 @@ class FragEssercissi : Fragment() {
             }
 
             override suspend fun onDelete(item: EsserciziEntity) {
-                viewModel.delateEsser(item)
-
+                viewModel.delete(item)
             }
         })
 
@@ -99,14 +93,10 @@ class FragEssercissi : Fragment() {
                         true
                     }
 
-                val onItemSwiped: (position: Int, direction: Int) -> Unit = { position, direction ->
-                    // Implementa la logica per gestire lo swipe dell'elemento
-                    viewModel.viewModelScope.launch {
-                        withContext(Dispatchers.IO) {
-                            viewModel.delateEsser(position)
-                        }
+                val onItemSwiped: (position: Int, direction: Int) -> Unit = { position, _ ->
+                    adapterx.currentList.getOrNull(position)?.let { esercizio ->
+                        viewModel.delete(esercizio)
                     }
-
                 }
                 val itemTouchHelper =
                     ItemTouchHelper(SimpleItemTouchHelperCallback(onItemMove, onItemSwiped))
@@ -136,11 +126,8 @@ class FragEssercissi : Fragment() {
         arguments?.let {
             schedeEntity = it.getSerializable("f") as SchedeEntity
 
-            lifecycleScope.launch(Dispatchers.Main) {
-                // Observe changes to the list of exercises
-                viewModel.getAllById(schedeEntity.id!!).observe(viewLifecycleOwner) { list ->
-                    adapterx.submitList(list)
-                }
+            viewModel.getAllById(schedeEntity.id!!).observe(viewLifecycleOwner) { list ->
+                adapterx.submitList(list)
             }
         }
 

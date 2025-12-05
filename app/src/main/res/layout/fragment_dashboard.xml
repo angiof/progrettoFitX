@@ -4,48 +4,75 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true">
+    android:fillViewport="true"
+    android:background="@color/bg_primary">
 
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/constraintLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_dashboard_gradient"
+        android:padding="8dp">
 
-        <TextView
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/tv_mese"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:fontFamily="@font/raleway_bold"
-            android:text="cambia mese"
-            android:textSize="28sp"
-            app:layout_constraintBottom_toTopOf="@+id/tv_mese_corrente"
+            android:text="@string/seleziona_un_periodo"
+            android:textAllCaps="false"
+            android:textColor="@color/text_primary"
+            android:backgroundTint="@color/card_surface"
+            app:cornerRadius="24dp"
+            app:icon="@drawable/baseline_filter_list_24"
+            app:iconGravity="textStart"
+            app:iconPadding="8dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView
-            android:id="@+id/tv_mese_corrente"
-            android:layout_width="wrap_content"
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_range"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="44dp"
-            android:fontFamily="@font/raleway_bold"
-            android:text="mese inizio"
-            android:textSize="28sp"
+            android:layout_marginTop="16dp"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="@color/card_surface"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toBottomOf="@id/tv_mese">
 
-        <TextView
-            android:id="@+id/tv_mese_fine"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/raleway_bold"
-            android:text="mese corrente"
-            android:textSize="28sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tv_mese_corrente" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:paddingVertical="24dp"
+                android:paddingHorizontal="16dp">
+
+                <TextView
+                    android:id="@+id/tv_mese_corrente"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/raleway_bold"
+                    android:text="mese inizio"
+                    android:textColor="@color/text_primary"
+                    android:textSize="26sp" />
+
+                <TextView
+                    android:id="@+id/tv_mese_fine"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:fontFamily="@font/raleway_bold"
+                    android:text="mese corrente"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="22sp" />
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
 
         <include
             android:id="@+id/layout_ext"
@@ -56,7 +83,7 @@
             android:layout_marginBottom="100dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tv_mese_fine" />
+            app:layout_constraintTop_toBottomOf="@id/card_range" />
 
 
         <include
@@ -65,11 +92,19 @@
             android:layout_width="match_parent"
             android:layout_height="400dp"
             android:layout_marginTop="20dp"
-            app:layout_constraintBottom_toTopOf="@id/card_user_info_dasboard"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/layout_ext" />
 
+        <include
+            android:id="@+id/weekly_chart_include"
+            layout="@layout/week_chart"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:layout_marginTop="20dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/barchart_include" />
 
         <include
             android:id="@+id/card_user_info_dasboard"
@@ -77,17 +112,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:layout_marginBottom="20dp"
+            android:layout_marginBottom="28dp"
 
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/barchart_include" />
+            app:layout_constraintTop_toBottomOf="@id/weekly_chart_include" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.core.widget.NestedScrollView>
-
-
-
-

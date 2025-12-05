@@ -4,7 +4,7 @@
     android:id="@+id/bottomSheetLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white">
+    android:background="@color/bg_primary">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -20,7 +20,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="20dp"
-            android:background="#FFFFFF">
+            android:background="@color/card_surface"
+            android:elevation="4dp">
 
             <!-- Titolo -->
             <com.google.android.material.textview.MaterialTextView
@@ -28,9 +29,9 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/montserratbold"
-                android:textSize="24sp"
-                android:textColor="#111111"
-                android:text="Add Exercise"
+                android:textSize="22sp"
+                android:textColor="@color/text_primary"
+                android:text="@string/exercise_add_title"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"/>
@@ -42,8 +43,8 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:hint="Name"
-                app:boxStrokeColor="@color/second"
-                app:hintTextColor="@color/second"
+                app:boxStrokeColor="@color/accent"
+                app:hintTextColor="@color/text_secondary"
                 app:layout_constraintTop_toBottomOf="@id/bs_title"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -51,10 +52,11 @@
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/ed_nome"
+                    style="@style/testoForm"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:fontFamily="@font/robotoregular"
-                    android:textSize="18sp"/>
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_secondary"/>
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Dropdown attrezzo -->
@@ -64,8 +66,8 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:hint="Attrezzo"
-                app:boxStrokeColor="@color/second"
-                app:hintTextColor="@color/second"
+                app:boxStrokeColor="@color/accent"
+                app:hintTextColor="@color/text_secondary"
                 app:endIconMode="dropdown_menu"
                 app:layout_constraintTop_toBottomOf="@id/layout_title"
                 app:layout_constraintStart_toStartOf="parent"
@@ -76,7 +78,8 @@
                     android:id="@+id/lista_attrezzi_txtx"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:fontFamily="@font/robotoregular"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_secondary"
                     android:textSize="18sp"/>
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -87,8 +90,8 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:hint="# series"
-                app:boxStrokeColor="@color/second"
-                app:hintTextColor="@color/second"
+                app:boxStrokeColor="@color/accent"
+                app:hintTextColor="@color/text_secondary"
                 app:layout_constraintTop_toBottomOf="@id/lista_attrezzi_layoutx"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/layout_esecuzioni"
@@ -99,8 +102,8 @@
                     android:id="@+id/ed_serie"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:fontFamily="@font/robotoregular"
-                    android:textSize="18sp"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_secondary"
                     android:inputType="number"/>
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -110,8 +113,8 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:hint="# reps"
-                app:boxStrokeColor="@color/second"
-                app:hintTextColor="@color/second"
+                app:boxStrokeColor="@color/accent"
+                app:hintTextColor="@color/text_secondary"
                 app:layout_constraintTop_toTopOf="@id/layout_serie"
                 app:layout_constraintStart_toEndOf="@id/layout_serie"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -121,9 +124,34 @@
                     android:id="@+id/ed_reps"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:fontFamily="@font/robotoregular"
-                    android:textSize="18sp"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_secondary"
                     android:inputType="number"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Campo Peso (opzionale) -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/layout_peso"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:hint="@string/exercise_weight_label"
+                app:boxStrokeColor="@color/accent"
+                app:hintTextColor="@color/text_secondary"
+                app:helperText="@string/exercise_weight_hint"
+                app:helperTextTextColor="@color/text_secondary"
+                app:layout_constraintTop_toBottomOf="@id/layout_serie"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginTop="12dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/ed_peso"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_secondary"
+                    android:inputType="numberDecimal"/>
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
@@ -132,9 +160,9 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:hint="Iso (s)"
-                app:boxStrokeColor="@color/second"
-                app:hintTextColor="@color/second"
-                app:layout_constraintTop_toBottomOf="@id/layout_serie"
+                app:boxStrokeColor="@color/accent"
+                app:hintTextColor="@color/text_secondary"
+                app:layout_constraintTop_toBottomOf="@id/layout_peso"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/layout_riposo"
                 android:layout_marginTop="12dp"
@@ -144,9 +172,11 @@
                     android:id="@+id/ed_isometria"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:fontFamily="@font/robotoregular"
-                    android:textSize="18sp"
-                    android:inputType="number"/>
+                    android:inputType="none"
+                    android:focusable="false"
+                    android:clickable="true"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_secondary"/>
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
@@ -155,8 +185,8 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:hint="Rest (s)"
-                app:boxStrokeColor="@color/second"
-                app:hintTextColor="@color/second"
+                app:boxStrokeColor="@color/accent"
+                app:hintTextColor="@color/text_secondary"
                 app:layout_constraintTop_toTopOf="@id/layout_iso"
                 app:layout_constraintStart_toEndOf="@id/layout_iso"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -166,9 +196,11 @@
                     android:id="@+id/ed_riposo"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:fontFamily="@font/robotoregular"
-                    android:textSize="18sp"
-                    android:inputType="number"/>
+                    android:inputType="none"
+                    android:focusable="false"
+                    android:clickable="true"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_secondary"/>
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Bottone Add -->
@@ -177,7 +209,7 @@
                 style="@style/Widget.MaterialComponents.Button"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Add"
+                android:text="@string/exercise_save"
                 android:textAllCaps="false"
                 android:fontFamily="@font/montserratbold"
                 android:textSize="18sp"

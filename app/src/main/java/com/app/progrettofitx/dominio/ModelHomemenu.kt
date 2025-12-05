@@ -1,5 +1,15 @@
 package com.app.progrettofitx.dominio
 
+import androidx.annotation.DrawableRes
+
 data class ModelHomemenu(
-    val copertina: Int, val titolo: String
+    @DrawableRes val copertina: Int,
+    val titolo: String,
+    val action: HomeMenuAction
 )
+
+enum class HomeMenuAction {
+    CREATE_SCHEDE,
+    OPEN_SCHEDE,
+    VIEW_STATS
+}

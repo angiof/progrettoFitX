@@ -21,19 +21,44 @@
             android:layout_height="match_parent"
             android:padding="16dp">
 
-            <!-- Titolo -->
+            <!-- Titolo con icona -->
+            <ImageView
+                android:id="@+id/icon_check"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginTop="24dp"
+                android:src="@drawable/baseline_check_circle_24"
+                android:tint="@color/accent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/riepilogo_title_label"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:fontFamily="@font/montserratbold"
+                android:text="Riepilogo Scheda"
+                android:textAlignment="center"
+                android:textColor="@color/accent"
+                android:textSize="18sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/icon_check" />
+
             <TextView
                 android:id="@+id/titolo_re"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="60dp"
+                android:layout_marginTop="16dp"
                 android:fontFamily="@font/montserratbold"
                 android:textAlignment="center"
                 android:textColor="#111111"
                 android:textSize="24sp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/riepilogo_title_label"
                 tools:text="Full Body Blast" />
 
             <!-- Gruppo muscolare -->

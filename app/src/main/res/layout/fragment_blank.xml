@@ -2,13 +2,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="@color/bg_primary">
 
     <!-- Layout delle Schede -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/layout_schede"
         android:layout_width="match_parent"
-        android:background="#bdbdbd"
+        android:background="@color/bg_primary"
 
         android:layout_height="match_parent"
         android:visibility="visible">
@@ -24,6 +25,52 @@
             tools:itemCount="4"
             tools:listitem="@layout/m_list_schede" />
 
+        <LinearLayout
+            android:id="@+id/empty_state"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:background="@color/card_surface"
+            android:elevation="4dp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/tv_empty_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/raleway_bold"
+                android:text="@string/nessuna_scheda_title"
+                android:textColor="@color/text_primary"
+                android:textSize="22sp" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/tv_empty_subtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:text="@string/nessuna_scheda_description"
+                android:textAlignment="center"
+                android:textColor="@color/text_secondary" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCreateScheda"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/crea_scheda"
+                android:textAllCaps="false"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/accent" />
+
+        </LinearLayout>
+
         <!-- Floating Button per aprire i filtri -->
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/btnFilter"
@@ -32,7 +79,7 @@
             android:src="@drawable/baseline_filter_list_24"
             app:tint="@android:color/white"
             android:contentDescription="Filtra"
-            app:backgroundTint="@color/second"
+            app:backgroundTint="@color/accent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             android:layout_margin="16dp" />
@@ -44,13 +91,16 @@
         android:id="@+id/layoutfilter"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@color/bg_primary"
         android:visibility="gone">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="16dp"
+            android:background="@color/card_surface"
+            android:elevation="4dp">
 
             <com.google.android.material.textview.MaterialTextView
                 android:layout_width="wrap_content"
@@ -59,7 +109,7 @@
                 android:fontFamily="@font/raleway_bold"
                 android:text="@string/agggiungi_filtri"
                 android:textAlignment="center"
-                android:textColor="@color/second"
+                android:textColor="@color/text_primary"
                 android:textSize="24sp"
                 android:layout_gravity="center_horizontal"/>
 
@@ -88,8 +138,8 @@
                     android:inputType="text"
                     android:ellipsize="end"
                     android:maxLines="1"
-                    android:textColor="@color/black"
-                    android:textColorHint="@color/black"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_secondary"
                     android:dropDownWidth="match_parent"
                     android:completionHint="@string/inserisci_nome_sheda"/>
             </com.google.android.material.textfield.TextInputLayout>
@@ -105,7 +155,7 @@
                 android:hint="@string/insensita"
                 app:boxStrokeWidth="3dp"
                 app:endIconMode="dropdown_menu"
-                app:hintTextColor="@color/second"
+                app:hintTextColor="@color/text_secondary"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
 
                 <AutoCompleteTextView
@@ -114,6 +164,8 @@
                     android:layout_height="wrap_content"
                     android:imeOptions="actionNext"
                     android:inputType="none"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_secondary"
                     android:textSize="20sp"/>
 
             </com.google.android.material.textfield.TextInputLayout>
@@ -127,7 +179,7 @@
                 android:hint="@string/gruppo_musculare"
                 app:boxStrokeWidth="3dp"
                 app:endIconMode="dropdown_menu"
-                app:hintTextColor="@color/second"
+                app:hintTextColor="@color/text_secondary"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
 
                 <AutoCompleteTextView
@@ -136,6 +188,8 @@
                     android:layout_height="wrap_content"
                     android:imeOptions="actionNext"
                     android:inputType="none"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_secondary"
                     android:textSize="20sp"/>
 
             </com.google.android.material.textfield.TextInputLayout>
@@ -154,10 +208,10 @@
                 android:layout_marginTop="16dp"
                 android:text="Applica filtri"
                 android:fontFamily="@font/raleway_bold"
-                android:backgroundTint="@color/white"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/second"
                 app:strokeColor="@color/second"
-                app:strokeWidth="4dp"
-                android:textColor="@color/second"/>
+                app:strokeWidth="4dp"/>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/clearFiltersButton"

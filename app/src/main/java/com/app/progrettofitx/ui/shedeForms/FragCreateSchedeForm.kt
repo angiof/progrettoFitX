@@ -1,6 +1,5 @@
 package com.app.progrettofitx.ui.shedeForms
 
-import android.app.DatePickerDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -25,7 +24,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.Calendar
+import com.google.android.material.datepicker.MaterialDatePicker
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 
 class FragCreateSchedeForm : Fragment() {
@@ -33,6 +36,8 @@ class FragCreateSchedeForm : Fragment() {
     private var shedaForm: SchedeEntity? = null
     private lateinit var viewModel: SchedeViewModel
     private var existingRecordId: Int? = null
+    private val isoFormatter: DateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE
+    private val selectedMuscleGroups = mutableSetOf<String>()
 
 
     override fun onCreateView(
@@ -63,25 +68,19 @@ class FragCreateSchedeForm : Fragment() {
             if (existingRecordId == -1) existingRecordId = null
         }
 
-        binding.edEventData.setOnClickListener {
-            showDatePickerDialog()
+        binding.edEventData.setOnClickListener { showDatePickerDialog() }
+
+        binding.layoutSpinnerCompleteGruppiMuscolari.setOnClickListener {
+            showMultiSelectMuscleGroupsDialog()
         }
-        setupDropdown(
-            binding.gruppuMuscolari,
-            binding.layoutSpinnerCompleteGruppiMuscolari,
-            listOf(
-                "Dorsali",
-                "Petorali",
-                "Gambe",
-                "Spalle",
-                "Bicipiti",
-                "Tricipiti",
-                "Addominali",
-                "Cardio",
-                "Full Body",
-                "Altro"
-            )
-        )
+
+        binding.gruppuMuscolari.apply {
+            isFocusable = false
+            isClickable = true
+            setOnClickListener {
+                showMultiSelectMuscleGroupsDialog()
+            }
+        }
 
         binding.listaAttrezziTxt.setOnClickListener {
             setupDropdown(
@@ -139,20 +138,89 @@ class FragCreateSchedeForm : Fragment() {
         }
     }
 
-    private fun showDatePickerDialog() {
-        val calendar = Calendar.getInstance()
-        val year = calendar.get(Calendar.YEAR)
-        val month = calendar.get(Calendar.MONTH)
-        val day = calendar.get(Calendar.DAY_OF_MONTH)
+    private fun showMultiSelectMuscleGroupsDialog() {
+        val muscleGroups = listOf(
+            "Dorsali",
+            "Petorali",
+            "Gambe",
+            "Spalle",
+            "Bicipiti",
+            "Tricipiti",
+            "Addominali",
+            "Cardio",
+            "Full Body",
+            "Altro"
+        )
 
-        val datePickerDialog =
-            DatePickerDialog(requireContext(), style.DialogTheme, { _, y, m, d ->
-                val selectedDate =
-                    "${y}-${String.format("%02d", m + 1)}-${String.format("%02d", d)}"
-                binding.edEventData.setText(selectedDate)
-            }, year, month, day)
-        datePickerDialog.datePicker.minDate = System.currentTimeMillis() - 1000
-        datePickerDialog.show()
+        val dialogView = LayoutInflater.from(requireContext())
+            .inflate(R.layout.dialog_multi_select_groups, null, false)
+
+        val chipGroup = dialogView.findViewById<com.google.android.material.chip.ChipGroup>(
+            R.id.chipGroupMuscleGroups
+        )
+
+        muscleGroups.forEach { group ->
+            val chip = com.google.android.material.chip.Chip(requireContext()).apply {
+                text = group
+                isCheckable = true
+                isChecked = selectedMuscleGroups.contains(group)
+                setChipBackgroundColorResource(R.color.second)
+                setTextColor(resources.getColor(R.color.text_primary, null))
+            }
+            chipGroup.addView(chip)
+        }
+
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+            .setView(dialogView)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                selectedMuscleGroups.clear()
+                for (i in 0 until chipGroup.childCount) {
+                    val chip = chipGroup.getChildAt(i) as com.google.android.material.chip.Chip
+                    if (chip.isChecked) {
+                        selectedMuscleGroups.add(chip.text.toString())
+                    }
+                }
+                updateMuscleGroupsDisplay()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun updateMuscleGroupsDisplay() {
+        binding.gruppuMuscolari.setText(
+            if (selectedMuscleGroups.isEmpty()) {
+                ""
+            } else {
+                selectedMuscleGroups.joinToString(", ")
+            }
+        )
+    }
+
+    private fun showDatePickerDialog() {
+        val currentDateMillis = binding.edEventData.text?.toString()?.takeIf { it.isNotBlank() }
+            ?.let { existing ->
+                runCatching { LocalDate.parse(existing, isoFormatter) }
+                    .getOrNull()
+                    ?.atStartOfDay(ZoneId.systemDefault())
+                    ?.toInstant()
+                    ?.toEpochMilli()
+            }
+            ?: MaterialDatePicker.todayInUtcMilliseconds()
+
+        val picker = MaterialDatePicker.Builder.datePicker()
+            .setTitleText(getString(R.string.inserisce_data))
+            .setTheme(R.style.CustomDatePicker)
+            .setSelection(currentDateMillis)
+            .build()
+
+        picker.addOnPositiveButtonClickListener { selection ->
+            val date = Instant.ofEpochMilli(selection)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate()
+            binding.edEventData.setText(date.format(isoFormatter))
+        }
+
+        picker.show(parentFragmentManager, "create_date_picker")
     }
 
 
@@ -166,9 +234,17 @@ class FragCreateSchedeForm : Fragment() {
             val intensita: String = binding.edIntensita.text.toString()
             val gruppoMuscolare: String = binding.gruppuMuscolari.text.toString()
 
-            if (checkStrings(data, intensita, gruppoMuscolare, titolo)) {
+            if (checkStrings(data, intensita, gruppoMuscolare, titolo) ||
+                (selectedMuscleGroups.isNotEmpty() && checkStrings(data, intensita, titolo))) {
                 shedaForm = SchedeEntity(
-                    gruppoMuscolare = gruppoMuscolare,
+                    gruppoMuscolare = if (selectedMuscleGroups.isNotEmpty())
+                        selectedMuscleGroups.first()
+                    else
+                        gruppoMuscolare,
+                    gruppiMuscolari = if (selectedMuscleGroups.size > 1)
+                        selectedMuscleGroups.toList()
+                    else
+                        null,
                     intesita = intensita,
                     notes = notes,
                     titolo = titolo,
@@ -253,4 +329,3 @@ class FragCreateSchedeForm : Fragment() {
     }
 
 }
-

@@ -59,16 +59,14 @@ class FragmentRepielogo : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         arguments?.let {
              schedeEntity = it.getSerializable("schedeEntity") as SchedeEntity
-            // Fai qualcosa con schedeEntity
+            // Popola i campi con i dati della scheda
             binding.layoutRe.titoloRe.text = schedeEntity?.titolo
             binding.layoutRe.intensitaTxt.text = schedeEntity?.intesita
-            binding.layoutRe.ruppoMusResTxt.text = schedeEntity?.gruppoMuscolare
+            binding.layoutRe.ruppoMusResTxt.text = schedeEntity?.getGruppiMuscolariDisplay() ?: schedeEntity?.gruppoMuscolare
             binding.layoutRe.dataResTxt.text = schedeEntity?.data.toString()
-            binding.layoutRe.lyBtn.bntSaveInc.text = getString(R.string.salva_ed_esci).apply {
-                Toast.makeText(requireContext(), "uscire", Toast.LENGTH_SHORT).show()
-            }
-            lifecycleScope.launch(Dispatchers.IO) {
+            binding.layoutRe.lyBtn.bntSaveInc.text = getString(R.string.salva_ed_esci)
 
+            lifecycleScope.launch(Dispatchers.IO) {
                 val tot = viewModel.getTotalEss(schedeEntity?.id!!)
                 withContext(Dispatchers.Main) {
                     binding.layoutRe.totaleEsResTxt.text = tot.toString()

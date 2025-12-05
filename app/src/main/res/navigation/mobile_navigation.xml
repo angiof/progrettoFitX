@@ -13,7 +13,7 @@
 
     <fragment
         android:id="@+id/navigation_dashboard"
-        android:name="DashFrag"
+        android:name="com.app.progrettofitx.ui.dashboard.DashFrag"
         android:label="@string/title_dashboard"
         tools:layout="@layout/fragment_dashboard" />
 

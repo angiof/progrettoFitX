@@ -2,12 +2,15 @@ package com.app.progrettofitx.ui.sheet
 
 import android.graphics.Rect
 import android.os.Bundle
+import android.text.InputType
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.view.WindowManager
 import android.widget.ArrayAdapter
+import android.widget.NumberPicker
 import androidx.appcompat.R
 import androidx.core.os.bundleOf
 import androidx.lifecycle.ViewModelProvider
@@ -20,9 +23,11 @@ import com.app.progrettofitx.dominio.UsesCasesEssercissi
 import com.app.progrettofitx.ui.factory.GenericViewModelFactory
 import com.app.progrettofitx.ui.shedeForms.EsserciziViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.kizitonwose.calendar.view.CalendarView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 class RipetizioniSheetFragment : BottomSheetDialogFragment() {
 
@@ -69,9 +74,10 @@ class RipetizioniSheetFragment : BottomSheetDialogFragment() {
             binding.layoutEssercissiSheet.apply {
                 edNome.setText(e.nome)
                 edSerie.setText(e.nSerie.toString())
-                edReps.setText(e.nRipetizione.toString())         // <— qui
-                edRiposo.setText(e.intervallo?.toString() ?: "")
-                edIsometria.setText(e.insometria?.toString() ?: "")
+                edReps.setText(e.nRipetizione.toString())
+                edRiposo.setText(formatDuration(e.intervallo))
+                edIsometria.setText(formatDuration(e.insometria))
+                edPeso.setText(e.peso?.toString() ?: "")
                 listaAttrezziTxtx.setText(e.attrezzo, false)
             }
         }
@@ -91,6 +97,7 @@ class RipetizioniSheetFragment : BottomSheetDialogFragment() {
         //modificaTastiera()
         // adjustForKeyboard()
         adjustForFocusedView()
+        setupDurationPickers()
 
         return binding.root
 
@@ -98,6 +105,11 @@ class RipetizioniSheetFragment : BottomSheetDialogFragment() {
 
 
 
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Log.d("MyFragmentTag", "${this::class.java.simpleName} is resumed")
     }
 
 
@@ -117,11 +129,13 @@ class RipetizioniSheetFragment : BottomSheetDialogFragment() {
             val repsText  = edReps.text.toString()
             val riposoText = edRiposo.text.toString()
             val isoText    = edIsometria.text.toString()
+            val pesoText = edPeso.text.toString()
 
             val serie = serieText.toIntOrNull() ?: 0
             val reps  = repsText.toIntOrNull() ?: 0
-            val riposo= riposoText.toIntOrNull()
-            val iso   = isoText.toIntOrNull()
+            val riposo= parseDurationInput(riposoText)
+            val iso   = parseDurationInput(isoText)
+            val peso = pesoText.toFloatOrNull()
 
             val nuovo = (editing ?: EsserciziEntity(
                 nome         = "",
@@ -130,13 +144,15 @@ class RipetizioniSheetFragment : BottomSheetDialogFragment() {
                 nRipetizione = 0,
                 insometria   = null,
                 intervallo   = null,
+                peso         = null,
                 schedaId     = idScheda
             )).copy(
                 nome         = edNome.text.toString(),
-                nSerie       = serie,      // prendo dal campo serie
-                nRipetizione = reps,       // prendo dal campo reps
+                nSerie       = serie,
+                nRipetizione = reps,
                 intervallo   = riposo,
                 insometria   = iso,
+                peso         = peso,
                 attrezzo     = attrezzo ?: editing?.attrezzo.orEmpty(),
                 schedaId     = idScheda
             )
@@ -210,6 +226,87 @@ class RipetizioniSheetFragment : BottomSheetDialogFragment() {
 
     }
 
+    private fun setupDurationPickers() = with(binding.layoutEssercissiSheet) {
+        fun attachDurationPicker(
+            field: com.google.android.material.textfield.TextInputEditText,
+            title: Int
+        ) {
+            field.inputType = InputType.TYPE_NULL
+            field.isFocusable = false
+            field.isClickable = true
+            field.isCursorVisible = false
+            field.setOnClickListener {
+                val currentSeconds = parseDurationInput(field.text.toString()) ?: 0
+                showDurationPicker(getString(title), currentSeconds) { seconds ->
+                    field.setText(formatDuration(seconds))
+                }
+            }
+        }
+
+        attachDurationPicker(edIsometria, com.app.progrettofitx.R.string.exercise_isometria_label)
+        attachDurationPicker(edRiposo, com.app.progrettofitx.R.string.exercise_recupero_label)
+    }
+
+    private fun showDurationPicker(
+        title: String,
+        initialSeconds: Int,
+        onSelected: (Int) -> Unit
+    ) {
+        val context = requireContext()
+        val dialogView = LayoutInflater.from(context).inflate(
+            com.app.progrettofitx.R.layout.dialog_duration_picker,
+            null,
+            false
+        )
+        val minutesPicker = dialogView.findViewById<NumberPicker>(com.app.progrettofitx.R.id.minutesPicker)
+        val secondsPicker = dialogView.findViewById<NumberPicker>(com.app.progrettofitx.R.id.secondsPicker)
+
+        val initialMinutes = (initialSeconds / 60).coerceIn(0, 59)
+        val initialSecs = (initialSeconds % 60).coerceIn(0, 59)
+
+        listOf(minutesPicker, secondsPicker).forEach { picker ->
+            picker.minValue = 0
+            picker.maxValue = 59
+            picker.setFormatter { value -> String.format(Locale.getDefault(), "%02d", value) }
+        }
+        minutesPicker.value = initialMinutes
+        secondsPicker.value = initialSecs
+
+        MaterialAlertDialogBuilder(context)
+            .setTitle(title)
+            .setView(dialogView)
+            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val totalSeconds = minutesPicker.value * 60 + secondsPicker.value
+                onSelected(totalSeconds)
+            }
+            .show()
+    }
+
+    private fun formatDuration(value: Int?): String {
+        if (value == null || value <= 0) return ""
+        val minutes = value / 60
+        val seconds = value % 60
+        return String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
+    }
+
+    private fun parseDurationInput(value: String): Int? {
+        if (value.isBlank()) return null
+        val trimmed = value.trim()
+        return if (trimmed.contains(':')) {
+            val parts = trimmed.split(":")
+            if (parts.size == 2) {
+                val minutes = parts[0].toIntOrNull() ?: return null
+                val seconds = parts[1].toIntOrNull() ?: return null
+                minutes.coerceAtLeast(0) * 60 + seconds.coerceIn(0, 59)
+            } else {
+                null
+            }
+        } else {
+            trimmed.toIntOrNull()
+        }
+    }
+
 
     fun adjustForFocusedView() {
         val rootView = binding.root
@@ -241,6 +338,3 @@ class RipetizioniSheetFragment : BottomSheetDialogFragment() {
 
 
 }
-
-
-
