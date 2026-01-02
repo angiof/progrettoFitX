@@ -238,4 +238,31 @@
     <string name="tab_esercizi">Ejercicios</string>
     <string name="tab_riepilogo">Resumen</string>
     <string name="app_error_field_empty">Hay un campo vacio</string>
+
+    <!-- Muscle Compare Feature -->
+    <string name="muscle_compare">Comparacion Muscular</string>
+    <string name="home_card_subtitle_compare">Analiza tu progreso</string>
+    <string name="arms_variation">Brazos</string>
+    <string name="abs_variation">Abdominales</string>
+    <string name="legs_variation">Piernas</string>
+    <string name="glutes_variation">Gluteos</string>
+    <string name="take_photo_a">Tomar Primera Foto</string>
+    <string name="take_photo_b">Tomar Segunda Foto</string>
+    <string name="align_pose">Alinea la pose con la silueta</string>
+    <string name="notable_result">Resultado Notable!</string>
+    <string name="pose_detected">Pose detectada</string>
+    <string name="pose_not_detected">Pose no detectada</string>
+    <string name="alignment_insufficient">Alineamiento insuficiente</string>
+    <string name="processing_analysis">Analisis en curso...</string>
+    <string name="compare_history">Historial de Comparaciones</string>
+    <string name="no_comparisons">No hay comparaciones guardadas</string>
+    <string name="delete_comparison">Eliminar comparacion</string>
+    <string name="save_comparison">Guardar comparacion</string>
+    <string name="discard_comparison">Descartar</string>
+    <string name="new_comparison">Nueva Comparacion</string>
+    <string name="photo_captured">Foto capturada con exito</string>
+    <string name="proceed_to_second">Continuar a la segunda foto</string>
+    <string name="camera_permission_required">Se requiere permiso de camara</string>
+    <string name="variation_increase">Aumento</string>
+    <string name="variation_decrease">Disminucion</string>
 </resources>

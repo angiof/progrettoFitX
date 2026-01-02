@@ -221,33 +221,33 @@ public final class DaoSchede_Impl implements DaoSchede {
   }
 
   @Override
-  public Object insert(final SchedeEntity schede, final Continuation<? super Long> $completion) {
+  public Object insert(final SchedeEntity schede, final Continuation<? super Long> arg1) {
     if (schede == null) throw new NullPointerException();
     return DBUtil.performSuspending(__db, false, true, (_connection) -> {
       return __insertAdapterOfSchedeEntity.insertAndReturnId(_connection, schede);
-    }, $completion);
+    }, arg1);
   }
 
   @Override
-  public Object delete(final SchedeEntity scheda, final Continuation<? super Unit> $completion) {
+  public Object delete(final SchedeEntity scheda, final Continuation<? super Unit> arg1) {
     if (scheda == null) throw new NullPointerException();
     return DBUtil.performSuspending(__db, false, true, (_connection) -> {
       __deleteAdapterOfSchedeEntity.handle(_connection, scheda);
       return Unit.INSTANCE;
-    }, $completion);
+    }, arg1);
   }
 
   @Override
-  public Object update(final SchedeEntity scheda, final Continuation<? super Unit> $completion) {
+  public Object update(final SchedeEntity scheda, final Continuation<? super Unit> arg1) {
     if (scheda == null) throw new NullPointerException();
     return DBUtil.performSuspending(__db, false, true, (_connection) -> {
       __updateAdapterOfSchedeEntity.handle(_connection, scheda);
       return Unit.INSTANCE;
-    }, $completion);
+    }, arg1);
   }
 
   @Override
-  public Object getAllSchede(final Continuation<? super List<SchedeEntity>> $completion) {
+  public Object getAllSchede(final Continuation<? super List<SchedeEntity>> arg0) {
     final String _sql = "SELECT * FROM schede";
     return DBUtil.performSuspending(__db, true, false, (_connection) -> {
       final SQLiteStatement _stmt = _connection.prepare(_sql);
@@ -358,11 +358,11 @@ public final class DaoSchede_Impl implements DaoSchede {
       } finally {
         _stmt.close();
       }
-    }, $completion);
+    }, arg0);
   }
 
   @Override
-  public Object getSchedeById(final int id, final Continuation<? super SchedeEntity> $completion) {
+  public Object getSchedeById(final int id, final Continuation<? super SchedeEntity> arg1) {
     final String _sql = "SELECT * FROM schede WHERE id = ?";
     return DBUtil.performSuspending(__db, true, false, (_connection) -> {
       final SQLiteStatement _stmt = _connection.prepare(_sql);
@@ -475,12 +475,12 @@ public final class DaoSchede_Impl implements DaoSchede {
       } finally {
         _stmt.close();
       }
-    }, $completion);
+    }, arg1);
   }
 
   @Override
   public Object getSchedeByGruppoMuscolare(final String gruppoMuscolare,
-      final Continuation<? super List<SchedeEntity>> $completion) {
+      final Continuation<? super List<SchedeEntity>> arg1) {
     final String _sql = "SELECT * FROM schede WHERE gruppoMuscolare = ?";
     return DBUtil.performSuspending(__db, true, false, (_connection) -> {
       final SQLiteStatement _stmt = _connection.prepare(_sql);
@@ -597,11 +597,11 @@ public final class DaoSchede_Impl implements DaoSchede {
       } finally {
         _stmt.close();
       }
-    }, $completion);
+    }, arg1);
   }
 
   @Override
-  public Object getSchedeWithTime(final Continuation<? super List<SchedeEntity>> $completion) {
+  public Object getSchedeWithTime(final Continuation<? super List<SchedeEntity>> arg0) {
     final String _sql = "SELECT * FROM schede WHERE ora IS NOT NULL";
     return DBUtil.performSuspending(__db, true, false, (_connection) -> {
       final SQLiteStatement _stmt = _connection.prepare(_sql);
@@ -712,12 +712,12 @@ public final class DaoSchede_Impl implements DaoSchede {
       } finally {
         _stmt.close();
       }
-    }, $completion);
+    }, arg0);
   }
 
   @Override
   public Object getPercentualePerGruppoMuscolare(
-      final Continuation<? super List<GruppoMuscolarePercentuale>> $completion) {
+      final Continuation<? super List<GruppoMuscolarePercentuale>> arg0) {
     final String _sql = "\n"
             + "        SELECT gruppoMuscolare, COUNT(*) * 100.0 / (SELECT COUNT(*) FROM schede) as percentuale \n"
             + "        FROM schede \n"
@@ -746,13 +746,12 @@ public final class DaoSchede_Impl implements DaoSchede {
       } finally {
         _stmt.close();
       }
-    }, $completion);
+    }, arg0);
   }
 
   @Override
   public Object getPercentualePerGruppoMuscolareInDateRange(final String startDate,
-      final String endDate,
-      final Continuation<? super List<GruppoMuscolarePercentuale>> $completion) {
+      final String endDate, final Continuation<? super List<GruppoMuscolarePercentuale>> arg2) {
     final String _sql = "\n"
             + "    SELECT gruppoMuscolare, COUNT(*) * 100.0 / (\n"
             + "        SELECT COUNT(*) \n"
@@ -809,13 +808,12 @@ public final class DaoSchede_Impl implements DaoSchede {
       } finally {
         _stmt.close();
       }
-    }, $completion);
+    }, arg2);
   }
 
   @Override
   public Object getMediaIntensitaPerGruppoMuscolareDateRange(final String startDate,
-      final String endDate,
-      final Continuation<? super List<GruppoMuscolareIntensitaMedia>> $completion) {
+      final String endDate, final Continuation<? super List<GruppoMuscolareIntensitaMedia>> arg2) {
     final String _sql = "\n"
             + "    SELECT gruppoMuscolare, AVG(\n"
             + "        CASE intesita\n"
@@ -863,12 +861,12 @@ public final class DaoSchede_Impl implements DaoSchede {
       } finally {
         _stmt.close();
       }
-    }, $completion);
+    }, arg2);
   }
 
   @Override
   public Object getSchedeInDateRange(final String start, final String end,
-      final Continuation<? super List<SchedeEntity>> $completion) {
+      final Continuation<? super List<SchedeEntity>> arg2) {
     final String _sql = "\n"
             + "    SELECT * FROM schede\n"
             + "    WHERE date(data) BETWEEN date(?) AND date(?)\n"
@@ -994,11 +992,11 @@ public final class DaoSchede_Impl implements DaoSchede {
       } finally {
         _stmt.close();
       }
-    }, $completion);
+    }, arg2);
   }
 
   @Override
-  public Object countSchede(final Continuation<? super Integer> $completion) {
+  public Object countSchede(final Continuation<? super Integer> arg0) {
     final String _sql = "SELECT COUNT(*) FROM schede";
     return DBUtil.performSuspending(__db, true, false, (_connection) -> {
       final SQLiteStatement _stmt = _connection.prepare(_sql);
@@ -1019,11 +1017,11 @@ public final class DaoSchede_Impl implements DaoSchede {
       } finally {
         _stmt.close();
       }
-    }, $completion);
+    }, arg0);
   }
 
   @Override
-  public Object countFavoriteSchede(final Continuation<? super Integer> $completion) {
+  public Object countFavoriteSchede(final Continuation<? super Integer> arg0) {
     final String _sql = "SELECT COUNT(*) FROM schede WHERE favorite = 1";
     return DBUtil.performSuspending(__db, true, false, (_connection) -> {
       final SQLiteStatement _stmt = _connection.prepare(_sql);
@@ -1044,11 +1042,11 @@ public final class DaoSchede_Impl implements DaoSchede {
       } finally {
         _stmt.close();
       }
-    }, $completion);
+    }, arg0);
   }
 
   @Override
-  public Object countTotalExercises(final Continuation<? super Integer> $completion) {
+  public Object countTotalExercises(final Continuation<? super Integer> arg0) {
     final String _sql = "SELECT COUNT(*) FROM essercissi";
     return DBUtil.performSuspending(__db, true, false, (_connection) -> {
       final SQLiteStatement _stmt = _connection.prepare(_sql);
@@ -1069,11 +1067,11 @@ public final class DaoSchede_Impl implements DaoSchede {
       } finally {
         _stmt.close();
       }
-    }, $completion);
+    }, arg0);
   }
 
   @Override
-  public Object getLastWorkoutDate(final Continuation<? super String> $completion) {
+  public Object getLastWorkoutDate(final Continuation<? super String> arg0) {
     final String _sql = "SELECT data FROM schede ORDER BY date(data) DESC LIMIT 1";
     return DBUtil.performSuspending(__db, true, false, (_connection) -> {
       final SQLiteStatement _stmt = _connection.prepare(_sql);
@@ -1092,12 +1090,12 @@ public final class DaoSchede_Impl implements DaoSchede {
       } finally {
         _stmt.close();
       }
-    }, $completion);
+    }, arg0);
   }
 
   @Override
   public Object getMediaIntensitaPerGruppoMuscolareAll(
-      final Continuation<? super List<GruppoMuscolareIntensitaMedia>> $completion) {
+      final Continuation<? super List<GruppoMuscolareIntensitaMedia>> arg0) {
     final String _sql = "\n"
             + "        SELECT gruppoMuscolare, AVG(\n"
             + "            CASE intesita\n"
@@ -1133,12 +1131,12 @@ public final class DaoSchede_Impl implements DaoSchede {
       } finally {
         _stmt.close();
       }
-    }, $completion);
+    }, arg0);
   }
 
   @Override
   public Object getWorkoutCountByWeekdayAll(
-      final Continuation<? super List<WeekdayWorkoutCount>> $completion) {
+      final Continuation<? super List<WeekdayWorkoutCount>> arg0) {
     final String _sql = "\n"
             + "        SELECT strftime('%w', data) AS dayOfWeek, COUNT(*) AS count\n"
             + "        FROM schede\n"
@@ -1163,12 +1161,12 @@ public final class DaoSchede_Impl implements DaoSchede {
       } finally {
         _stmt.close();
       }
-    }, $completion);
+    }, arg0);
   }
 
   @Override
   public Object getWorkoutCountByWeekday(final String startDate, final String endDate,
-      final Continuation<? super List<WeekdayWorkoutCount>> $completion) {
+      final Continuation<? super List<WeekdayWorkoutCount>> arg2) {
     final String _sql = "\n"
             + "        SELECT strftime('%w', data) AS dayOfWeek, COUNT(*) AS count\n"
             + "        FROM schede\n"
@@ -1206,11 +1204,11 @@ public final class DaoSchede_Impl implements DaoSchede {
       } finally {
         _stmt.close();
       }
-    }, $completion);
+    }, arg2);
   }
 
   @Override
-  public Object getDaysSinceLastWorkout(final Continuation<? super Integer> $completion) {
+  public Object getDaysSinceLastWorkout(final Continuation<? super Integer> arg0) {
     final String _sql = "\n"
             + "        SELECT CAST(JULIANDAY('now') - JULIANDAY(MAX(data)) AS INTEGER) as daysSinceLastWorkout\n"
             + "        FROM schede\n"
@@ -1234,11 +1232,11 @@ public final class DaoSchede_Impl implements DaoSchede {
       } finally {
         _stmt.close();
       }
-    }, $completion);
+    }, arg0);
   }
 
   @Override
-  public Object getMostTrainedMuscleGroup(final Continuation<? super String> $completion) {
+  public Object getMostTrainedMuscleGroup(final Continuation<? super String> arg0) {
     final String _sql = "\n"
             + "        SELECT gruppoMuscolare\n"
             + "        FROM schede\n"
@@ -1263,11 +1261,11 @@ public final class DaoSchede_Impl implements DaoSchede {
       } finally {
         _stmt.close();
       }
-    }, $completion);
+    }, arg0);
   }
 
   @Override
-  public Object getAverageWorkoutsPerWeek(final Continuation<? super Double> $completion) {
+  public Object getAverageWorkoutsPerWeek(final Continuation<? super Double> arg0) {
     final String _sql = "\n"
             + "        SELECT COUNT(*) * 1.0 /\n"
             + "        (SELECT (JULIANDAY(MAX(data)) - JULIANDAY(MIN(data))) / 7.0 FROM schede)\n"
@@ -1294,12 +1292,11 @@ public final class DaoSchede_Impl implements DaoSchede {
       } finally {
         _stmt.close();
       }
-    }, $completion);
+    }, arg0);
   }
 
   @Override
-  public Object updateTime(final int id, final String time,
-      final Continuation<? super Unit> $completion) {
+  public Object updateTime(final int id, final String time, final Continuation<? super Unit> arg2) {
     final String _sql = "UPDATE schede SET ora = ? WHERE id = ?";
     return DBUtil.performSuspending(__db, false, true, (_connection) -> {
       final SQLiteStatement _stmt = _connection.prepare(_sql);
@@ -1317,12 +1314,12 @@ public final class DaoSchede_Impl implements DaoSchede {
       } finally {
         _stmt.close();
       }
-    }, $completion);
+    }, arg2);
   }
 
   @Override
   public Object setFavorite(final int id, final boolean isFav,
-      final Continuation<? super Unit> $completion) {
+      final Continuation<? super Unit> arg2) {
     final String _sql = "UPDATE schede SET favorite = ? WHERE id = ?";
     return DBUtil.performSuspending(__db, false, true, (_connection) -> {
       final SQLiteStatement _stmt = _connection.prepare(_sql);
@@ -1337,12 +1334,12 @@ public final class DaoSchede_Impl implements DaoSchede {
       } finally {
         _stmt.close();
       }
-    }, $completion);
+    }, arg2);
   }
 
   @Override
   public Object setCompleted(final int id, final boolean isCompleted, final String completedDate,
-      final Continuation<? super Unit> $completion) {
+      final Continuation<? super Unit> arg3) {
     final String _sql = "UPDATE schede SET completed = ?, completedDate = ? WHERE id = ?";
     return DBUtil.performSuspending(__db, false, true, (_connection) -> {
       final SQLiteStatement _stmt = _connection.prepare(_sql);
@@ -1363,7 +1360,7 @@ public final class DaoSchede_Impl implements DaoSchede {
       } finally {
         _stmt.close();
       }
-    }, $completion);
+    }, arg3);
   }
 
   @NonNull

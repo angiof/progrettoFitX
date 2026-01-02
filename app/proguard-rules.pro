@@ -26,3 +26,18 @@
 
 # Kotlinx metadata (used by Room)
 -dontwarn kotlinx.metadata.**
+
+# MediaPipe
+-keep class com.google.mediapipe.** { *; }
+-dontwarn com.google.mediapipe.**
+-keep class autovalue.shaded.** { *; }
+-dontwarn autovalue.shaded.**
+-dontwarn com.google.auto.value.**
+
+# Missing javax classes (used by MediaPipe internally)
+-dontwarn javax.lang.model.**
+-dontwarn javax.annotation.processing.**
+
+# Keep MediaPipe tasks
+-keep class com.google.mediapipe.tasks.** { *; }
+-keep class com.google.mediapipe.framework.** { *; }

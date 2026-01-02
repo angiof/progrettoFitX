@@ -15,6 +15,8 @@ import com.app.fityo.dominio.HomeMenuAction
 import com.app.fityo.dominio.ModelHomemenu
 import com.app.fityo.ui.compose.SchedeListActivity
 import com.app.fityo.ui.forms.AcitivySheda
+import com.app.fityo.ui.musclecompare.MuscleCompareActivity
+import com.app.fityo.ui.tutor.TutorActivity
 
 class HomeFragment : Fragment() {
 
@@ -59,6 +61,16 @@ class HomeFragment : Fragment() {
             copertina = R.drawable.ic_calendario2,
             titolo = getString(R.string.title_dashboard),
             action = HomeMenuAction.VIEW_STATS
+        ),
+        ModelHomemenu(
+            copertina = R.drawable.donna_spalle,
+            titolo = getString(R.string.muscle_compare),
+            action = HomeMenuAction.MUSCLE_COMPARE
+        ),
+        ModelHomemenu(
+            copertina = R.drawable.powerlifting,
+            titolo = getString(R.string.tutor_mode),
+            action = HomeMenuAction.TUTOR_MODE
         )
     )
 
@@ -74,6 +86,14 @@ class HomeFragment : Fragment() {
 
             HomeMenuAction.VIEW_STATS -> {
                 findNavController().navigate(R.id.navigation_dashboard)
+            }
+
+            HomeMenuAction.MUSCLE_COMPARE -> {
+                startActivity(Intent(requireContext(), MuscleCompareActivity::class.java))
+            }
+
+            HomeMenuAction.TUTOR_MODE -> {
+                startActivity(Intent(requireContext(), TutorActivity::class.java))
             }
         }
     }

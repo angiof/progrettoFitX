@@ -10,18 +10,24 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.app.fityo.data_layer.db.EsserciziEntity
 import com.app.fityo.data_layer.db.SchedeEntity
 import com.app.fityo.data_layer.db.NotificationEntity
+import com.app.fityo.data_layer.db.MuscleCompareEntity
+import com.app.fityo.data_layer.db.TutorSessionEntity
 import com.app.fityo.data_layer.db.converters.Converters
 import com.app.fityo.data_layer.db.dao.DaoEssercissi
 import com.app.fityo.data_layer.db.dao.DaoSchede
 import com.app.fityo.data_layer.db.dao.DaoNotifications
+import com.app.fityo.data_layer.db.dao.DaoMuscleCompare
+import com.app.fityo.data_layer.db.dao.DaoTutorSession
 
 @Database(
     entities = [
         EsserciziEntity::class,
         SchedeEntity::class,
-        NotificationEntity::class
+        NotificationEntity::class,
+        MuscleCompareEntity::class,
+        TutorSessionEntity::class
     ],
-    version = 5
+    version = 7
 )
 @TypeConverters(Converters::class)
 
@@ -30,6 +36,8 @@ abstract class DbFit : RoomDatabase() {
     abstract fun essercissiDao(): DaoEssercissi
     abstract fun schedeDao(): DaoSchede
     abstract fun notificationsDao(): DaoNotifications
+    abstract fun muscleCompareDao(): DaoMuscleCompare
+    abstract fun tutorSessionDao(): DaoTutorSession
 
 
     companion object {
@@ -86,6 +94,48 @@ abstract class DbFit : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Crea tabella confronti muscolari
+                database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS muscle_compare (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        createdAt INTEGER NOT NULL,
+                        photoAPath TEXT NOT NULL,
+                        photoBPath TEXT NOT NULL,
+                        armsVariation REAL NOT NULL,
+                        absVariation REAL NOT NULL,
+                        legsVariation REAL NOT NULL,
+                        glutesVariation REAL NOT NULL,
+                        notes TEXT,
+                        photoADate TEXT,
+                        photoBDate TEXT,
+                        scaleFactorA REAL NOT NULL DEFAULT 1.0,
+                        scaleFactorB REAL NOT NULL DEFAULT 1.0
+                    )
+                """)
+            }
+        }
+
+        private val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Crea tabella sessioni Tutor per analisi esercizi
+                database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS tutor_sessions (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        createdAt INTEGER NOT NULL,
+                        exerciseType TEXT NOT NULL,
+                        videoPath TEXT NOT NULL,
+                        thumbnailPath TEXT,
+                        duration INTEGER NOT NULL,
+                        totalErrors INTEGER NOT NULL,
+                        overallScore REAL NOT NULL,
+                        errorsJson TEXT NOT NULL
+                    )
+                """)
+            }
+        }
+
         fun getDatabase(context: Context): DbFit {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -93,7 +143,7 @@ abstract class DbFit : RoomDatabase() {
                     DbFit::class.java,
                     "dbFit"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
                     .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance

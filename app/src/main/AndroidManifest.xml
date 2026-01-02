@@ -7,6 +7,10 @@
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <uses-feature android:name="android.hardware.camera" android:required="true" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
 
     <application
         android:name=".notifcationss.APPlicationServices"
@@ -75,6 +79,20 @@
             android:screenOrientation="portrait"
             android:theme="@style/Theme.Fityo.NoActionBar"
             android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.musclecompare.MuscleCompareActivity"
+            android:exported="false"
+            android:label="@string/muscle_compare"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Fityo" />
+
+        <activity
+            android:name=".ui.tutor.TutorActivity"
+            android:exported="false"
+            android:label="@string/tutor_mode"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Fityo" />
 
         <meta-data
             android:name="preloaded_fonts"

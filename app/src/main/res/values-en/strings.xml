@@ -238,4 +238,31 @@
     <string name="tab_esercizi">Exercises</string>
     <string name="tab_riepilogo">Summary</string>
     <string name="app_error_field_empty">There is an empty field</string>
+
+    <!-- Muscle Compare Feature -->
+    <string name="muscle_compare">Muscle Compare</string>
+    <string name="home_card_subtitle_compare">Analyze your progress</string>
+    <string name="arms_variation">Arms</string>
+    <string name="abs_variation">Abs</string>
+    <string name="legs_variation">Legs</string>
+    <string name="glutes_variation">Glutes</string>
+    <string name="take_photo_a">Take First Photo</string>
+    <string name="take_photo_b">Take Second Photo</string>
+    <string name="align_pose">Align pose to silhouette</string>
+    <string name="notable_result">Notable Result!</string>
+    <string name="pose_detected">Pose detected</string>
+    <string name="pose_not_detected">Pose not detected</string>
+    <string name="alignment_insufficient">Insufficient alignment</string>
+    <string name="processing_analysis">Analysis in progress...</string>
+    <string name="compare_history">Comparison History</string>
+    <string name="no_comparisons">No saved comparisons</string>
+    <string name="delete_comparison">Delete comparison</string>
+    <string name="save_comparison">Save comparison</string>
+    <string name="discard_comparison">Discard</string>
+    <string name="new_comparison">New Comparison</string>
+    <string name="photo_captured">Photo captured successfully</string>
+    <string name="proceed_to_second">Proceed to second photo</string>
+    <string name="camera_permission_required">Camera permission required</string>
+    <string name="variation_increase">Increase</string>
+    <string name="variation_decrease">Decrease</string>
 </resources>

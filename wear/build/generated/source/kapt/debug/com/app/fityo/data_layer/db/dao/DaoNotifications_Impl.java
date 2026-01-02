@@ -133,31 +133,31 @@ public final class DaoNotifications_Impl implements DaoNotifications {
 
   @Override
   public Object insert(final NotificationEntity notification,
-      final Continuation<? super Long> $completion) {
+      final Continuation<? super Long> arg1) {
     if (notification == null) throw new NullPointerException();
     return DBUtil.performSuspending(__db, false, true, (_connection) -> {
       return __insertAdapterOfNotificationEntity.insertAndReturnId(_connection, notification);
-    }, $completion);
+    }, arg1);
   }
 
   @Override
   public Object delete(final NotificationEntity notification,
-      final Continuation<? super Unit> $completion) {
+      final Continuation<? super Unit> arg1) {
     if (notification == null) throw new NullPointerException();
     return DBUtil.performSuspending(__db, false, true, (_connection) -> {
       __deleteAdapterOfNotificationEntity.handle(_connection, notification);
       return Unit.INSTANCE;
-    }, $completion);
+    }, arg1);
   }
 
   @Override
   public Object update(final NotificationEntity notification,
-      final Continuation<? super Unit> $completion) {
+      final Continuation<? super Unit> arg1) {
     if (notification == null) throw new NullPointerException();
     return DBUtil.performSuspending(__db, false, true, (_connection) -> {
       __updateAdapterOfNotificationEntity.handle(_connection, notification);
       return Unit.INSTANCE;
-    }, $completion);
+    }, arg1);
   }
 
   @Override
@@ -296,7 +296,7 @@ public final class DaoNotifications_Impl implements DaoNotifications {
   }
 
   @Override
-  public Object markAsRead(final int id, final Continuation<? super Unit> $completion) {
+  public Object markAsRead(final int id, final Continuation<? super Unit> arg1) {
     final String _sql = "UPDATE notifications SET read = 1 WHERE id = ?";
     return DBUtil.performSuspending(__db, false, true, (_connection) -> {
       final SQLiteStatement _stmt = _connection.prepare(_sql);
@@ -308,12 +308,11 @@ public final class DaoNotifications_Impl implements DaoNotifications {
       } finally {
         _stmt.close();
       }
-    }, $completion);
+    }, arg1);
   }
 
   @Override
-  public Object deleteOlderThan(final long timestamp,
-      final Continuation<? super Unit> $completion) {
+  public Object deleteOlderThan(final long timestamp, final Continuation<? super Unit> arg1) {
     final String _sql = "DELETE FROM notifications WHERE timestamp < ?";
     return DBUtil.performSuspending(__db, false, true, (_connection) -> {
       final SQLiteStatement _stmt = _connection.prepare(_sql);
@@ -325,7 +324,7 @@ public final class DaoNotifications_Impl implements DaoNotifications {
       } finally {
         _stmt.close();
       }
-    }, $completion);
+    }, arg1);
   }
 
   @NonNull

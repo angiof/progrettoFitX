@@ -11,6 +11,8 @@ import androidx.sqlite.SQLite;
 import androidx.sqlite.SQLiteConnection;
 import com.app.fityo.data_layer.db.dao.DaoEssercissi;
 import com.app.fityo.data_layer.db.dao.DaoEssercissi_Impl;
+import com.app.fityo.data_layer.db.dao.DaoMuscleCompare;
+import com.app.fityo.data_layer.db.dao.DaoMuscleCompare_Impl;
 import com.app.fityo.data_layer.db.dao.DaoNotifications;
 import com.app.fityo.data_layer.db.dao.DaoNotifications_Impl;
 import com.app.fityo.data_layer.db.dao.DaoSchede;
@@ -37,18 +39,21 @@ public final class DbFit_Impl extends DbFit {
 
   private volatile DaoNotifications _daoNotifications;
 
+  private volatile DaoMuscleCompare _daoMuscleCompare;
+
   @Override
   @NonNull
   protected RoomOpenDelegate createOpenDelegate() {
-    final RoomOpenDelegate _openDelegate = new RoomOpenDelegate(5, "d6af434cd5687b3f563e67b5f46fa0b1", "5d0ee82dd1f9864a7310f80004b5738c") {
+    final RoomOpenDelegate _openDelegate = new RoomOpenDelegate(6, "8e65add61ab1135e2d76cf821809be64", "9177b6a83caffa672f50ab61f0ed7c77") {
       @Override
       public void createAllTables(@NonNull final SQLiteConnection connection) {
         SQLite.execSQL(connection, "CREATE TABLE IF NOT EXISTS `essercissi` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `nome` TEXT NOT NULL, `attrezzo` TEXT NOT NULL, `nRipetizione` INTEGER NOT NULL, `nSerie` INTEGER NOT NULL, `insometria` INTEGER, `intervallo` INTEGER, `peso` REAL, `completed` INTEGER NOT NULL, `schedaId` INTEGER NOT NULL, FOREIGN KEY(`schedaId`) REFERENCES `schede`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )");
         SQLite.execSQL(connection, "CREATE INDEX IF NOT EXISTS `index_essercissi_schedaId` ON `essercissi` (`schedaId`)");
         SQLite.execSQL(connection, "CREATE TABLE IF NOT EXISTS `schede` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `gruppoMuscolare` TEXT NOT NULL, `gruppiMuscolari` TEXT, `intesita` TEXT NOT NULL, `titolo` TEXT NOT NULL, `data` TEXT NOT NULL, `notes` TEXT, `ora` TEXT, `favorite` INTEGER NOT NULL, `completed` INTEGER NOT NULL, `completedDate` TEXT, `totalSteps` INTEGER, `avgHeartRate` INTEGER, `maxHeartRate` INTEGER)");
         SQLite.execSQL(connection, "CREATE TABLE IF NOT EXISTS `notifications` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `title` TEXT NOT NULL, `message` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, `schedaId` INTEGER, `read` INTEGER NOT NULL)");
+        SQLite.execSQL(connection, "CREATE TABLE IF NOT EXISTS `muscle_compare` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `createdAt` INTEGER NOT NULL, `photoAPath` TEXT NOT NULL, `photoBPath` TEXT NOT NULL, `armsVariation` REAL NOT NULL, `absVariation` REAL NOT NULL, `legsVariation` REAL NOT NULL, `glutesVariation` REAL NOT NULL, `notes` TEXT, `photoADate` TEXT, `photoBDate` TEXT, `scaleFactorA` REAL NOT NULL, `scaleFactorB` REAL NOT NULL)");
         SQLite.execSQL(connection, "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)");
-        SQLite.execSQL(connection, "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'd6af434cd5687b3f563e67b5f46fa0b1')");
+        SQLite.execSQL(connection, "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '8e65add61ab1135e2d76cf821809be64')");
       }
 
       @Override
@@ -56,6 +61,7 @@ public final class DbFit_Impl extends DbFit {
         SQLite.execSQL(connection, "DROP TABLE IF EXISTS `essercissi`");
         SQLite.execSQL(connection, "DROP TABLE IF EXISTS `schede`");
         SQLite.execSQL(connection, "DROP TABLE IF EXISTS `notifications`");
+        SQLite.execSQL(connection, "DROP TABLE IF EXISTS `muscle_compare`");
       }
 
       @Override
@@ -143,6 +149,29 @@ public final class DbFit_Impl extends DbFit {
                   + " Expected:\n" + _infoNotifications + "\n"
                   + " Found:\n" + _existingNotifications);
         }
+        final Map<String, TableInfo.Column> _columnsMuscleCompare = new HashMap<String, TableInfo.Column>(13);
+        _columnsMuscleCompare.put("id", new TableInfo.Column("id", "INTEGER", false, 1, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsMuscleCompare.put("createdAt", new TableInfo.Column("createdAt", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsMuscleCompare.put("photoAPath", new TableInfo.Column("photoAPath", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsMuscleCompare.put("photoBPath", new TableInfo.Column("photoBPath", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsMuscleCompare.put("armsVariation", new TableInfo.Column("armsVariation", "REAL", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsMuscleCompare.put("absVariation", new TableInfo.Column("absVariation", "REAL", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsMuscleCompare.put("legsVariation", new TableInfo.Column("legsVariation", "REAL", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsMuscleCompare.put("glutesVariation", new TableInfo.Column("glutesVariation", "REAL", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsMuscleCompare.put("notes", new TableInfo.Column("notes", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsMuscleCompare.put("photoADate", new TableInfo.Column("photoADate", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsMuscleCompare.put("photoBDate", new TableInfo.Column("photoBDate", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsMuscleCompare.put("scaleFactorA", new TableInfo.Column("scaleFactorA", "REAL", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsMuscleCompare.put("scaleFactorB", new TableInfo.Column("scaleFactorB", "REAL", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        final Set<TableInfo.ForeignKey> _foreignKeysMuscleCompare = new HashSet<TableInfo.ForeignKey>(0);
+        final Set<TableInfo.Index> _indicesMuscleCompare = new HashSet<TableInfo.Index>(0);
+        final TableInfo _infoMuscleCompare = new TableInfo("muscle_compare", _columnsMuscleCompare, _foreignKeysMuscleCompare, _indicesMuscleCompare);
+        final TableInfo _existingMuscleCompare = TableInfo.read(connection, "muscle_compare");
+        if (!_infoMuscleCompare.equals(_existingMuscleCompare)) {
+          return new RoomOpenDelegate.ValidationResult(false, "muscle_compare(com.app.fityo.data_layer.db.MuscleCompareEntity).\n"
+                  + " Expected:\n" + _infoMuscleCompare + "\n"
+                  + " Found:\n" + _existingMuscleCompare);
+        }
         return new RoomOpenDelegate.ValidationResult(true, null);
       }
     };
@@ -154,12 +183,12 @@ public final class DbFit_Impl extends DbFit {
   protected InvalidationTracker createInvalidationTracker() {
     final Map<String, String> _shadowTablesMap = new HashMap<String, String>(0);
     final Map<String, Set<String>> _viewTables = new HashMap<String, Set<String>>(0);
-    return new InvalidationTracker(this, _shadowTablesMap, _viewTables, "essercissi", "schede", "notifications");
+    return new InvalidationTracker(this, _shadowTablesMap, _viewTables, "essercissi", "schede", "notifications", "muscle_compare");
   }
 
   @Override
   public void clearAllTables() {
-    super.performClear(true, "essercissi", "schede", "notifications");
+    super.performClear(true, "essercissi", "schede", "notifications", "muscle_compare");
   }
 
   @Override
@@ -169,6 +198,7 @@ public final class DbFit_Impl extends DbFit {
     _typeConvertersMap.put(DaoEssercissi.class, DaoEssercissi_Impl.getRequiredConverters());
     _typeConvertersMap.put(DaoSchede.class, DaoSchede_Impl.getRequiredConverters());
     _typeConvertersMap.put(DaoNotifications.class, DaoNotifications_Impl.getRequiredConverters());
+    _typeConvertersMap.put(DaoMuscleCompare.class, DaoMuscleCompare_Impl.getRequiredConverters());
     return _typeConvertersMap;
   }
 
@@ -225,6 +255,20 @@ public final class DbFit_Impl extends DbFit {
           _daoNotifications = new DaoNotifications_Impl(this);
         }
         return _daoNotifications;
+      }
+    }
+  }
+
+  @Override
+  public DaoMuscleCompare muscleCompareDao() {
+    if (_daoMuscleCompare != null) {
+      return _daoMuscleCompare;
+    } else {
+      synchronized(this) {
+        if(_daoMuscleCompare == null) {
+          _daoMuscleCompare = new DaoMuscleCompare_Impl(this);
+        }
+        return _daoMuscleCompare;
       }
     }
   }

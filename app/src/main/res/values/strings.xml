@@ -239,4 +239,80 @@
     <string name="tab_esercizi">Esercizi</string>
     <string name="tab_riepilogo">Riepilogo</string>
     <string name="app_error_field_empty">Campo obbligatorio mancante</string>
+
+    <!-- Muscle Compare Feature -->
+    <string name="muscle_compare">Confronto Muscolare</string>
+    <string name="home_card_subtitle_compare">Analizza i tuoi progressi</string>
+    <string name="arms_variation">Braccia</string>
+    <string name="abs_variation">Addominali</string>
+    <string name="legs_variation">Gambe</string>
+    <string name="glutes_variation">Glutei</string>
+    <string name="take_photo_a">Prima Foto</string>
+    <string name="take_photo_b">Seconda Foto</string>
+    <string name="align_pose">Allinea la posa alla sagoma</string>
+    <string name="notable_result">Risultato Notevole!</string>
+    <string name="pose_detected">Pose rilevata</string>
+    <string name="pose_not_detected">Pose non rilevata</string>
+    <string name="alignment_insufficient">Allineamento insufficiente</string>
+    <string name="processing_analysis">Analisi in corso...</string>
+    <string name="compare_history">Storico Confronti</string>
+    <string name="no_comparisons">Nessun confronto salvato</string>
+    <string name="delete_comparison">Elimina confronto</string>
+    <string name="save_comparison">Salva confronto</string>
+    <string name="discard_comparison">Scarta</string>
+    <string name="new_comparison">Nuovo Confronto</string>
+    <string name="photo_captured">Foto catturata con successo</string>
+    <string name="proceed_to_second">Procedi alla seconda foto</string>
+    <string name="camera_permission_required">Permesso camera necessario</string>
+    <string name="variation_increase">Aumento</string>
+    <string name="variation_decrease">Diminuzione</string>
+
+    <!-- View Type Selection -->
+    <string name="select_view_type">Seleziona il tipo di foto</string>
+    <string name="select_view_type_subtitle">Scegli se scattare una foto frontale o posteriore</string>
+    <string name="view_frontal">Frontale</string>
+    <string name="view_frontal_desc">Posizionati di fronte alla camera.\nMostra il corpo intero dalla testa ai piedi.\n\nMigliore per: braccia, addominali, quadricipiti</string>
+    <string name="view_posterior">Posteriore (Schiena)</string>
+    <string name="view_posterior_desc">Posizionati di schiena alla camera.\nMostra il corpo intero dalla testa ai piedi.\n\nMigliore per: dorsali, tricipiti, glutei, polpacci</string>
+
+    <!-- Camera Instructions -->
+    <string name="photo_a_frontal_title">Prima Foto - Vista Frontale</string>
+    <string name="photo_a_frontal_subtitle">Posizionati di fronte alla camera. Corpo intero visibile dalla testa ai piedi.</string>
+    <string name="photo_a_posterior_title">Prima Foto - Vista Posteriore</string>
+    <string name="photo_a_posterior_subtitle">Posizionati di schiena alla camera. Corpo intero visibile dalla testa ai piedi.</string>
+    <string name="photo_b_frontal_title">Seconda Foto - Vista Frontale</string>
+    <string name="photo_b_frontal_subtitle">Ripeti la stessa posa frontale. Segui la sagoma semi-trasparente.</string>
+    <string name="photo_b_posterior_title">Seconda Foto - Vista Posteriore</string>
+    <string name="photo_b_posterior_subtitle">Ripeti la stessa posa di schiena. Segui la sagoma semi-trasparente.</string>
+
+    <!-- Camera Toggle -->
+    <string name="switch_camera">Cambia camera</string>
+    <string name="front_camera">Camera frontale</string>
+    <string name="back_camera">Camera posteriore</string>
+
+    <!-- Pose Instructions -->
+    <string name="pose_tips_title">Consigli per la foto</string>
+    <string name="pose_tip_1">Indossa abiti aderenti o costume</string>
+    <string name="pose_tip_2">Usa una buona illuminazione</string>
+    <string name="pose_tip_3">Mantieni la stessa distanza dalla camera</string>
+    <string name="pose_tip_4">Rilassa le braccia lungo i fianchi</string>
+
+    <!-- Tutor Mode -->
+    <string name="tutor_mode">Tutor Esercizi</string>
+    <string name="home_card_subtitle_tutor">Analisi IA della forma</string>
+    <string name="tutor_select_exercise">Seleziona Esercizio</string>
+    <string name="tutor_select_video_source">Sorgente Video</string>
+    <string name="tutor_record_video">Registra Video</string>
+    <string name="tutor_load_from_gallery">Carica da Galleria</string>
+    <string name="tutor_analyzing">Analisi in corso...</string>
+    <string name="tutor_save">Salva</string>
+    <string name="tutor_discard">Scarta</string>
+    <string name="tutor_errors_found">Errori rilevati</string>
+    <string name="tutor_no_errors">Nessun errore rilevato</string>
+    <string name="tutor_score">Punteggio</string>
+    <string name="tutor_history">Storico Analisi</string>
+    <string name="tutor_new_analysis">Nuova Analisi</string>
+    <string name="tutor_exercise_squat">Squat</string>
+    <string name="tutor_exercise_lunges">Affondi</string>
+    <string name="tutor_exercise_deadlift">Stacco da Terra</string>
 </resources>

@@ -156,37 +156,34 @@ public final class DaoEssercissi_Impl implements DaoEssercissi {
   }
 
   @Override
-  public Object insert(final EsserciziEntity essercizi,
-      final Continuation<? super Unit> $completion) {
+  public Object insert(final EsserciziEntity essercizi, final Continuation<? super Unit> arg1) {
     if (essercizi == null) throw new NullPointerException();
     return DBUtil.performSuspending(__db, false, true, (_connection) -> {
       __insertAdapterOfEsserciziEntity.insert(_connection, essercizi);
       return Unit.INSTANCE;
-    }, $completion);
+    }, arg1);
   }
 
   @Override
-  public Object delete(final EsserciziEntity essercizi,
-      final Continuation<? super Unit> $completion) {
+  public Object delete(final EsserciziEntity essercizi, final Continuation<? super Unit> arg1) {
     if (essercizi == null) throw new NullPointerException();
     return DBUtil.performSuspending(__db, false, true, (_connection) -> {
       __deleteAdapterOfEsserciziEntity.handle(_connection, essercizi);
       return Unit.INSTANCE;
-    }, $completion);
+    }, arg1);
   }
 
   @Override
-  public Object update(final EsserciziEntity essercizi,
-      final Continuation<? super Unit> $completion) {
+  public Object update(final EsserciziEntity essercizi, final Continuation<? super Unit> arg1) {
     if (essercizi == null) throw new NullPointerException();
     return DBUtil.performSuspending(__db, false, true, (_connection) -> {
       __updateAdapterOfEsserciziEntity.handle(_connection, essercizi);
       return Unit.INSTANCE;
-    }, $completion);
+    }, arg1);
   }
 
   @Override
-  public Object countEsserciziById(final int id, final Continuation<? super Integer> $completion) {
+  public Object countEsserciziById(final int id, final Continuation<? super Integer> arg1) {
     final String _sql = "SELECT COUNT(*) FROM essercissi WHERE schedaId = ?";
     return DBUtil.performSuspending(__db, true, false, (_connection) -> {
       final SQLiteStatement _stmt = _connection.prepare(_sql);
@@ -209,12 +206,12 @@ public final class DaoEssercissi_Impl implements DaoEssercissi {
       } finally {
         _stmt.close();
       }
-    }, $completion);
+    }, arg1);
   }
 
   @Override
   public Object getEssercissiById(final int id,
-      final Continuation<? super List<EsserciziEntity>> $completion) {
+      final Continuation<? super List<EsserciziEntity>> arg1) {
     final String _sql = "SELECT * FROM essercissi WHERE id = ?";
     return DBUtil.performSuspending(__db, true, false, (_connection) -> {
       final SQLiteStatement _stmt = _connection.prepare(_sql);
@@ -287,7 +284,7 @@ public final class DaoEssercissi_Impl implements DaoEssercissi {
       } finally {
         _stmt.close();
       }
-    }, $completion);
+    }, arg1);
   }
 
   @Override
@@ -445,7 +442,7 @@ public final class DaoEssercissi_Impl implements DaoEssercissi {
   }
 
   @Override
-  public Object deleteFromId(final int id, final Continuation<? super Unit> $completion) {
+  public Object deleteFromId(final int id, final Continuation<? super Unit> arg1) {
     final String _sql = "DELETE FROM essercissi WHERE id = ?";
     return DBUtil.performSuspending(__db, false, true, (_connection) -> {
       final SQLiteStatement _stmt = _connection.prepare(_sql);
@@ -457,7 +454,7 @@ public final class DaoEssercissi_Impl implements DaoEssercissi {
       } finally {
         _stmt.close();
       }
-    }, $completion);
+    }, arg1);
   }
 
   @NonNull

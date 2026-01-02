@@ -11,6 +11,8 @@ data class ModelHomemenu(
 enum class HomeMenuAction {
     CREATE_SCHEDE,
     OPEN_SCHEDE,
-    VIEW_STATS
+    VIEW_STATS,
+    MUSCLE_COMPARE,
+    TUTOR_MODE
 }
 

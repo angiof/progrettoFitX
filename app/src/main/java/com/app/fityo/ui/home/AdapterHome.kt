@@ -83,6 +83,8 @@ class AdapterHome(
             HomeMenuAction.CREATE_SCHEDE -> res.getString(R.string.home_card_subtitle_create)
             HomeMenuAction.OPEN_SCHEDE -> res.getString(R.string.home_card_subtitle_open)
             HomeMenuAction.VIEW_STATS -> res.getString(R.string.home_card_subtitle_dashboard)
+            HomeMenuAction.MUSCLE_COMPARE -> res.getString(R.string.home_card_subtitle_compare)
+            HomeMenuAction.TUTOR_MODE -> res.getString(R.string.home_card_subtitle_tutor)
         }
     }
 
