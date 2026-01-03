@@ -315,4 +315,23 @@
     <string name="tutor_exercise_squat">Squat</string>
     <string name="tutor_exercise_lunges">Affondi</string>
     <string name="tutor_exercise_deadlift">Stacco da Terra</string>
+
+    <!-- Avatar 3D -->
+    <string name="avatar_3d_title">Avatar 3D</string>
+    <string name="avatar_360_instruction_title">Scansione 360°</string>
+    <string name="avatar_360_instruction_step1">Posizionati in piedi con abbigliamento aderente</string>
+    <string name="avatar_360_instruction_step2">Quando inizia la registrazione, ruota lentamente su te stesso</string>
+    <string name="avatar_360_instruction_step3">Completa una rotazione di 360° in circa 12 secondi</string>
+    <string name="avatar_pose_ready">Posizione OK - Pronto per iniziare</string>
+    <string name="avatar_pose_not_ready">Posizionati meglio - Corpo intero visibile</string>
+    <string name="avatar_start_recording">Inizia Scansione</string>
+    <string name="avatar_get_ready">Preparati…</string>
+    <string name="avatar_rotation">rotazione</string>
+    <string name="avatar_rotate_slowly">Ruota lentamente su te stesso</string>
+    <string name="avatar_processing">Elaborazione video…</string>
+    <string name="avatar_generate_3d">Genera Avatar 3D</string>
+    <string name="avatar_view_history">Storico Avatar</string>
+    <string name="avatar_no_history">Nessun avatar salvato</string>
+    <string name="button_back">Indietro</string>
+    <string name="button_stop">Stop</string>
 </resources>

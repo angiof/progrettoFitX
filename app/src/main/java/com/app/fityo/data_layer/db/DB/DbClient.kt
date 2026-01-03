@@ -7,17 +7,21 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.app.fityo.data_layer.db.Avatar3DEntity
 import com.app.fityo.data_layer.db.EsserciziEntity
 import com.app.fityo.data_layer.db.SchedeEntity
 import com.app.fityo.data_layer.db.NotificationEntity
 import com.app.fityo.data_layer.db.MuscleCompareEntity
 import com.app.fityo.data_layer.db.TutorSessionEntity
+import com.app.fityo.data_layer.db.UserProfileEntity
 import com.app.fityo.data_layer.db.converters.Converters
+import com.app.fityo.data_layer.db.dao.DaoAvatar3D
 import com.app.fityo.data_layer.db.dao.DaoEssercissi
 import com.app.fityo.data_layer.db.dao.DaoSchede
 import com.app.fityo.data_layer.db.dao.DaoNotifications
 import com.app.fityo.data_layer.db.dao.DaoMuscleCompare
 import com.app.fityo.data_layer.db.dao.DaoTutorSession
+import com.app.fityo.data_layer.db.dao.DaoUserProfile
 
 @Database(
     entities = [
@@ -25,9 +29,11 @@ import com.app.fityo.data_layer.db.dao.DaoTutorSession
         SchedeEntity::class,
         NotificationEntity::class,
         MuscleCompareEntity::class,
-        TutorSessionEntity::class
+        TutorSessionEntity::class,
+        UserProfileEntity::class,
+        Avatar3DEntity::class
     ],
-    version = 7
+    version = 9
 )
 @TypeConverters(Converters::class)
 
@@ -38,6 +44,8 @@ abstract class DbFit : RoomDatabase() {
     abstract fun notificationsDao(): DaoNotifications
     abstract fun muscleCompareDao(): DaoMuscleCompare
     abstract fun tutorSessionDao(): DaoTutorSession
+    abstract fun userProfileDao(): DaoUserProfile
+    abstract fun avatar3dDao(): DaoAvatar3D
 
 
     companion object {
@@ -136,6 +144,52 @@ abstract class DbFit : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Crea tabella profilo utente per Body Intelligence
+                database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS user_profile (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        name TEXT NOT NULL,
+                        age INTEGER NOT NULL,
+                        heightCm REAL NOT NULL,
+                        weightKg REAL NOT NULL,
+                        sex TEXT NOT NULL,
+                        discipline TEXT NOT NULL,
+                        createdAt INTEGER NOT NULL,
+                        updatedAt INTEGER NOT NULL
+                    )
+                """)
+            }
+        }
+
+        private val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Crea tabella avatar 3D per Body Intelligence
+                database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS avatar_3d (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        userId INTEGER NOT NULL,
+                        createdAt INTEGER NOT NULL,
+                        meshDataPath TEXT NOT NULL,
+                        thumbnailPath TEXT,
+                        shapeParametersJson TEXT NOT NULL,
+                        zoneColorsJson TEXT NOT NULL,
+                        videoSourcePath TEXT,
+                        processingDurationMs INTEGER NOT NULL,
+                        framesAnalyzed INTEGER NOT NULL,
+                        confidence REAL NOT NULL,
+                        FOREIGN KEY (userId) REFERENCES user_profile(id) ON DELETE CASCADE
+                    )
+                """)
+                // Crea indice per userId
+                database.execSQL("""
+                    CREATE INDEX IF NOT EXISTS index_avatar_3d_userId
+                    ON avatar_3d(userId)
+                """)
+            }
+        }
+
         fun getDatabase(context: Context): DbFit {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -143,7 +197,7 @@ abstract class DbFit : RoomDatabase() {
                     DbFit::class.java,
                     "dbFit"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9)
                     .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance

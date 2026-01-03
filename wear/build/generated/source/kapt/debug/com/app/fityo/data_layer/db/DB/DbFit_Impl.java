@@ -9,6 +9,8 @@ import androidx.room.util.DBUtil;
 import androidx.room.util.TableInfo;
 import androidx.sqlite.SQLite;
 import androidx.sqlite.SQLiteConnection;
+import com.app.fityo.data_layer.db.dao.DaoAvatar3D;
+import com.app.fityo.data_layer.db.dao.DaoAvatar3D_Impl;
 import com.app.fityo.data_layer.db.dao.DaoEssercissi;
 import com.app.fityo.data_layer.db.dao.DaoEssercissi_Impl;
 import com.app.fityo.data_layer.db.dao.DaoMuscleCompare;
@@ -17,6 +19,10 @@ import com.app.fityo.data_layer.db.dao.DaoNotifications;
 import com.app.fityo.data_layer.db.dao.DaoNotifications_Impl;
 import com.app.fityo.data_layer.db.dao.DaoSchede;
 import com.app.fityo.data_layer.db.dao.DaoSchede_Impl;
+import com.app.fityo.data_layer.db.dao.DaoTutorSession;
+import com.app.fityo.data_layer.db.dao.DaoTutorSession_Impl;
+import com.app.fityo.data_layer.db.dao.DaoUserProfile;
+import com.app.fityo.data_layer.db.dao.DaoUserProfile_Impl;
 import java.lang.Class;
 import java.lang.Override;
 import java.lang.String;
@@ -41,10 +47,16 @@ public final class DbFit_Impl extends DbFit {
 
   private volatile DaoMuscleCompare _daoMuscleCompare;
 
+  private volatile DaoTutorSession _daoTutorSession;
+
+  private volatile DaoUserProfile _daoUserProfile;
+
+  private volatile DaoAvatar3D _daoAvatar3D;
+
   @Override
   @NonNull
   protected RoomOpenDelegate createOpenDelegate() {
-    final RoomOpenDelegate _openDelegate = new RoomOpenDelegate(6, "8e65add61ab1135e2d76cf821809be64", "9177b6a83caffa672f50ab61f0ed7c77") {
+    final RoomOpenDelegate _openDelegate = new RoomOpenDelegate(9, "e0cd17566a2b2450e6b2e7bbf2133609", "6cdc31061a5dcaa25bb8083c9a61e553") {
       @Override
       public void createAllTables(@NonNull final SQLiteConnection connection) {
         SQLite.execSQL(connection, "CREATE TABLE IF NOT EXISTS `essercissi` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `nome` TEXT NOT NULL, `attrezzo` TEXT NOT NULL, `nRipetizione` INTEGER NOT NULL, `nSerie` INTEGER NOT NULL, `insometria` INTEGER, `intervallo` INTEGER, `peso` REAL, `completed` INTEGER NOT NULL, `schedaId` INTEGER NOT NULL, FOREIGN KEY(`schedaId`) REFERENCES `schede`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )");
@@ -52,8 +64,12 @@ public final class DbFit_Impl extends DbFit {
         SQLite.execSQL(connection, "CREATE TABLE IF NOT EXISTS `schede` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `gruppoMuscolare` TEXT NOT NULL, `gruppiMuscolari` TEXT, `intesita` TEXT NOT NULL, `titolo` TEXT NOT NULL, `data` TEXT NOT NULL, `notes` TEXT, `ora` TEXT, `favorite` INTEGER NOT NULL, `completed` INTEGER NOT NULL, `completedDate` TEXT, `totalSteps` INTEGER, `avgHeartRate` INTEGER, `maxHeartRate` INTEGER)");
         SQLite.execSQL(connection, "CREATE TABLE IF NOT EXISTS `notifications` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `title` TEXT NOT NULL, `message` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, `schedaId` INTEGER, `read` INTEGER NOT NULL)");
         SQLite.execSQL(connection, "CREATE TABLE IF NOT EXISTS `muscle_compare` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `createdAt` INTEGER NOT NULL, `photoAPath` TEXT NOT NULL, `photoBPath` TEXT NOT NULL, `armsVariation` REAL NOT NULL, `absVariation` REAL NOT NULL, `legsVariation` REAL NOT NULL, `glutesVariation` REAL NOT NULL, `notes` TEXT, `photoADate` TEXT, `photoBDate` TEXT, `scaleFactorA` REAL NOT NULL, `scaleFactorB` REAL NOT NULL)");
+        SQLite.execSQL(connection, "CREATE TABLE IF NOT EXISTS `tutor_sessions` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `createdAt` INTEGER NOT NULL, `exerciseType` TEXT NOT NULL, `videoPath` TEXT NOT NULL, `thumbnailPath` TEXT, `duration` INTEGER NOT NULL, `totalErrors` INTEGER NOT NULL, `overallScore` REAL NOT NULL, `errorsJson` TEXT NOT NULL)");
+        SQLite.execSQL(connection, "CREATE TABLE IF NOT EXISTS `user_profile` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` TEXT NOT NULL, `age` INTEGER NOT NULL, `heightCm` REAL NOT NULL, `weightKg` REAL NOT NULL, `sex` TEXT NOT NULL, `discipline` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL)");
+        SQLite.execSQL(connection, "CREATE TABLE IF NOT EXISTS `avatar_3d` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `userId` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL, `meshDataPath` TEXT NOT NULL, `thumbnailPath` TEXT, `shapeParametersJson` TEXT NOT NULL, `zoneColorsJson` TEXT NOT NULL, `videoSourcePath` TEXT, `processingDurationMs` INTEGER NOT NULL, `framesAnalyzed` INTEGER NOT NULL, `confidence` REAL NOT NULL, FOREIGN KEY(`userId`) REFERENCES `user_profile`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )");
+        SQLite.execSQL(connection, "CREATE INDEX IF NOT EXISTS `index_avatar_3d_userId` ON `avatar_3d` (`userId`)");
         SQLite.execSQL(connection, "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)");
-        SQLite.execSQL(connection, "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '8e65add61ab1135e2d76cf821809be64')");
+        SQLite.execSQL(connection, "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e0cd17566a2b2450e6b2e7bbf2133609')");
       }
 
       @Override
@@ -62,6 +78,9 @@ public final class DbFit_Impl extends DbFit {
         SQLite.execSQL(connection, "DROP TABLE IF EXISTS `schede`");
         SQLite.execSQL(connection, "DROP TABLE IF EXISTS `notifications`");
         SQLite.execSQL(connection, "DROP TABLE IF EXISTS `muscle_compare`");
+        SQLite.execSQL(connection, "DROP TABLE IF EXISTS `tutor_sessions`");
+        SQLite.execSQL(connection, "DROP TABLE IF EXISTS `user_profile`");
+        SQLite.execSQL(connection, "DROP TABLE IF EXISTS `avatar_3d`");
       }
 
       @Override
@@ -172,6 +191,67 @@ public final class DbFit_Impl extends DbFit {
                   + " Expected:\n" + _infoMuscleCompare + "\n"
                   + " Found:\n" + _existingMuscleCompare);
         }
+        final Map<String, TableInfo.Column> _columnsTutorSessions = new HashMap<String, TableInfo.Column>(9);
+        _columnsTutorSessions.put("id", new TableInfo.Column("id", "INTEGER", false, 1, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsTutorSessions.put("createdAt", new TableInfo.Column("createdAt", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsTutorSessions.put("exerciseType", new TableInfo.Column("exerciseType", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsTutorSessions.put("videoPath", new TableInfo.Column("videoPath", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsTutorSessions.put("thumbnailPath", new TableInfo.Column("thumbnailPath", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsTutorSessions.put("duration", new TableInfo.Column("duration", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsTutorSessions.put("totalErrors", new TableInfo.Column("totalErrors", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsTutorSessions.put("overallScore", new TableInfo.Column("overallScore", "REAL", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsTutorSessions.put("errorsJson", new TableInfo.Column("errorsJson", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        final Set<TableInfo.ForeignKey> _foreignKeysTutorSessions = new HashSet<TableInfo.ForeignKey>(0);
+        final Set<TableInfo.Index> _indicesTutorSessions = new HashSet<TableInfo.Index>(0);
+        final TableInfo _infoTutorSessions = new TableInfo("tutor_sessions", _columnsTutorSessions, _foreignKeysTutorSessions, _indicesTutorSessions);
+        final TableInfo _existingTutorSessions = TableInfo.read(connection, "tutor_sessions");
+        if (!_infoTutorSessions.equals(_existingTutorSessions)) {
+          return new RoomOpenDelegate.ValidationResult(false, "tutor_sessions(com.app.fityo.data_layer.db.TutorSessionEntity).\n"
+                  + " Expected:\n" + _infoTutorSessions + "\n"
+                  + " Found:\n" + _existingTutorSessions);
+        }
+        final Map<String, TableInfo.Column> _columnsUserProfile = new HashMap<String, TableInfo.Column>(9);
+        _columnsUserProfile.put("id", new TableInfo.Column("id", "INTEGER", false, 1, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsUserProfile.put("name", new TableInfo.Column("name", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsUserProfile.put("age", new TableInfo.Column("age", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsUserProfile.put("heightCm", new TableInfo.Column("heightCm", "REAL", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsUserProfile.put("weightKg", new TableInfo.Column("weightKg", "REAL", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsUserProfile.put("sex", new TableInfo.Column("sex", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsUserProfile.put("discipline", new TableInfo.Column("discipline", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsUserProfile.put("createdAt", new TableInfo.Column("createdAt", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsUserProfile.put("updatedAt", new TableInfo.Column("updatedAt", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        final Set<TableInfo.ForeignKey> _foreignKeysUserProfile = new HashSet<TableInfo.ForeignKey>(0);
+        final Set<TableInfo.Index> _indicesUserProfile = new HashSet<TableInfo.Index>(0);
+        final TableInfo _infoUserProfile = new TableInfo("user_profile", _columnsUserProfile, _foreignKeysUserProfile, _indicesUserProfile);
+        final TableInfo _existingUserProfile = TableInfo.read(connection, "user_profile");
+        if (!_infoUserProfile.equals(_existingUserProfile)) {
+          return new RoomOpenDelegate.ValidationResult(false, "user_profile(com.app.fityo.data_layer.db.UserProfileEntity).\n"
+                  + " Expected:\n" + _infoUserProfile + "\n"
+                  + " Found:\n" + _existingUserProfile);
+        }
+        final Map<String, TableInfo.Column> _columnsAvatar3d = new HashMap<String, TableInfo.Column>(11);
+        _columnsAvatar3d.put("id", new TableInfo.Column("id", "INTEGER", false, 1, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsAvatar3d.put("userId", new TableInfo.Column("userId", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsAvatar3d.put("createdAt", new TableInfo.Column("createdAt", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsAvatar3d.put("meshDataPath", new TableInfo.Column("meshDataPath", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsAvatar3d.put("thumbnailPath", new TableInfo.Column("thumbnailPath", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsAvatar3d.put("shapeParametersJson", new TableInfo.Column("shapeParametersJson", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsAvatar3d.put("zoneColorsJson", new TableInfo.Column("zoneColorsJson", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsAvatar3d.put("videoSourcePath", new TableInfo.Column("videoSourcePath", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsAvatar3d.put("processingDurationMs", new TableInfo.Column("processingDurationMs", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsAvatar3d.put("framesAnalyzed", new TableInfo.Column("framesAnalyzed", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsAvatar3d.put("confidence", new TableInfo.Column("confidence", "REAL", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        final Set<TableInfo.ForeignKey> _foreignKeysAvatar3d = new HashSet<TableInfo.ForeignKey>(1);
+        _foreignKeysAvatar3d.add(new TableInfo.ForeignKey("user_profile", "CASCADE", "NO ACTION", Arrays.asList("userId"), Arrays.asList("id")));
+        final Set<TableInfo.Index> _indicesAvatar3d = new HashSet<TableInfo.Index>(1);
+        _indicesAvatar3d.add(new TableInfo.Index("index_avatar_3d_userId", false, Arrays.asList("userId"), Arrays.asList("ASC")));
+        final TableInfo _infoAvatar3d = new TableInfo("avatar_3d", _columnsAvatar3d, _foreignKeysAvatar3d, _indicesAvatar3d);
+        final TableInfo _existingAvatar3d = TableInfo.read(connection, "avatar_3d");
+        if (!_infoAvatar3d.equals(_existingAvatar3d)) {
+          return new RoomOpenDelegate.ValidationResult(false, "avatar_3d(com.app.fityo.data_layer.db.Avatar3DEntity).\n"
+                  + " Expected:\n" + _infoAvatar3d + "\n"
+                  + " Found:\n" + _existingAvatar3d);
+        }
         return new RoomOpenDelegate.ValidationResult(true, null);
       }
     };
@@ -183,12 +263,12 @@ public final class DbFit_Impl extends DbFit {
   protected InvalidationTracker createInvalidationTracker() {
     final Map<String, String> _shadowTablesMap = new HashMap<String, String>(0);
     final Map<String, Set<String>> _viewTables = new HashMap<String, Set<String>>(0);
-    return new InvalidationTracker(this, _shadowTablesMap, _viewTables, "essercissi", "schede", "notifications", "muscle_compare");
+    return new InvalidationTracker(this, _shadowTablesMap, _viewTables, "essercissi", "schede", "notifications", "muscle_compare", "tutor_sessions", "user_profile", "avatar_3d");
   }
 
   @Override
   public void clearAllTables() {
-    super.performClear(true, "essercissi", "schede", "notifications", "muscle_compare");
+    super.performClear(true, "essercissi", "schede", "notifications", "muscle_compare", "tutor_sessions", "user_profile", "avatar_3d");
   }
 
   @Override
@@ -199,6 +279,9 @@ public final class DbFit_Impl extends DbFit {
     _typeConvertersMap.put(DaoSchede.class, DaoSchede_Impl.getRequiredConverters());
     _typeConvertersMap.put(DaoNotifications.class, DaoNotifications_Impl.getRequiredConverters());
     _typeConvertersMap.put(DaoMuscleCompare.class, DaoMuscleCompare_Impl.getRequiredConverters());
+    _typeConvertersMap.put(DaoTutorSession.class, DaoTutorSession_Impl.getRequiredConverters());
+    _typeConvertersMap.put(DaoUserProfile.class, DaoUserProfile_Impl.getRequiredConverters());
+    _typeConvertersMap.put(DaoAvatar3D.class, DaoAvatar3D_Impl.getRequiredConverters());
     return _typeConvertersMap;
   }
 
@@ -269,6 +352,48 @@ public final class DbFit_Impl extends DbFit {
           _daoMuscleCompare = new DaoMuscleCompare_Impl(this);
         }
         return _daoMuscleCompare;
+      }
+    }
+  }
+
+  @Override
+  public DaoTutorSession tutorSessionDao() {
+    if (_daoTutorSession != null) {
+      return _daoTutorSession;
+    } else {
+      synchronized(this) {
+        if(_daoTutorSession == null) {
+          _daoTutorSession = new DaoTutorSession_Impl(this);
+        }
+        return _daoTutorSession;
+      }
+    }
+  }
+
+  @Override
+  public DaoUserProfile userProfileDao() {
+    if (_daoUserProfile != null) {
+      return _daoUserProfile;
+    } else {
+      synchronized(this) {
+        if(_daoUserProfile == null) {
+          _daoUserProfile = new DaoUserProfile_Impl(this);
+        }
+        return _daoUserProfile;
+      }
+    }
+  }
+
+  @Override
+  public DaoAvatar3D avatar3dDao() {
+    if (_daoAvatar3D != null) {
+      return _daoAvatar3D;
+    } else {
+      synchronized(this) {
+        if(_daoAvatar3D == null) {
+          _daoAvatar3D = new DaoAvatar3D_Impl(this);
+        }
+        return _daoAvatar3D;
       }
     }
   }
