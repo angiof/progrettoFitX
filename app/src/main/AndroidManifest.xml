@@ -94,6 +94,13 @@
             android:screenOrientation="portrait"
             android:theme="@style/Theme.Fityo" />
 
+        <activity
+            android:name=".analytics.AnalyticsActivity"
+            android:exported="false"
+            android:label="@string/analytics_advanced"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Fityo" />
+
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />

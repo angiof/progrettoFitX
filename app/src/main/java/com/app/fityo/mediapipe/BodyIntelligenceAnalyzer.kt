@@ -1,6 +1,7 @@
 package com.app.fityo.mediapipe
 
 import android.graphics.Bitmap
+import android.graphics.Color
 import com.app.fityo.dominio.AthleticDiscipline
 import com.app.fityo.dominio.BiologicalSex
 import com.app.fityo.dominio.FfmiEvaluation
@@ -155,8 +156,8 @@ class BodyIntelligenceAnalyzer {
         val ffmiEvaluation = profile.evaluateFfmi(ffmi)
 
         // Rapporti corporei
-        val waistToHipRatio = calculateWaistToHipRatio(poseResult)
-        val shoulderToWaistRatio = calculateShoulderToWaistRatio(poseResult)
+        val waistToHipRatio = calculateWaistToHipRatio(poseResult, segmentationMask)
+        val shoulderToWaistRatio = calculateShoulderToWaistRatio(poseResult, segmentationMask)
 
         return BodyMetrics(
             bmi = bmi,
@@ -234,31 +235,68 @@ class BodyIntelligenceAnalyzer {
     /**
      * Calcola il rapporto vita/fianchi.
      */
-    private fun calculateWaistToHipRatio(poseResult: PoseLandmarkerResult): Float? {
+    private fun calculateWaistToHipRatio(
+        poseResult: PoseLandmarkerResult,
+        segmentationMask: Bitmap?
+    ): Float? {
         if (poseResult.landmarks().isEmpty()) return null
 
         val landmarks = poseResult.landmarks()[0]
         if (landmarks.size < 25) return null
 
-        // Approssimazione: usiamo la larghezza ai punti 23-24 come vita/fianchi
-        val waistWidth = calculateDistance(landmarks[23], landmarks[24])
+        val mask = segmentationMask ?: return null
+        val band = maskBand(mask.height)
 
-        // Per i fianchi usiamo una stima basata sulla posizione delle anche
-        // In una foto frontale, vita e fianchi sono simili, ma possiamo stimare
-        return if (waistWidth > 0) 0.85f else null // Valore medio
+        val hipY = toPixel(
+            (landmarks[23].y() + landmarks[24].y()) / 2f,
+            mask.height
+        )
+        val shoulderY = toPixel(
+            (landmarks[11].y() + landmarks[12].y()) / 2f,
+            mask.height
+        )
+        val waistY = ((hipY + shoulderY) / 2f).toInt().coerceIn(0, mask.height - 1)
+
+        val hipWidth = measureMaskWidth(mask, hipY, band)
+        val waistWidth = measureMaskWidth(mask, waistY, band)
+
+        return if (hipWidth > 0f && waistWidth > 0f) waistWidth / hipWidth else null
     }
 
     /**
      * Calcola il rapporto spalle/vita.
      */
-    private fun calculateShoulderToWaistRatio(poseResult: PoseLandmarkerResult): Float? {
+    private fun calculateShoulderToWaistRatio(
+        poseResult: PoseLandmarkerResult,
+        segmentationMask: Bitmap?
+    ): Float? {
         if (poseResult.landmarks().isEmpty()) return null
 
         val landmarks = poseResult.landmarks()[0]
         if (landmarks.size < 25) return null
 
-        val shoulderWidth = calculateDistance(landmarks[11], landmarks[12])
-        val waistWidth = calculateDistance(landmarks[23], landmarks[24])
+        val mask = segmentationMask
+        val (shoulderWidth, waistWidth) = if (mask != null) {
+            val band = maskBand(mask.height)
+            val shoulderY = toPixel(
+                (landmarks[11].y() + landmarks[12].y()) / 2f,
+                mask.height
+            )
+            val hipY = toPixel(
+                (landmarks[23].y() + landmarks[24].y()) / 2f,
+                mask.height
+            )
+            val waistY = ((hipY + shoulderY) / 2f).toInt().coerceIn(0, mask.height - 1)
+
+            val shoulder = measureMaskWidth(mask, shoulderY, band)
+            val waist = measureMaskWidth(mask, waistY, band)
+            Pair(shoulder, waist)
+        } else {
+            Pair(
+                calculateDistance(landmarks[11], landmarks[12]),
+                calculateDistance(landmarks[23], landmarks[24])
+            )
+        }
 
         return if (waistWidth > 0) shoulderWidth / waistWidth else null
     }
@@ -294,7 +332,7 @@ class BodyIntelligenceAnalyzer {
         bodyMetrics: BodyMetrics
     ): BodyZoneAnalysis {
         // Calcola score per la zona (0-100)
-        val score = calculateZoneScore(zone, poseResult, profile, bodyMetrics)
+        val score = calculateZoneScore(zone, poseResult, segmentationMask, profile, bodyMetrics)
 
         // Determina valutazione
         val evaluation = when {
@@ -331,6 +369,7 @@ class BodyIntelligenceAnalyzer {
     private fun calculateZoneScore(
         zone: BodyZone,
         poseResult: PoseLandmarkerResult,
+        segmentationMask: Bitmap?,
         profile: UserProfile,
         bodyMetrics: BodyMetrics
     ): Float {
@@ -350,8 +389,23 @@ class BodyIntelligenceAnalyzer {
         val zoneSpecificScore = when (zone) {
             BodyZone.SHOULDERS -> {
                 // Rapporto spalle/fianchi - spalle larghe = score alto
-                val shoulderWidth = calculateDistance(landmarks[11], landmarks[12])
-                val hipWidth = calculateDistance(landmarks[23], landmarks[24])
+                val shoulderWidth = segmentationMask?.let { mask ->
+                    val band = maskBand(mask.height)
+                    val shoulderY = toPixel(
+                        (landmarks[11].y() + landmarks[12].y()) / 2f,
+                        mask.height
+                    )
+                    measureMaskWidth(mask, shoulderY, band)
+                } ?: calculateDistance(landmarks[11], landmarks[12])
+
+                val hipWidth = segmentationMask?.let { mask ->
+                    val band = maskBand(mask.height)
+                    val hipY = toPixel(
+                        (landmarks[23].y() + landmarks[24].y()) / 2f,
+                        mask.height
+                    )
+                    measureMaskWidth(mask, hipY, band)
+                } ?: calculateDistance(landmarks[23], landmarks[24])
 
                 if (hipWidth > 0) {
                     val ratio = shoulderWidth / hipWidth
@@ -371,13 +425,23 @@ class BodyIntelligenceAnalyzer {
                 val hipMidY = (landmarks[23].y() + landmarks[24].y()) / 2
                 val torsoHeight = abs(hipMidY - shoulderMidY)
 
-                // Larghezza spalle come proxy per sviluppo petto
-                val shoulderWidth = calculateDistance(landmarks[11], landmarks[12])
-                val waistWidth = calculateDistance(landmarks[23], landmarks[24])
+                val (chestWidth, waistWidth) = segmentationMask?.let { mask ->
+                    val band = maskBand(mask.height)
+                    val shoulderY = toPixel(shoulderMidY, mask.height)
+                    val hipY = toPixel(hipMidY, mask.height)
+                    val chestY = ((shoulderY + hipY) / 2.5f).toInt().coerceIn(0, mask.height - 1)
+                    val waistY = ((shoulderY + hipY) / 2f).toInt().coerceIn(0, mask.height - 1)
+                    val chest = measureMaskWidth(mask, chestY, band)
+                    val waist = measureMaskWidth(mask, waistY, band)
+                    Pair(chest, waist)
+                } ?: Pair(
+                    calculateDistance(landmarks[11], landmarks[12]),
+                    calculateDistance(landmarks[23], landmarks[24])
+                )
 
                 // Rapporto petto: spalle larghe + torso "solido" = petto sviluppato
                 if (waistWidth > 0 && torsoHeight > 0) {
-                    val chestRatio = shoulderWidth / waistWidth
+                    val chestRatio = chestWidth / waistWidth
                     // Bonus per rapporto V-shape (indica petto sviluppato)
                     val vShapeBonus = when {
                         chestRatio > 1.5f -> 20f
@@ -391,6 +455,44 @@ class BodyIntelligenceAnalyzer {
             }
 
             BodyZone.ARMS -> {
+                val maskScore = segmentationMask?.let { mask ->
+                    val band = maskBand(mask.height)
+                    val leftShoulderX = toPixel(landmarks[11].x(), mask.width)
+                    val rightShoulderX = toPixel(landmarks[12].x(), mask.width)
+
+                    val leftArmY = toPixel(
+                        (landmarks[11].y() + landmarks[13].y()) / 2f,
+                        mask.height
+                    )
+                    val rightArmY = toPixel(
+                        (landmarks[12].y() + landmarks[14].y()) / 2f,
+                        mask.height
+                    )
+
+                    val leftRange = 0 until leftShoulderX.coerceAtLeast(1)
+                    val rightRange = rightShoulderX.coerceAtMost(mask.width - 1) until mask.width
+
+                    val armWidths = listOf(
+                        measureMaskWidth(mask, leftArmY, band, leftRange),
+                        measureMaskWidth(mask, rightArmY, band, rightRange)
+                    ).filter { it > 0f }
+
+                    val shoulderWidth = measureMaskWidth(
+                        mask,
+                        toPixel((landmarks[11].y() + landmarks[12].y()) / 2f, mask.height),
+                        band
+                    )
+
+                    if (armWidths.isNotEmpty() && shoulderWidth > 0f) {
+                        val avgArmWidth = armWidths.average().toFloat()
+                        val armRatio = avgArmWidth / shoulderWidth
+                        mapRatioToScore(armRatio, 0.15f, 0.35f)
+                    } else {
+                        null
+                    }
+                }
+
+                maskScore ?: run {
                 // Braccia: valuta la lunghezza/proporzione delle braccia
                 // Braccia più "spesse" hanno landmark più distanti tra spalla-gomito-polso
                 val leftUpperArm = calculateDistance(landmarks[11], landmarks[13])
@@ -412,6 +514,7 @@ class BodyIntelligenceAnalyzer {
                         else -> mapRatioToScore(armRatio, 0.3f, 0.6f)
                     }
                 } else 50f
+                }
             }
 
             BodyZone.CORE -> {
@@ -428,16 +531,47 @@ class BodyIntelligenceAnalyzer {
 
             BodyZone.WAIST -> {
                 // Vita stretta è meglio - usa rapporto spalle/vita
-                bodyMetrics.shoulderToWaistRatio?.let { ratio ->
+                val ratio = segmentationMask?.let { mask ->
+                    val band = maskBand(mask.height)
+                    val shoulderY = toPixel(
+                        (landmarks[11].y() + landmarks[12].y()) / 2f,
+                        mask.height
+                    )
+                    val hipY = toPixel(
+                        (landmarks[23].y() + landmarks[24].y()) / 2f,
+                        mask.height
+                    )
+                    val waistY = ((shoulderY + hipY) / 2f).toInt().coerceIn(0, mask.height - 1)
+                    val shoulderWidth = measureMaskWidth(mask, shoulderY, band)
+                    val waistWidth = measureMaskWidth(mask, waistY, band)
+                    if (waistWidth > 0f) shoulderWidth / waistWidth else null
+                } ?: bodyMetrics.shoulderToWaistRatio
+
+                ratio?.let { value ->
                     // Ratio alto = vita stretta rispetto alle spalle = score alto
-                    mapRatioToScore(ratio, 1.0f, 1.8f)
+                    mapRatioToScore(value, 1.0f, 1.8f)
                 } ?: 50f
             }
 
             BodyZone.HIPS -> {
                 // Fianchi: dipende dalla disciplina
-                val hipWidth = calculateDistance(landmarks[23], landmarks[24])
-                val shoulderWidth = calculateDistance(landmarks[11], landmarks[12])
+                val hipWidth = segmentationMask?.let { mask ->
+                    val band = maskBand(mask.height)
+                    val hipY = toPixel(
+                        (landmarks[23].y() + landmarks[24].y()) / 2f,
+                        mask.height
+                    )
+                    measureMaskWidth(mask, hipY, band)
+                } ?: calculateDistance(landmarks[23], landmarks[24])
+
+                val shoulderWidth = segmentationMask?.let { mask ->
+                    val band = maskBand(mask.height)
+                    val shoulderY = toPixel(
+                        (landmarks[11].y() + landmarks[12].y()) / 2f,
+                        mask.height
+                    )
+                    measureMaskWidth(mask, shoulderY, band)
+                } ?: calculateDistance(landmarks[11], landmarks[12])
 
                 if (shoulderWidth > 0) {
                     val hipToShoulderRatio = hipWidth / shoulderWidth
@@ -454,6 +588,52 @@ class BodyIntelligenceAnalyzer {
             }
 
             BodyZone.THIGHS -> {
+                val maskScore = segmentationMask?.let { mask ->
+                    val band = maskBand(mask.height)
+                    val hipCenterX = toPixel(
+                        (landmarks[23].x() + landmarks[24].x()) / 2f,
+                        mask.width
+                    )
+                    val safeCenterX = hipCenterX.coerceIn(1, mask.width - 2)
+                    val leftRange = 0 until safeCenterX
+                    val rightRange = safeCenterX until mask.width
+
+                    val leftThighY = toPixel(
+                        (landmarks[23].y() + landmarks[25].y()) / 2f,
+                        mask.height
+                    )
+                    val rightThighY = toPixel(
+                        (landmarks[24].y() + landmarks[26].y()) / 2f,
+                        mask.height
+                    )
+
+                    val thighWidths = listOf(
+                        measureMaskWidth(mask, leftThighY, band, leftRange),
+                        measureMaskWidth(mask, rightThighY, band, rightRange)
+                    ).filter { it > 0f }
+
+                    val hipWidth = measureMaskWidth(
+                        mask,
+                        toPixel((landmarks[23].y() + landmarks[24].y()) / 2f, mask.height),
+                        band
+                    )
+
+                    if (thighWidths.isNotEmpty() && hipWidth > 0f) {
+                        val avgThighWidth = thighWidths.average().toFloat()
+                        val thighRatio = avgThighWidth / hipWidth
+                        val multiplier = when (profile.discipline) {
+                            AthleticDiscipline.POWERLIFTING -> 1.3f
+                            AthleticDiscipline.BODYBUILDING -> 1.1f
+                            AthleticDiscipline.CALISTHENICS -> 0.9f
+                            else -> 1.0f
+                        }
+                        (mapRatioToScore(thighRatio, 0.35f, 0.8f) * multiplier).coerceIn(20f, 100f)
+                    } else {
+                        null
+                    }
+                }
+
+                maskScore ?: run {
                 // Cosce: lunghezza del segmento coscia come proxy per sviluppo
                 val leftThigh = calculateDistance(landmarks[23], landmarks[25])
                 val rightThigh = calculateDistance(landmarks[24], landmarks[26])
@@ -471,23 +651,76 @@ class BodyIntelligenceAnalyzer {
                     }
                     (mapRatioToScore(thighRatio, 0.4f, 0.8f) * multiplier).coerceIn(20f, 100f)
                 } else 50f
+                }
             }
 
             BodyZone.CALVES -> {
-                // Polpacci: segmento ginocchio-caviglia
-                val leftCalf = calculateDistance(landmarks[25], landmarks[27])
-                val rightCalf = calculateDistance(landmarks[26], landmarks[28])
-                val avgCalfLength = (leftCalf + rightCalf) / 2
+                val maskScore = segmentationMask?.let { mask ->
+                    val band = maskBand(mask.height)
+                    val centerX = toPixel(
+                        (landmarks[23].x() + landmarks[24].x()) / 2f,
+                        mask.width
+                    )
+                    val safeCenterX = centerX.coerceIn(1, mask.width - 2)
+                    val leftRange = 0 until safeCenterX
+                    val rightRange = safeCenterX until mask.width
 
-                val leftThigh = calculateDistance(landmarks[23], landmarks[25])
-                val rightThigh = calculateDistance(landmarks[24], landmarks[26])
-                val avgThighLength = (leftThigh + rightThigh) / 2
+                    val leftCalfY = toPixel(
+                        (landmarks[25].y() + landmarks[27].y()) / 2f,
+                        mask.height
+                    )
+                    val rightCalfY = toPixel(
+                        (landmarks[26].y() + landmarks[28].y()) / 2f,
+                        mask.height
+                    )
+                    val leftThighY = toPixel(
+                        (landmarks[23].y() + landmarks[25].y()) / 2f,
+                        mask.height
+                    )
+                    val rightThighY = toPixel(
+                        (landmarks[24].y() + landmarks[26].y()) / 2f,
+                        mask.height
+                    )
 
-                if (avgThighLength > 0) {
-                    // Rapporto polpaccio/coscia - polpacci proporzionati
-                    val calfRatio = avgCalfLength / avgThighLength
-                    mapRatioToScore(calfRatio, 0.7f, 1.1f)
-                } else 50f
+                    val calfWidths = listOf(
+                        measureMaskWidth(mask, leftCalfY, band, leftRange),
+                        measureMaskWidth(mask, rightCalfY, band, rightRange)
+                    ).filter { it > 0f }
+
+                    val thighWidths = listOf(
+                        measureMaskWidth(mask, leftThighY, band, leftRange),
+                        measureMaskWidth(mask, rightThighY, band, rightRange)
+                    ).filter { it > 0f }
+
+                    if (calfWidths.isNotEmpty() && thighWidths.isNotEmpty()) {
+                        val avgCalfWidth = calfWidths.average().toFloat()
+                        val avgThighWidth = thighWidths.average().toFloat()
+                        if (avgThighWidth > 0f) {
+                            val calfRatio = avgCalfWidth / avgThighWidth
+                            mapRatioToScore(calfRatio, 0.3f, 0.8f)
+                        } else {
+                            null
+                        }
+                    } else {
+                        null
+                    }
+                }
+
+                maskScore ?: run {
+                    // Fallback: rapporto lunghezze ginocchio-caviglia / coscia
+                    val leftCalf = calculateDistance(landmarks[25], landmarks[27])
+                    val rightCalf = calculateDistance(landmarks[26], landmarks[28])
+                    val avgCalfLength = (leftCalf + rightCalf) / 2
+
+                    val leftThigh = calculateDistance(landmarks[23], landmarks[25])
+                    val rightThigh = calculateDistance(landmarks[24], landmarks[26])
+                    val avgThighLength = (leftThigh + rightThigh) / 2
+
+                    if (avgThighLength > 0) {
+                        val calfRatio = avgCalfLength / avgThighLength
+                        mapRatioToScore(calfRatio, 0.7f, 1.1f)
+                    } else 50f
+                }
             }
         }
 
@@ -709,5 +942,54 @@ class BodyIntelligenceAnalyzer {
         val dx = p1.x() - p2.x()
         val dy = p1.y() - p2.y()
         return sqrt(dx * dx + dy * dy)
+    }
+
+    private fun toPixel(value: Float, size: Int): Int {
+        return (value * size).toInt().coerceIn(0, size - 1)
+    }
+
+    private fun maskBand(height: Int): Int {
+        return (height * 0.01f).toInt().coerceAtLeast(2)
+    }
+
+    private fun measureMaskWidth(
+        mask: Bitmap,
+        centerY: Int,
+        band: Int,
+        xRange: IntRange? = null
+    ): Float {
+        val width = mask.width
+        val height = mask.height
+        if (width == 0 || height == 0) return 0f
+
+        val startY = (centerY - band).coerceIn(0, height - 1)
+        val endY = (centerY + band).coerceIn(0, height - 1)
+        val startX = xRange?.first?.coerceIn(0, width - 1) ?: 0
+        val endX = xRange?.last?.coerceIn(0, width - 1) ?: (width - 1)
+        if (startX >= endX) return 0f
+
+        var totalWidth = 0
+        var rows = 0
+
+        for (y in startY..endY) {
+            var minX = Int.MAX_VALUE
+            var maxX = Int.MIN_VALUE
+            for (x in startX..endX) {
+                if (Color.alpha(mask.getPixel(x, y)) > MASK_ALPHA_THRESHOLD) {
+                    if (x < minX) minX = x
+                    if (x > maxX) maxX = x
+                }
+            }
+            if (maxX >= minX) {
+                totalWidth += (maxX - minX)
+                rows++
+            }
+        }
+
+        return if (rows > 0) totalWidth.toFloat() / rows else 0f
+    }
+
+    companion object {
+        private const val MASK_ALPHA_THRESHOLD = 128
     }
 }

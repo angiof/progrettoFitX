@@ -50,6 +50,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -70,6 +71,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.delay
 import java.util.concurrent.Executors
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -103,6 +105,54 @@ fun CameraScreen(
         )
     }
     var lastAnalysisTime by remember { mutableStateOf(0L) }
+    var countdownSeconds by remember { mutableStateOf<Int?>(null) }
+    var autoCountdown by remember { mutableStateOf(false) }
+    val alignmentReady = !showAlignmentIndicator || alignmentPercent >= 80f
+    val poseReady = poseDetected && alignmentReady && !showPreview
+
+    fun triggerCapture() {
+        val capture = imageCapture ?: run {
+            countdownSeconds = null
+            return
+        }
+        autoCountdown = false
+        countdownSeconds = null
+        capture.takePicture(
+            executor,
+            object : ImageCapture.OnImageCapturedCallback() {
+                override fun onCaptureSuccess(image: ImageProxy) {
+                    val bitmap = image.toBitmap()
+                    onCapture(bitmap)
+                    image.close()
+                }
+
+                override fun onError(exception: ImageCaptureException) {
+                    exception.printStackTrace()
+                }
+            }
+        )
+    }
+
+    LaunchedEffect(poseReady, imageCapture) {
+        if (poseReady && countdownSeconds == null && imageCapture != null) {
+            autoCountdown = true
+            countdownSeconds = 2
+        } else if (!poseReady && autoCountdown) {
+            autoCountdown = false
+            countdownSeconds = null
+        }
+    }
+
+    LaunchedEffect(countdownSeconds) {
+        val remaining = countdownSeconds ?: return@LaunchedEffect
+        if (remaining <= 0) return@LaunchedEffect
+        delay(1000)
+        if (remaining == 1) {
+            triggerCapture()
+        } else {
+            countdownSeconds = remaining - 1
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -272,6 +322,22 @@ fun CameraScreen(
                         .align(Alignment.TopEnd)
                         .padding(8.dp)
                 )
+
+                if (!showPreview && countdownSeconds != null) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.4f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = countdownSeconds.toString(),
+                            color = Color.White,
+                            fontSize = 64.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
             }
 
             // Indicatore allineamento
@@ -302,6 +368,7 @@ fun CameraScreen(
                     Text("  Procedi alla seconda foto", fontWeight = FontWeight.Bold)
                 }
             } else {
+                val canCapture = (poseDetected || !showAlignmentIndicator) && countdownSeconds == null
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -311,6 +378,7 @@ fun CameraScreen(
                     // Galleria
                     IconButton(
                         onClick = onGallerySelect,
+                        enabled = countdownSeconds == null,
                         modifier = Modifier
                             .size(64.dp)
                             .background(DarkCard, CircleShape)
@@ -326,26 +394,16 @@ fun CameraScreen(
                     // Scatto
                     IconButton(
                         onClick = {
-                            imageCapture?.takePicture(
-                                executor,
-                                object : ImageCapture.OnImageCapturedCallback() {
-                                    override fun onCaptureSuccess(image: ImageProxy) {
-                                        val bitmap = image.toBitmap()
-                                        onCapture(bitmap)
-                                        image.close()
-                                    }
-
-                                    override fun onError(exception: ImageCaptureException) {
-                                        exception.printStackTrace()
-                                    }
-                                }
-                            )
+                            if (countdownSeconds == null) {
+                                autoCountdown = false
+                                countdownSeconds = 2
+                            }
                         },
-                        enabled = poseDetected || !showAlignmentIndicator,
+                        enabled = canCapture,
                         modifier = Modifier
                             .size(80.dp)
                             .background(
-                                if (poseDetected || !showAlignmentIndicator) AccentBlue else Color.Gray,
+                                if (canCapture) AccentBlue else Color.Gray,
                                 CircleShape
                             )
                     ) {
@@ -367,6 +425,7 @@ fun CameraScreen(
                                 CameraSelector.DEFAULT_BACK_CAMERA
                             }
                         },
+                        enabled = countdownSeconds == null,
                         modifier = Modifier
                             .size(64.dp)
                             .background(DarkCard, CircleShape)

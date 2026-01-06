@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.ViewInAr
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -70,6 +71,8 @@ fun HistoryScreen(
     historyState: HistoryState,
     onNewCompare: () -> Unit,
     onBodyIntelligence: () -> Unit,
+    onAvatar3DHistory: () -> Unit = {},
+    onHistoryItemClick: (Int) -> Unit = {},
     onDeleteCompare: (Int) -> Unit,
     onBack: () -> Unit
 ) {
@@ -103,7 +106,8 @@ fun HistoryScreen(
                 Spacer(modifier = Modifier.height(8.dp))
                 ModeSelectionSection(
                     onNewCompare = onNewCompare,
-                    onBodyIntelligence = onBodyIntelligence
+                    onBodyIntelligence = onBodyIntelligence,
+                    onAvatar3DHistory = onAvatar3DHistory
                 )
             }
 
@@ -138,6 +142,7 @@ fun HistoryScreen(
                     items(historyState.comparisons) { item ->
                         HistoryItemCard(
                             item = item,
+                            onClick = { onHistoryItemClick(item.id) },
                             onDelete = { deleteDialogItem = item }
                         )
                     }
@@ -177,7 +182,8 @@ fun HistoryScreen(
 @Composable
 private fun ModeSelectionSection(
     onNewCompare: () -> Unit,
-    onBodyIntelligence: () -> Unit
+    onBodyIntelligence: () -> Unit,
+    onAvatar3DHistory: () -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
@@ -187,6 +193,7 @@ private fun ModeSelectionSection(
             fontWeight = FontWeight.Bold
         )
 
+        // Prima riga: Confronto e Body Intelligence
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -217,6 +224,20 @@ private fun ModeSelectionSection(
                 modifier = Modifier.weight(1f)
             )
         }
+
+        // Seconda riga: Avatar 3D
+        ModeCard(
+            title = "Avatar 3D",
+            subtitle = "Visualizza i tuoi avatar salvati",
+            icon = Icons.Default.ViewInAr,
+            gradientColors = listOf(
+                AccentOrange.copy(alpha = 0.3f),
+                AccentOrange.copy(alpha = 0.1f)
+            ),
+            accentColor = AccentOrange,
+            onClick = onAvatar3DHistory,
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 }
 
@@ -352,12 +373,15 @@ private fun ErrorContent(message: String) {
 @Composable
 private fun HistoryItemCard(
     item: CompareHistoryItem,
+    onClick: () -> Unit,
     onDelete: () -> Unit
 ) {
     val dateFormatter = remember { SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()) }
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(containerColor = DarkCard),
         shape = RoundedCornerShape(12.dp)
     ) {

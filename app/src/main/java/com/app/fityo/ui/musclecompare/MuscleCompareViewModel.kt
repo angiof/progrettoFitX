@@ -707,8 +707,15 @@ class MuscleCompareViewModel(
      * Starts video processing.
      */
     fun onVideo360RecordingComplete(videoPath: String) {
-        val result = currentAnalysisResult ?: return
+        android.util.Log.d("MuscleCompareVM", "onVideo360RecordingComplete called with path: $videoPath")
 
+        val result = currentAnalysisResult
+        if (result == null) {
+            android.util.Log.e("MuscleCompareVM", "currentAnalysisResult is null!")
+            return
+        }
+
+        android.util.Log.d("MuscleCompareVM", "Setting Processing360 state...")
         _bodyIntelligenceState.value = BodyIntelligenceState.Processing360(
             result = result,
             videoPath = videoPath,
@@ -716,35 +723,49 @@ class MuscleCompareViewModel(
             currentStep = "Inizializzazione..."
         )
 
+        android.util.Log.d("MuscleCompareVM", "Launching coroutine for video processing...")
+
         viewModelScope.launch(Dispatchers.Default) {
+            android.util.Log.d("MuscleCompareVM", "Inside coroutine, creating Video360Processor...")
             try {
                 val processor = Video360Processor(getApplication())
+                android.util.Log.d("MuscleCompareVM", "Video360Processor created successfully")
 
-                val processingResult = processor.processVideo(videoPath) { progress, step ->
+                android.util.Log.d("MuscleCompareVM", "Starting processVideoWithDetails...")
+                val processingResult = processor.processVideoWithDetails(videoPath) { info ->
+                    android.util.Log.d("MuscleCompareVM", "Progress callback: ${info.progress}, ${info.currentStep}, frames: ${info.framesProcessed}/${info.totalFrames}")
                     viewModelScope.launch(Dispatchers.Main) {
                         _bodyIntelligenceState.value = BodyIntelligenceState.Processing360(
                             result = result,
                             videoPath = videoPath,
-                            progress = progress,
-                            currentStep = step
+                            progress = info.progress,
+                            currentStep = info.currentStep,
+                            framesProcessed = info.framesProcessed,
+                            totalFrames = info.totalFrames,
+                            validFrames = info.validFrames
                         )
                     }
                 }
 
+                android.util.Log.d("MuscleCompareVM", "Processing complete: success=${processingResult.success}, frames=${processingResult.framesAnalyzed}, valid=${processingResult.validFrames}")
+
                 withContext(Dispatchers.Main) {
                     if (processingResult.success && processingResult.aggregatedMeasurements != null) {
+                        android.util.Log.d("MuscleCompareVM", "Setting Avatar3DReady state")
                         _bodyIntelligenceState.value = BodyIntelligenceState.Avatar3DReady(
                             result = result,
                             measurements = processingResult.aggregatedMeasurements,
                             processingResult = processingResult
                         )
                     } else {
+                        android.util.Log.e("MuscleCompareVM", "Processing failed: ${processingResult.errorMessage}")
                         _bodyIntelligenceState.value = BodyIntelligenceState.Error(
                             processingResult.errorMessage ?: "Errore nell'elaborazione video"
                         )
                     }
                 }
             } catch (e: Exception) {
+                android.util.Log.e("MuscleCompareVM", "Exception during processing: ${e.message}", e)
                 withContext(Dispatchers.Main) {
                     _bodyIntelligenceState.value = BodyIntelligenceState.Error(
                         "Errore: ${e.message}"
@@ -803,11 +824,17 @@ class MuscleCompareViewModel(
                 val db = DbFit.getDatabase(getApplication())
                 db.avatar3dDao().insert(entity)
 
+                android.util.Log.d("MuscleCompareVM", "Avatar 3D (360) saved successfully for user $profileId")
+
+                // Reload avatar history
+                loadAvatarHistory()
+
                 // Return to profile ready state
                 withContext(Dispatchers.Main) {
                     _bodyIntelligenceState.value = BodyIntelligenceState.ProfileReady(profile)
                 }
             } catch (e: Exception) {
+                android.util.Log.e("MuscleCompareVM", "Error saving Avatar3D: ${e.message}", e)
                 withContext(Dispatchers.Main) {
                     _bodyIntelligenceState.value = BodyIntelligenceState.Error(
                         "Errore nel salvataggio avatar: ${e.message}"
@@ -826,10 +853,197 @@ class MuscleCompareViewModel(
         }
     }
 
+    // ==================== TrueClone 3D Methods ====================
+
+    private var trueCloneProcessor: com.app.fityo.trueclone.TrueCloneProcessor? = null
+
+    // Pending gallery photo for TrueClone
+    private val _trueCloneGalleryPhoto = MutableStateFlow<Bitmap?>(null)
+    val trueCloneGalleryPhoto: StateFlow<Bitmap?> = _trueCloneGalleryPhoto.asStateFlow()
+
+    /**
+     * Processes a gallery-selected photo for TrueClone.
+     */
+    fun processTrueCloneGalleryPhoto(bitmap: Bitmap) {
+        _trueCloneGalleryPhoto.value = bitmap
+    }
+
+    /**
+     * Clears the pending TrueClone gallery photo.
+     */
+    fun clearTrueCloneGalleryPhoto() {
+        _trueCloneGalleryPhoto.value = null
+    }
+
+    /**
+     * Starts the TrueClone 3D capture flow (3 photos: Front, Side, Back).
+     */
+    fun startTrueCloneCapture() {
+        val currentState = _bodyIntelligenceState.value
+        if (currentState is BodyIntelligenceState.ResultReady) {
+            currentAnalysisResult = currentState.result
+            _bodyIntelligenceState.value = BodyIntelligenceState.TrueCloneCapturing(
+                result = currentState.result
+            )
+        }
+    }
+
+    /**
+     * Processes the captured TrueClone photos to generate 3D avatar.
+     */
+    fun processTrueClonePhotos(photos: List<com.app.fityo.trueclone.capture.CapturedPhoto>) {
+        val result = currentAnalysisResult ?: return
+        val profile = _currentProfile.value ?: return
+
+        _bodyIntelligenceState.value = BodyIntelligenceState.TrueCloneProcessing(
+            result = result,
+            photos = photos,
+            progress = 0f,
+            currentStep = "Inizializzazione..."
+        )
+
+        viewModelScope.launch(Dispatchers.Default) {
+            try {
+                if (trueCloneProcessor == null) {
+                    trueCloneProcessor = com.app.fityo.trueclone.TrueCloneProcessor(getApplication())
+                }
+
+                val processor = trueCloneProcessor!!
+
+                processor.generateAvatar(
+                    photos = photos,
+                    userHeightCm = profile.heightCm.toFloat(),
+                    userWeightKg = profile.weightKg.toFloat()
+                ).collect { (progress, trueCloneResult) ->
+                    withContext(Dispatchers.Main) {
+                        if (trueCloneResult != null && trueCloneResult.success) {
+                            _bodyIntelligenceState.value = BodyIntelligenceState.TrueCloneReady(
+                                result = result,
+                                trueCloneResult = trueCloneResult
+                            )
+                        } else if (trueCloneResult != null && !trueCloneResult.success) {
+                            _bodyIntelligenceState.value = BodyIntelligenceState.Error(
+                                trueCloneResult.errorMessage ?: "Errore generazione avatar"
+                            )
+                        } else {
+                            _bodyIntelligenceState.value = BodyIntelligenceState.TrueCloneProcessing(
+                                result = result,
+                                photos = photos,
+                                progress = progress.progress,
+                                currentStep = progress.message
+                            )
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("MuscleCompareVM", "TrueClone processing error", e)
+                withContext(Dispatchers.Main) {
+                    _bodyIntelligenceState.value = BodyIntelligenceState.Error(
+                        "Errore: ${e.message}"
+                    )
+                }
+            }
+        }
+    }
+
+    /**
+     * Cancels TrueClone capture and returns to result screen.
+     */
+    fun cancelTrueClone() {
+        currentAnalysisResult?.let { result ->
+            _bodyIntelligenceState.value = BodyIntelligenceState.ResultReady(result)
+        }
+    }
+
+    /**
+     * Saves the TrueClone 3D avatar.
+     */
+    fun saveTrueClone() {
+        val currentState = _bodyIntelligenceState.value
+        if (currentState !is BodyIntelligenceState.TrueCloneReady) return
+
+        val profile = _currentProfile.value ?: return
+        val profileId = profile.id ?: return
+
+        viewModelScope.launch {
+            try {
+                val trueCloneResult = currentState.trueCloneResult
+                val shapeParams = trueCloneResult.shapeParameters
+
+                // Create entity
+                val entity = Avatar3DEntity(
+                    userId = profileId,
+                    createdAt = System.currentTimeMillis(),
+                    meshDataPath = "trueclone_procedural",
+                    thumbnailPath = null,
+                    shapeParametersJson = shapeParams?.toJson() ?: "{}",
+                    zoneColorsJson = "{}",
+                    videoSourcePath = null,
+                    processingDurationMs = trueCloneResult.processingTimeMs,
+                    framesAnalyzed = 3, // 3 photos
+                    confidence = if (trueCloneResult.mesh != null) 0.9f else 0f
+                )
+
+                // Save to database
+                val db = DbFit.getDatabase(getApplication())
+                db.avatar3dDao().insert(entity)
+
+                android.util.Log.d("MuscleCompareVM", "Avatar 3D saved successfully for user $profileId")
+
+                // Reload avatar history
+                loadAvatarHistory()
+
+                // Return to profile ready state
+                withContext(Dispatchers.Main) {
+                    _bodyIntelligenceState.value = BodyIntelligenceState.ProfileReady(profile)
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("MuscleCompareVM", "Error saving TrueClone: ${e.message}", e)
+                withContext(Dispatchers.Main) {
+                    _bodyIntelligenceState.value = BodyIntelligenceState.Error(
+                        "Errore nel salvataggio: ${e.message}"
+                    )
+                }
+            }
+        }
+    }
+
+    /**
+     * Discards TrueClone result and returns to result screen.
+     */
+    fun discardTrueClone() {
+        trueCloneProcessor?.cleanup()
+        currentAnalysisResult?.let { result ->
+            _bodyIntelligenceState.value = BodyIntelligenceState.ResultReady(result)
+        }
+    }
+
     // ==================== Avatar History Methods ====================
 
     private val _avatarHistory = MutableStateFlow<List<Avatar3DEntity>>(emptyList())
     val avatarHistory: StateFlow<List<Avatar3DEntity>> = _avatarHistory.asStateFlow()
+
+    private val _showAvatarHistory = MutableStateFlow(false)
+    val showAvatarHistory: StateFlow<Boolean> = _showAvatarHistory.asStateFlow()
+
+    // Comparison detail viewing state
+    private val _viewingComparisonDetail = MutableStateFlow<CompareHistoryItem?>(null)
+    val viewingComparisonDetail: StateFlow<CompareHistoryItem?> = _viewingComparisonDetail.asStateFlow()
+
+    /**
+     * Shows the Avatar 3D history screen.
+     */
+    fun showAvatarHistoryScreen() {
+        _showAvatarHistory.value = true
+        loadAvatarHistory()
+    }
+
+    /**
+     * Hides the Avatar 3D history screen.
+     */
+    fun hideAvatarHistoryScreen() {
+        _showAvatarHistory.value = false
+    }
 
     /**
      * Loads avatar history for current user.
@@ -890,5 +1104,40 @@ class MuscleCompareViewModel(
                 // Handle error
             }
         }
+    }
+
+    // ==================== Comparison Detail Methods ====================
+
+    /**
+     * Shows the detail of a saved comparison.
+     */
+    fun viewComparisonDetail(comparisonId: Int) {
+        viewModelScope.launch {
+            try {
+                val entity = repository.getById(comparisonId) ?: return@launch
+                val historyItem = CompareHistoryItem(
+                    id = entity.id ?: 0,
+                    createdAt = entity.createdAt,
+                    photoAPath = entity.photoAPath,
+                    photoBPath = entity.photoBPath,
+                    armsVariation = entity.armsVariation,
+                    absVariation = entity.absVariation,
+                    legsVariation = entity.legsVariation,
+                    glutesVariation = entity.glutesVariation
+                )
+                withContext(Dispatchers.Main) {
+                    _viewingComparisonDetail.value = historyItem
+                }
+            } catch (e: Exception) {
+                // Handle error silently
+            }
+        }
+    }
+
+    /**
+     * Closes the comparison detail view.
+     */
+    fun closeComparisonDetail() {
+        _viewingComparisonDetail.value = null
     }
 }

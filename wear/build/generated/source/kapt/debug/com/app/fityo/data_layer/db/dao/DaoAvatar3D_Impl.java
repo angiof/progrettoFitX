@@ -103,24 +103,24 @@ public final class DaoAvatar3D_Impl implements DaoAvatar3D {
   }
 
   @Override
-  public Object insert(final Avatar3DEntity avatar, final Continuation<? super Long> $completion) {
+  public Object insert(final Avatar3DEntity avatar, final Continuation<? super Long> arg1) {
     if (avatar == null) throw new NullPointerException();
     return DBUtil.performSuspending(__db, false, true, (_connection) -> {
       return __insertAdapterOfAvatar3DEntity.insertAndReturnId(_connection, avatar);
-    }, $completion);
+    }, arg1);
   }
 
   @Override
-  public Object delete(final Avatar3DEntity avatar, final Continuation<? super Unit> $completion) {
+  public Object delete(final Avatar3DEntity avatar, final Continuation<? super Unit> arg1) {
     if (avatar == null) throw new NullPointerException();
     return DBUtil.performSuspending(__db, false, true, (_connection) -> {
       __deleteAdapterOfAvatar3DEntity.handle(_connection, avatar);
       return Unit.INSTANCE;
-    }, $completion);
+    }, arg1);
   }
 
   @Override
-  public Object getById(final int id, final Continuation<? super Avatar3DEntity> $completion) {
+  public Object getById(final int id, final Continuation<? super Avatar3DEntity> arg1) {
     final String _sql = "SELECT * FROM avatar_3d WHERE id = ?";
     return DBUtil.performSuspending(__db, true, false, (_connection) -> {
       final SQLiteStatement _stmt = _connection.prepare(_sql);
@@ -194,12 +194,12 @@ public final class DaoAvatar3D_Impl implements DaoAvatar3D {
       } finally {
         _stmt.close();
       }
-    }, $completion);
+    }, arg1);
   }
 
   @Override
   public Object getLatestByUserId(final int userId,
-      final Continuation<? super Avatar3DEntity> $completion) {
+      final Continuation<? super Avatar3DEntity> arg1) {
     final String _sql = "SELECT * FROM avatar_3d WHERE userId = ? ORDER BY createdAt DESC LIMIT 1";
     return DBUtil.performSuspending(__db, true, false, (_connection) -> {
       final SQLiteStatement _stmt = _connection.prepare(_sql);
@@ -273,7 +273,7 @@ public final class DaoAvatar3D_Impl implements DaoAvatar3D {
       } finally {
         _stmt.close();
       }
-    }, $completion);
+    }, arg1);
   }
 
   @Override
@@ -431,7 +431,7 @@ public final class DaoAvatar3D_Impl implements DaoAvatar3D {
   }
 
   @Override
-  public Object countByUserId(final int userId, final Continuation<? super Integer> $completion) {
+  public Object countByUserId(final int userId, final Continuation<? super Integer> arg1) {
     final String _sql = "SELECT COUNT(*) FROM avatar_3d WHERE userId = ?";
     return DBUtil.performSuspending(__db, true, false, (_connection) -> {
       final SQLiteStatement _stmt = _connection.prepare(_sql);
@@ -454,11 +454,11 @@ public final class DaoAvatar3D_Impl implements DaoAvatar3D {
       } finally {
         _stmt.close();
       }
-    }, $completion);
+    }, arg1);
   }
 
   @Override
-  public Object deleteById(final int id, final Continuation<? super Unit> $completion) {
+  public Object deleteById(final int id, final Continuation<? super Unit> arg1) {
     final String _sql = "DELETE FROM avatar_3d WHERE id = ?";
     return DBUtil.performSuspending(__db, false, true, (_connection) -> {
       final SQLiteStatement _stmt = _connection.prepare(_sql);
@@ -470,11 +470,11 @@ public final class DaoAvatar3D_Impl implements DaoAvatar3D {
       } finally {
         _stmt.close();
       }
-    }, $completion);
+    }, arg1);
   }
 
   @Override
-  public Object deleteAllByUserId(final int userId, final Continuation<? super Unit> $completion) {
+  public Object deleteAllByUserId(final int userId, final Continuation<? super Unit> arg1) {
     final String _sql = "DELETE FROM avatar_3d WHERE userId = ?";
     return DBUtil.performSuspending(__db, false, true, (_connection) -> {
       final SQLiteStatement _stmt = _connection.prepare(_sql);
@@ -486,11 +486,11 @@ public final class DaoAvatar3D_Impl implements DaoAvatar3D {
       } finally {
         _stmt.close();
       }
-    }, $completion);
+    }, arg1);
   }
 
   @Override
-  public Object deleteAll(final Continuation<? super Unit> $completion) {
+  public Object deleteAll(final Continuation<? super Unit> arg0) {
     final String _sql = "DELETE FROM avatar_3d";
     return DBUtil.performSuspending(__db, false, true, (_connection) -> {
       final SQLiteStatement _stmt = _connection.prepare(_sql);
@@ -500,7 +500,7 @@ public final class DaoAvatar3D_Impl implements DaoAvatar3D {
       } finally {
         _stmt.close();
       }
-    }, $completion);
+    }, arg0);
   }
 
   @NonNull

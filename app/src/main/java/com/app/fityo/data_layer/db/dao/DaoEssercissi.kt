@@ -33,6 +33,11 @@ interface DaoEssercissi {
     @Query("SELECT * FROM essercissi WHERE schedaId = :schedaId")
     fun getEssercissiBySchedaId(schedaId: Int): LiveData<List<EsserciziEntity>>
 
+    @Query("SELECT * FROM essercissi WHERE schedaId = :schedaId")
+    suspend fun getEserciziByschedaIdSync(schedaId: Int): List<EsserciziEntity>
+
+    @Query("SELECT * FROM essercissi")
+    suspend fun getAllEsercizi(): List<EsserciziEntity>
 
     @Query("SELECT * FROM essercissi WHERE schedaId = :id")
     fun getAllById(id: Int): LiveData<List<EsserciziEntity>>

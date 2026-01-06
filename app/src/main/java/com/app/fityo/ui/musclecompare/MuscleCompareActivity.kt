@@ -32,9 +32,11 @@ import com.app.fityo.data_layer.repository.MuscleCompareRepository
 import com.app.fityo.data_layer.repository.UserProfileRepository
 import com.app.fityo.dominio.CompareState
 import com.app.fityo.dominio.ViewType
+import com.app.fityo.ui.musclecompare.compose.Avatar3DHistoryScreen
 import com.app.fityo.ui.musclecompare.compose.Avatar3DViewerScreen
 import com.app.fityo.ui.musclecompare.compose.BodyIntelligenceResultScreen
 import com.app.fityo.ui.musclecompare.compose.CameraScreen
+import com.app.fityo.ui.musclecompare.compose.ComparisonDetailScreen
 import com.app.fityo.ui.musclecompare.compose.HistoryScreen
 import com.app.fityo.ui.musclecompare.compose.MuscleCompareTheme
 import com.app.fityo.ui.musclecompare.compose.ProfileFormScreen
@@ -42,6 +44,10 @@ import com.app.fityo.ui.musclecompare.compose.ProfileViewScreen
 import com.app.fityo.ui.musclecompare.compose.ResultScreen
 import com.app.fityo.ui.musclecompare.compose.Video360RecordingScreen
 import com.app.fityo.ui.musclecompare.compose.ViewTypeSelectionScreen
+import com.app.fityo.ui.musclecompare.compose.toHistoryItem
+import com.app.fityo.trueclone.capture.CapturedPhoto
+import com.app.fityo.trueclone.capture.TrueCloneCaptureScreen
+import com.app.fityo.trueclone.ui.TrueCloneViewerScreen
 
 class MuscleCompareActivity : ComponentActivity() {
 
@@ -83,6 +89,10 @@ class MuscleCompareActivity : ComponentActivity() {
         val bodyIntelligenceState by viewModel.bodyIntelligenceState.collectAsState()
         val currentProfile by viewModel.currentProfile.collectAsState()
         val isEditingProfile by viewModel.isEditingProfile.collectAsState()
+        val showAvatarHistory by viewModel.showAvatarHistory.collectAsState()
+        val avatarHistory by viewModel.avatarHistory.collectAsState()
+        val viewingComparisonDetail by viewModel.viewingComparisonDetail.collectAsState()
+        val trueCloneGalleryPhoto by viewModel.trueCloneGalleryPhoto.collectAsState()
 
         // Permission launcher for Muscle Compare
         val permissionLauncher = rememberLauncherForActivityResult(
@@ -106,11 +116,38 @@ class MuscleCompareActivity : ComponentActivity() {
             }
         }
 
-        // Gallery picker
+        // Gallery picker for Muscle Compare
         val galleryLauncher = rememberLauncherForActivityResult(
             ActivityResultContracts.GetContent()
         ) { uri: Uri? ->
             uri?.let { handleGalleryImage(it) }
+        }
+
+        // Gallery picker for TrueClone
+        val trueCloneGalleryLauncher = rememberLauncherForActivityResult(
+            ActivityResultContracts.GetContent()
+        ) { uri: Uri? ->
+            uri?.let { handleTrueCloneGalleryImage(it) }
+        }
+
+        // Show Comparison Detail screen when requested
+        viewingComparisonDetail?.let { comparison ->
+            ComparisonDetailScreen(
+                comparison = comparison,
+                onBack = { viewModel.closeComparisonDetail() }
+            )
+            return
+        }
+
+        // Show Avatar 3D History screen when requested
+        if (showAvatarHistory) {
+            Avatar3DHistoryScreen(
+                avatars = avatarHistory.map { it.toHistoryItem() },
+                onAvatarClick = { avatarId -> viewModel.viewSavedAvatar(avatarId) },
+                onDeleteAvatar = { avatarId -> viewModel.deleteAvatar(avatarId) },
+                onBack = { viewModel.hideAvatarHistoryScreen() }
+            )
+            return
         }
 
         // Handle Body Intelligence states first (takes priority when active)
@@ -137,11 +174,18 @@ class MuscleCompareActivity : ComponentActivity() {
                 onToggleCamera = { viewModel.toggleCamera() },
                 onSaveResult = { viewModel.saveBodyIntelligenceResult() },
                 onDiscardResult = { viewModel.discardBodyIntelligenceResult() },
-                onGenerateAvatar3D = { viewModel.startAvatar3DGeneration() },
+                onGenerateAvatar3D = { viewModel.startTrueCloneCapture() },
                 onVideo360Complete = { videoPath -> viewModel.onVideo360RecordingComplete(videoPath) },
                 onCancelAvatar3D = { viewModel.cancelAvatar3DRecording() },
                 onSaveAvatar3D = { viewModel.saveAvatar3D() },
-                onDiscardAvatar3D = { viewModel.discardAvatar3D() }
+                onDiscardAvatar3D = { viewModel.discardAvatar3D() },
+                onTrueClonePhotosComplete = { photos -> viewModel.processTrueClonePhotos(photos) },
+                onCancelTrueClone = { viewModel.cancelTrueClone() },
+                onSaveTrueClone = { viewModel.saveTrueClone() },
+                onDiscardTrueClone = { viewModel.discardTrueClone() },
+                onTrueCloneGallerySelect = { trueCloneGalleryLauncher.launch("image/*") },
+                trueCloneGalleryPhoto = trueCloneGalleryPhoto,
+                onTrueCloneGalleryPhotoConsumed = { viewModel.clearTrueCloneGalleryPhoto() }
             )
             return
         }
@@ -155,6 +199,12 @@ class MuscleCompareActivity : ComponentActivity() {
                     },
                     onBodyIntelligence = {
                         viewModel.startBodyIntelligence()
+                    },
+                    onAvatar3DHistory = {
+                        viewModel.showAvatarHistoryScreen()
+                    },
+                    onHistoryItemClick = { id ->
+                        viewModel.viewComparisonDetail(id)
                     },
                     onDeleteCompare = { id ->
                         viewModel.deleteComparison(id)
@@ -359,6 +409,22 @@ class MuscleCompareActivity : ComponentActivity() {
         }
     }
 
+    private fun handleTrueCloneGalleryImage(uri: Uri) {
+        try {
+            val inputStream = contentResolver.openInputStream(uri)
+            val bitmap = BitmapFactory.decodeStream(inputStream)
+            inputStream?.close()
+
+            if (bitmap != null) {
+                viewModel.processTrueCloneGalleryPhoto(bitmap)
+            } else {
+                Toast.makeText(this, "Impossibile caricare l'immagine", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Toast.makeText(this, "Errore: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private fun checkCameraPermissionAndStartBodyIntelligence(
         permissionLauncher: androidx.activity.result.ActivityResultLauncher<String>
     ) {
@@ -399,7 +465,14 @@ class MuscleCompareActivity : ComponentActivity() {
         onVideo360Complete: (String) -> Unit,
         onCancelAvatar3D: () -> Unit,
         onSaveAvatar3D: () -> Unit,
-        onDiscardAvatar3D: () -> Unit
+        onDiscardAvatar3D: () -> Unit,
+        onTrueClonePhotosComplete: (List<CapturedPhoto>) -> Unit,
+        onCancelTrueClone: () -> Unit,
+        onSaveTrueClone: () -> Unit,
+        onDiscardTrueClone: () -> Unit,
+        onTrueCloneGallerySelect: () -> Unit,
+        trueCloneGalleryPhoto: Bitmap?,
+        onTrueCloneGalleryPhotoConsumed: () -> Unit
     ) {
         // Show profile form if editing
         if (isEditingProfile) {
@@ -487,6 +560,8 @@ class MuscleCompareActivity : ComponentActivity() {
             // Avatar 3D states
             is BodyIntelligenceState.Recording360 -> {
                 Video360RecordingScreen(
+                    useFrontCamera = useFrontCamera,
+                    onToggleCamera = onToggleCamera,
                     onRecordingComplete = onVideo360Complete,
                     onBack = onCancelAvatar3D
                 )
@@ -499,6 +574,9 @@ class MuscleCompareActivity : ComponentActivity() {
                     isProcessing = true,
                     processingProgress = state.progress,
                     processingStep = state.currentStep,
+                    framesProcessed = state.framesProcessed,
+                    totalFrames = state.totalFrames,
+                    validFrames = state.validFrames,
                     onSave = { },
                     onBack = onCancelAvatar3D
                 )
@@ -511,6 +589,75 @@ class MuscleCompareActivity : ComponentActivity() {
                     isProcessing = false,
                     onSave = onSaveAvatar3D,
                     onBack = onDiscardAvatar3D
+                )
+            }
+
+            // TrueClone 3D states
+            is BodyIntelligenceState.TrueCloneCapturing -> {
+                TrueCloneCaptureScreen(
+                    onComplete = onTrueClonePhotosComplete,
+                    onCancel = onCancelTrueClone,
+                    onGallerySelect = onTrueCloneGallerySelect,
+                    galleryPhoto = trueCloneGalleryPhoto,
+                    onGalleryPhotoConsumed = onTrueCloneGalleryPhotoConsumed
+                )
+            }
+
+            is BodyIntelligenceState.TrueCloneProcessing -> {
+                TrueCloneProcessingScreen(
+                    progress = state.progress,
+                    currentStep = state.currentStep
+                )
+            }
+
+            is BodyIntelligenceState.TrueCloneReady -> {
+                TrueCloneViewerScreen(
+                    result = state.trueCloneResult,
+                    onBack = onDiscardTrueClone,
+                    onSave = onSaveTrueClone
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun TrueCloneProcessingScreen(
+        progress: Float,
+        currentStep: String
+    ) {
+        androidx.compose.foundation.layout.Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = androidx.compose.ui.Alignment.Center
+        ) {
+            androidx.compose.foundation.layout.Column(
+                horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
+                modifier = Modifier.padding(32.dp)
+            ) {
+                androidx.compose.material3.CircularProgressIndicator(
+                    progress = { progress },
+                    modifier = Modifier.size(80.dp),
+                    color = com.app.fityo.ui.musclecompare.compose.AccentBlue,
+                    strokeWidth = 6.dp
+                )
+                androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(24.dp))
+                androidx.compose.material3.Text(
+                    text = "TrueClone 3D",
+                    color = com.app.fityo.ui.musclecompare.compose.TextPrimary,
+                    fontSize = 20.sp,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                )
+                androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(8.dp))
+                androidx.compose.material3.Text(
+                    text = currentStep,
+                    color = com.app.fityo.ui.musclecompare.compose.TextSecondary,
+                    fontSize = 14.sp
+                )
+                androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(16.dp))
+                androidx.compose.material3.Text(
+                    text = "${(progress * 100).toInt()}%",
+                    color = com.app.fityo.ui.musclecompare.compose.AccentBlue,
+                    fontSize = 18.sp,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
                 )
             }
         }

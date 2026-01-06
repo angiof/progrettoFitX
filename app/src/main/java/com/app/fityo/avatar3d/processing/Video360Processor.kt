@@ -75,28 +75,73 @@ class Video360Processor(private val context: Context) {
     private var poseLandmarker: TutorPoseLandmarkerHelper? = null
 
     /**
+     * Callback per progresso elaborazione.
+     */
+    data class ProgressInfo(
+        val progress: Float,
+        val currentStep: String,
+        val framesProcessed: Int,
+        val totalFrames: Int,
+        val validFrames: Int
+    )
+
+    /**
      * Elabora un video 360° ed estrae le misurazioni del corpo.
      */
     suspend fun processVideo(
         videoPath: String,
         onProgress: (Float, String) -> Unit
+    ): ProcessingResult = processVideoWithDetails(videoPath) { info ->
+        onProgress(info.progress, info.currentStep)
+    }
+
+    /**
+     * Elabora un video 360° ed estrae le misurazioni del corpo con dettagli progresso.
+     */
+    suspend fun processVideoWithDetails(
+        videoPath: String,
+        onProgress: (ProgressInfo) -> Unit
     ): ProcessingResult = withContext(Dispatchers.Default) {
         val startTime = System.currentTimeMillis()
         val frameResults = mutableListOf<FrameAnalysisResult>()
 
+        android.util.Log.d("Video360Processor", "Starting video processing: $videoPath")
+
+        // Verifica che il file esista
+        val videoFile = File(videoPath)
+        if (!videoFile.exists()) {
+            android.util.Log.e("Video360Processor", "Video file does not exist: $videoPath")
+            return@withContext ProcessingResult(
+                success = false,
+                framesAnalyzed = 0,
+                validFrames = 0,
+                aggregatedMeasurements = null,
+                frameResults = emptyList(),
+                errorMessage = "File video non trovato",
+                processingTimeMs = System.currentTimeMillis() - startTime
+            )
+        }
+        android.util.Log.d("Video360Processor", "Video file exists, size: ${videoFile.length()} bytes")
+
         try {
             // Inizializza pose landmarker
-            onProgress(0.05f, "Inizializzazione analisi...")
+            android.util.Log.d("Video360Processor", "Initializing pose landmarker...")
+            onProgress(ProgressInfo(0.05f, "Inizializzazione analisi...", 0, TARGET_FRAMES, 0))
             initializePoseLandmarker()
+            android.util.Log.d("Video360Processor", "Pose landmarker initialized")
 
             // Estrai durata video
+            android.util.Log.d("Video360Processor", "Setting up MediaMetadataRetriever...")
             val retriever = MediaMetadataRetriever()
             retriever.setDataSource(videoPath)
             val durationMs = retriever.extractMetadata(
                 MediaMetadataRetriever.METADATA_KEY_DURATION
             )?.toLongOrNull() ?: 0L
+            android.util.Log.d("Video360Processor", "Video duration: ${durationMs}ms")
 
             if (durationMs < 5000) {
+                android.util.Log.e("Video360Processor", "Video too short: ${durationMs}ms")
+                retriever.release()
                 return@withContext ProcessingResult(
                     success = false,
                     framesAnalyzed = 0,
@@ -111,27 +156,55 @@ class Video360Processor(private val context: Context) {
             // Calcola timestamp per ogni frame
             val frameInterval = durationMs / TARGET_FRAMES
             val degreesPerFrame = 360f / TARGET_FRAMES
+            var validFrameCount = 0
+
+            android.util.Log.d("Video360Processor", "Starting frame extraction, interval: ${frameInterval}ms")
 
             // Estrai e analizza frame
-            onProgress(0.1f, "Estrazione frame...")
+            onProgress(ProgressInfo(0.1f, "Estrazione frame...", 0, TARGET_FRAMES, 0))
             for (i in 0 until TARGET_FRAMES) {
                 val timestampMs = i * frameInterval
                 val rotationDegrees = i * degreesPerFrame
 
+                android.util.Log.d("Video360Processor", "Processing frame $i at ${timestampMs}ms")
+
                 val progress = 0.1f + (0.8f * i / TARGET_FRAMES)
-                onProgress(progress, "Analisi frame ${i + 1}/$TARGET_FRAMES...")
+                onProgress(ProgressInfo(
+                    progress = progress,
+                    currentStep = "Analisi frame ${i + 1}/$TARGET_FRAMES...",
+                    framesProcessed = i + 1,
+                    totalFrames = TARGET_FRAMES,
+                    validFrames = validFrameCount
+                ))
 
                 // Estrai frame
-                val bitmap = retriever.getFrameAtTime(
-                    timestampMs * 1000, // Converti in microsecondi
-                    MediaMetadataRetriever.OPTION_CLOSEST_SYNC
-                )
+                val bitmap = try {
+                    retriever.getFrameAtTime(
+                        timestampMs * 1000, // Converti in microsecondi
+                        MediaMetadataRetriever.OPTION_CLOSEST_SYNC
+                    )
+                } catch (e: Exception) {
+                    android.util.Log.e("Video360Processor", "Error extracting frame $i: ${e.message}")
+                    null
+                }
 
                 if (bitmap != null) {
+                    android.util.Log.d("Video360Processor", "Frame $i extracted, size: ${bitmap.width}x${bitmap.height}")
+
                     // Analizza pose
-                    val poseResult = poseLandmarker?.detectImage(bitmap)
+                    val poseResult = try {
+                        poseLandmarker?.detectImage(bitmap)
+                    } catch (e: Exception) {
+                        android.util.Log.e("Video360Processor", "Pose detection error on frame $i: ${e.message}")
+                        null
+                    }
+
                     val landmarks = extractLandmarks(poseResult?.result)
                     val isValid = landmarks != null && landmarks.size >= 33
+
+                    android.util.Log.d("Video360Processor", "Frame $i pose valid: $isValid, landmarks: ${landmarks?.size ?: 0}")
+
+                    if (isValid) validFrameCount++
 
                     frameResults.add(
                         FrameAnalysisResult(
@@ -145,6 +218,7 @@ class Video360Processor(private val context: Context) {
 
                     bitmap.recycle()
                 } else {
+                    android.util.Log.w("Video360Processor", "Frame $i bitmap is null")
                     frameResults.add(
                         FrameAnalysisResult(
                             frameIndex = i,
@@ -174,7 +248,13 @@ class Video360Processor(private val context: Context) {
             }
 
             // Aggrega misurazioni
-            onProgress(0.95f, "Calcolo misurazioni finali...")
+            onProgress(ProgressInfo(
+                progress = 0.95f,
+                currentStep = "Calcolo misurazioni finali...",
+                framesProcessed = TARGET_FRAMES,
+                totalFrames = TARGET_FRAMES,
+                validFrames = validFrames
+            ))
             val aggregated = aggregateMeasurements(frameResults.filter { it.isValid })
 
             val processingTime = System.currentTimeMillis() - startTime
@@ -204,13 +284,19 @@ class Video360Processor(private val context: Context) {
     }
 
     private fun initializePoseLandmarker() {
-        poseLandmarker = TutorPoseLandmarkerHelper(
-            context = context,
-            runningMode = RunningMode.IMAGE,
-            minPoseDetectionConfidence = CONFIDENCE_THRESHOLD,
-            minPosePresenceConfidence = CONFIDENCE_THRESHOLD,
-            minTrackingConfidence = CONFIDENCE_THRESHOLD
-        )
+        try {
+            poseLandmarker = TutorPoseLandmarkerHelper(
+                context = context,
+                runningMode = RunningMode.IMAGE,
+                minPoseDetectionConfidence = CONFIDENCE_THRESHOLD,
+                minPosePresenceConfidence = CONFIDENCE_THRESHOLD,
+                minTrackingConfidence = CONFIDENCE_THRESHOLD
+            )
+            android.util.Log.d("Video360Processor", "PoseLandmarker created successfully")
+        } catch (e: Exception) {
+            android.util.Log.e("Video360Processor", "Failed to create PoseLandmarker: ${e.message}")
+            throw e
+        }
     }
 
     private fun extractLandmarks(result: PoseLandmarkerResult?): List<NormalizedPoint>? {

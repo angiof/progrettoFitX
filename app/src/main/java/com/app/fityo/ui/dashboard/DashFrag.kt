@@ -1,5 +1,6 @@
 package com.app.fityo.ui.dashboard
 
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
@@ -12,6 +13,7 @@ import android.view.animation.Animation
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import com.app.fityo.analytics.AnalyticsActivity
 import com.app.fityo.R
 import com.app.fityo.data_layer.db.DB.DbFit
 import com.app.fityo.data_layer.db.dao.GruppoMuscolareIntensitaMedia
@@ -60,8 +62,11 @@ class DashFrag : Fragment() {
 
 
         binding.tvMese.setOnClickListener {
-
             showDateRangePickerDialogX()
+        }
+
+        binding.btnAnalytics.setOnClickListener {
+            startActivity(Intent(requireContext(), AnalyticsActivity::class.java))
         }
 
         viewModel.percentualiGruppiMuscolari.observe(viewLifecycleOwner) { percentuali ->

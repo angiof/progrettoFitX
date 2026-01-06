@@ -17,6 +17,6 @@
     <color name="text_primary">#ECF0F1</color>
     <color name="text_secondary">#B0BEC5</color>
     <color name="text_tertiary">#8FA1AD</color>
-
+    <color name="accent_blue">#00B4D8</color>
 
 </resources>

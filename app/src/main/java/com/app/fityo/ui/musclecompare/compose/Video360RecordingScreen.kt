@@ -41,6 +41,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Cameraswitch
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FiberManualRecord
 import androidx.compose.material.icons.filled.Refresh
@@ -96,6 +97,8 @@ private const val COUNTDOWN_SECONDS = 3
  */
 @Composable
 fun Video360RecordingScreen(
+    useFrontCamera: Boolean = true,
+    onToggleCamera: () -> Unit = {},
     onRecordingComplete: (String) -> Unit,
     onBack: () -> Unit
 ) {
@@ -168,18 +171,39 @@ fun Video360RecordingScreen(
 
     // Recording timer and auto-stop
     LaunchedEffect(recordingState) {
+        android.util.Log.d("Video360Recording", "LaunchedEffect recordingState changed to: ${recordingState::class.simpleName}")
         if (recordingState is Recording360State.Recording) {
+            android.util.Log.d("Video360Recording", "Starting recording timer...")
             val startTime = System.currentTimeMillis()
             while (recordingState is Recording360State.Recording) {
                 recordingDuration = System.currentTimeMillis() - startTime
                 recordingProgress = (recordingDuration.toFloat() / RECORDING_DURATION_MS).coerceIn(0f, 1f)
 
+                // Log every second
+                if (recordingDuration % 1000 < 60) {
+                    android.util.Log.d("Video360Recording", "Recording duration: ${recordingDuration}ms, progress: $recordingProgress")
+                }
+
                 // Auto-stop after duration
                 if (recordingDuration >= RECORDING_DURATION_MS) {
+                    android.util.Log.d("Video360Recording", "Recording duration reached, stopping...")
                     currentRecording?.stop()
+                    android.util.Log.d("Video360Recording", "Recording stopped")
+
+                    // IMPORTANT: Call callback BEFORE changing state!
+                    // Changing recordingState will cancel this LaunchedEffect
+                    android.util.Log.d("Video360Recording", "Calling onRecordingComplete with path: $outputFilePath")
+                    val path = outputFilePath
+                    if (path != null) {
+                        android.util.Log.d("Video360Recording", "Invoking callback now with path: $path")
+                        onRecordingComplete(path)
+                    } else {
+                        android.util.Log.e("Video360Recording", "outputFilePath is null!")
+                    }
+
+                    // Set state after callback - this will cause recomposition
+                    // and Activity will show the processing screen
                     recordingState = Recording360State.Processing
-                    delay(500) // Brief delay before callback
-                    outputFilePath?.let { onRecordingComplete(it) }
                     break
                 }
                 delay(50)
@@ -190,8 +214,8 @@ fun Video360RecordingScreen(
         }
     }
 
-    // Camera setup - always use front camera for self-recording
-    LaunchedEffect(Unit) {
+    // Camera setup - use front or back camera based on parameter
+    LaunchedEffect(useFrontCamera) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
 
         cameraProviderFuture.addListener({
@@ -232,11 +256,18 @@ fun Video360RecordingScreen(
                     }
                 }
 
+            // Select camera based on parameter
+            val cameraSelector = if (useFrontCamera) {
+                CameraSelector.DEFAULT_FRONT_CAMERA
+            } else {
+                CameraSelector.DEFAULT_BACK_CAMERA
+            }
+
             try {
                 cameraProvider.unbindAll()
                 cameraProvider.bindToLifecycle(
                     lifecycleOwner,
-                    CameraSelector.DEFAULT_FRONT_CAMERA,
+                    cameraSelector,
                     preview,
                     videoCapture,
                     imageAnalysis
@@ -286,11 +317,12 @@ fun Video360RecordingScreen(
             Skeleton360Overlay(
                 poseResult = poseResult!!,
                 isValid = isPoseValid,
+                isMirrored = useFrontCamera,
                 modifier = Modifier.fillMaxSize()
             )
         }
 
-        // Top bar with back button
+        // Top bar with back button and camera toggle
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -323,8 +355,24 @@ fun Video360RecordingScreen(
                 fontSize = 18.sp
             )
 
-            // Placeholder for symmetry
-            Spacer(modifier = Modifier.size(48.dp))
+            // Camera toggle button - only visible during instructions
+            if (recordingState is Recording360State.Instructions) {
+                IconButton(
+                    onClick = onToggleCamera,
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .background(DarkCard.copy(alpha = 0.7f))
+                ) {
+                    Icon(
+                        Icons.Default.Cameraswitch,
+                        contentDescription = "Cambia camera",
+                        tint = Color.White
+                    )
+                }
+            } else {
+                // Placeholder for symmetry during recording
+                Spacer(modifier = Modifier.size(48.dp))
+            }
         }
 
         // Main content based on state
@@ -691,6 +739,7 @@ private fun ProcessingOverlay() {
 private fun Skeleton360Overlay(
     poseResult: PoseLandmarkerResult,
     isValid: Boolean,
+    isMirrored: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     if (poseResult.landmarks().isEmpty()) return
@@ -711,8 +760,8 @@ private fun Skeleton360Overlay(
             val visibility = landmark.visibility()
             if (visibility.isPresent && visibility.get() < 0.5f) return null
 
-            // Mirror for front camera
-            val normX = 1f - landmark.x()
+            // Mirror only for front camera
+            val normX = if (isMirrored) 1f - landmark.x() else landmark.x()
             val normY = landmark.y()
 
             val x: Float
@@ -770,7 +819,10 @@ private fun startVideo360Recording(
     onRecordingStarted: (Recording, String) -> Unit,
     onError: (String) -> Unit
 ) {
+    android.util.Log.d("Video360Recording", "startVideo360Recording called")
+
     val vc = videoCapture ?: run {
+        android.util.Log.e("Video360Recording", "videoCapture is null!")
         onError("Video capture non disponibile")
         return
     }
@@ -779,10 +831,14 @@ private fun startVideo360Recording(
     val outputFile = File(context.filesDir, fileName)
     val outputOptions = FileOutputOptions.Builder(outputFile).build()
 
+    android.util.Log.d("Video360Recording", "Output file: ${outputFile.absolutePath}")
+
     val hasAudioPermission = ContextCompat.checkSelfPermission(
         context,
         Manifest.permission.RECORD_AUDIO
     ) == PackageManager.PERMISSION_GRANTED
+
+    android.util.Log.d("Video360Recording", "Has audio permission: $hasAudioPermission")
 
     try {
         val recording = vc.output
@@ -793,18 +849,30 @@ private fun startVideo360Recording(
                 }
             }
             .start(ContextCompat.getMainExecutor(context)) { event ->
+                android.util.Log.d("Video360Recording", "Recording event: ${event.javaClass.simpleName}")
                 when (event) {
+                    is VideoRecordEvent.Start -> {
+                        android.util.Log.d("Video360Recording", "Recording started!")
+                    }
+                    is VideoRecordEvent.Status -> {
+                        android.util.Log.d("Video360Recording", "Recording status update")
+                    }
                     is VideoRecordEvent.Finalize -> {
+                        android.util.Log.d("Video360Recording", "Recording finalized! hasError=${event.hasError()}, error=${event.error}")
                         if (event.hasError()) {
                             onError("Errore registrazione: ${event.error}")
+                        } else {
+                            android.util.Log.d("Video360Recording", "Recording saved to: ${outputFile.absolutePath}, size: ${outputFile.length()}")
                         }
                     }
                 }
             }
 
+        android.util.Log.d("Video360Recording", "Recording object created, calling onRecordingStarted")
         onRecordingStarted(recording, outputFile.absolutePath)
 
     } catch (e: Exception) {
+        android.util.Log.e("Video360Recording", "Error starting recording: ${e.message}", e)
         onError("Errore avvio registrazione: ${e.message}")
     }
 }

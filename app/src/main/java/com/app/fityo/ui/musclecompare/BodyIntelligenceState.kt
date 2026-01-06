@@ -3,6 +3,9 @@ package com.app.fityo.ui.musclecompare
 import com.app.fityo.avatar3d.processing.Video360Processor
 import com.app.fityo.dominio.UserProfile
 import com.app.fityo.mediapipe.BodyIntelligenceAnalyzer
+import com.app.fityo.trueclone.TrueCloneProcessor
+import com.app.fityo.trueclone.capture.CapturedPhoto
+import com.app.fityo.trueclone.capture.PhotoView
 
 /**
  * Stati UI per Body Intelligence.
@@ -73,7 +76,10 @@ sealed class BodyIntelligenceState {
         val result: BodyIntelligenceAnalyzer.AnalysisResult,
         val videoPath: String,
         val progress: Float = 0f,
-        val currentStep: String = "Inizializzazione..."
+        val currentStep: String = "Inizializzazione...",
+        val framesProcessed: Int = 0,
+        val totalFrames: Int = 30,
+        val validFrames: Int = 0
     ) : BodyIntelligenceState()
 
     /**
@@ -83,5 +89,34 @@ sealed class BodyIntelligenceState {
         val result: BodyIntelligenceAnalyzer.AnalysisResult,
         val measurements: Video360Processor.AggregatedMeasurements,
         val processingResult: Video360Processor.ProcessingResult
+    ) : BodyIntelligenceState()
+
+    // ========== TRUECLONE 3D STATES ==========
+
+    /**
+     * Cattura foto TrueClone in corso (Front, Side, Back).
+     */
+    data class TrueCloneCapturing(
+        val result: BodyIntelligenceAnalyzer.AnalysisResult,
+        val capturedPhotos: List<CapturedPhoto> = emptyList(),
+        val currentView: PhotoView = PhotoView.FRONT
+    ) : BodyIntelligenceState()
+
+    /**
+     * Elaborazione TrueClone in corso.
+     */
+    data class TrueCloneProcessing(
+        val result: BodyIntelligenceAnalyzer.AnalysisResult,
+        val photos: List<CapturedPhoto>,
+        val progress: Float = 0f,
+        val currentStep: String = "Inizializzazione..."
+    ) : BodyIntelligenceState()
+
+    /**
+     * TrueClone 3D pronto per visualizzazione.
+     */
+    data class TrueCloneReady(
+        val result: BodyIntelligenceAnalyzer.AnalysisResult,
+        val trueCloneResult: TrueCloneProcessor.TrueCloneResult
     ) : BodyIntelligenceState()
 }
