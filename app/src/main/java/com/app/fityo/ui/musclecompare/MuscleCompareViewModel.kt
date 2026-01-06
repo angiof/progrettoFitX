@@ -2,9 +2,16 @@ package com.app.fityo.ui.musclecompare
 
 import android.app.Application
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.fityo.avatar3d.model.ShapeParameters
+import com.app.fityo.biometrics.BiometricAnalyzer
+import com.app.fityo.biometrics.BodyCompositionClassifier
+import com.app.fityo.biometrics.MidasTfliteDepthEstimator
+import com.app.fityo.biometrics.MeasurementViewInput
+import com.app.fityo.biometrics.MultiViewMeasurements
+import com.app.fityo.biometrics.MoveNetPoseEstimator
 import com.app.fityo.avatar3d.model.ZoneColors
 import com.app.fityo.avatar3d.processing.Video360Processor
 import com.app.fityo.data_layer.db.Avatar3DEntity
@@ -28,6 +35,8 @@ import com.app.fityo.mediapipe.MuscleAnalyzer
 import com.app.fityo.mediapipe.PhotoNormalizer
 import com.app.fityo.mediapipe.PoseLandmarkerHelper
 import com.app.fityo.mediapipe.WorkoutAnalyzer
+import com.app.fityo.trueclone.capture.CapturedPhoto
+import com.app.fityo.trueclone.capture.PhotoView
 import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarkerResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -79,6 +88,9 @@ class MuscleCompareViewModel(
     private val _bodyIntelligenceState = MutableStateFlow<BodyIntelligenceState?>(null)
     val bodyIntelligenceState: StateFlow<BodyIntelligenceState?> = _bodyIntelligenceState.asStateFlow()
 
+    private val _bodyIntelligenceGalleryPhoto = MutableStateFlow<Bitmap?>(null)
+    val bodyIntelligenceGalleryPhoto: StateFlow<Bitmap?> = _bodyIntelligenceGalleryPhoto.asStateFlow()
+
     // Current user profile
     private val _currentProfile = MutableStateFlow<UserProfile?>(null)
     val currentProfile: StateFlow<UserProfile?> = _currentProfile.asStateFlow()
@@ -96,6 +108,10 @@ class MuscleCompareViewModel(
 
     private var poseLandmarkerHelper: PoseLandmarkerHelper? = null
     private var imageSegmenterHelper: ImageSegmenterHelper? = null
+    private var moveNetPoseEstimator: MoveNetPoseEstimator? = null
+    private var midasDepthEstimator: MidasTfliteDepthEstimator? = null
+    private var biometricAnalyzer: BiometricAnalyzer? = null
+    private var bodyCompositionClassifier: BodyCompositionClassifier? = null
 
     // Dati temporanei per il confronto
     private var photoABitmap: Bitmap? = null
@@ -103,6 +119,8 @@ class MuscleCompareViewModel(
     private var landmarksA: PoseLandmarkerResult? = null
     private var landmarksB: PoseLandmarkerResult? = null
     private var segmentationResultA: ImageSegmenterHelper.ResultBundle? = null
+    private var lastPhotoAPath: String? = null
+    private var lastPhotoBPath: String? = null
 
     init {
         loadHistory()
@@ -116,6 +134,21 @@ class MuscleCompareViewModel(
                 imageSegmenterHelper = ImageSegmenterHelper(getApplication())
             } catch (e: Exception) {
                 _compareState.value = CompareState.Error("Failed to initialize ML models: ${e.message}")
+                return@launch
+            }
+
+            try {
+                moveNetPoseEstimator = MoveNetPoseEstimator(getApplication())
+                midasDepthEstimator = MidasTfliteDepthEstimator(getApplication())
+                biometricAnalyzer = BiometricAnalyzer(
+                    moveNetPoseEstimator ?: return@launch,
+                    midasDepthEstimator ?: return@launch
+                )
+                bodyCompositionClassifier = BodyCompositionClassifier(getApplication())
+            } catch (e: Exception) {
+                android.util.Log.e("MuscleCompareVM", "Biometric models init failed: ${e.message}", e)
+                biometricAnalyzer = null
+                bodyCompositionClassifier = null
             }
         }
     }
@@ -159,6 +192,8 @@ class MuscleCompareViewModel(
         landmarksA = null
         landmarksB = null
         segmentationResultA = null
+        lastPhotoAPath = null
+        lastPhotoBPath = null
         _ghostOverlay.value = null
         _poseDetected.value = false
         _alignmentPercent.value = 0f
@@ -206,6 +241,7 @@ class MuscleCompareViewModel(
                 val saveResult = photoStorage.saveEncryptedPhoto(bitmap, filename)
 
                 if (saveResult.isSuccess) {
+                    lastPhotoAPath = saveResult.getOrThrow()
                     withContext(Dispatchers.Main) {
                         _compareState.value = CompareState.PhotoACaptured(saveResult.getOrThrow(), viewType)
                     }
@@ -267,11 +303,15 @@ class MuscleCompareViewModel(
                 val saveResult = photoStorage.saveEncryptedPhoto(bitmap, filename)
 
                 if (saveResult.isSuccess) {
+                    lastPhotoBPath = saveResult.getOrThrow()
                     // Recupera photoAPath salvato in precedenza
                     val filenameA = photoStorage.generateFilename("photoA_recovered")
                     val photoAPath = photoABitmap?.let {
                         photoStorage.saveEncryptedPhoto(it, filenameA)
                     }?.getOrNull() ?: ""
+                    if (photoAPath.isNotEmpty()) {
+                        lastPhotoAPath = photoAPath
+                    }
 
                     withContext(Dispatchers.Main) {
                         _compareState.value = CompareState.PhotoBCaptured(photoAPath, saveResult.getOrThrow(), viewType)
@@ -383,13 +423,23 @@ class MuscleCompareViewModel(
         }
     }
 
-    fun saveComparisonResult(photoAPath: String, photoBPath: String, result: CompareResult) {
+    fun saveComparisonResult(
+        result: CompareResult,
+        photoAPath: String? = null,
+        photoBPath: String? = null
+    ) {
+        val finalPhotoAPath = photoAPath?.takeIf { it.isNotBlank() }
+            ?: lastPhotoAPath
+            ?: ""
+        val finalPhotoBPath = photoBPath?.takeIf { it.isNotBlank() }
+            ?: lastPhotoBPath
+            ?: ""
         viewModelScope.launch {
             try {
                 val entity = MuscleCompareEntity(
                     createdAt = System.currentTimeMillis(),
-                    photoAPath = photoAPath,
-                    photoBPath = photoBPath,
+                    photoAPath = finalPhotoAPath,
+                    photoBPath = finalPhotoBPath,
                     armsVariation = result.armsResult.variationPercent,
                     absVariation = result.absResult.variationPercent,
                     legsVariation = result.legsResult.variationPercent,
@@ -464,6 +514,9 @@ class MuscleCompareViewModel(
         super.onCleared()
         poseLandmarkerHelper?.close()
         imageSegmenterHelper?.close()
+        moveNetPoseEstimator?.close()
+        midasDepthEstimator?.close()
+        bodyCompositionClassifier?.close()
         photoABitmap?.recycle()
         photoBBitmap?.recycle()
     }
@@ -621,12 +674,32 @@ class MuscleCompareViewModel(
                     )
                 }
 
+                val biometricMetrics = biometricAnalyzer?.analyze(
+                    bitmap = bitmap,
+                    segmentationMask = segmentationMask,
+                    profile = profile
+                )
+                val classifierReady = bodyCompositionClassifier != null
+                Log.d("BodyComposition", "Classifier ready=$classifierReady bitmap=${bitmap.width}x${bitmap.height}")
+                val bodyComposition = bodyCompositionClassifier?.classify(bitmap)
+                if (bodyComposition == null) {
+                    Log.d("BodyComposition", "Classification skipped or failed (null result).")
+                } else {
+                    Log.d(
+                        "BodyComposition",
+                        "label=${bodyComposition.label} fit=${bodyComposition.fitProbability} fat=${bodyComposition.fatProbability} power=${bodyComposition.powerlifterProbability}"
+                    )
+                }
+
                 // Perform Body Intelligence analysis
                 val analysisResult = bodyIntelligenceAnalyzer.analyze(
                     bitmap = bitmap,
                     poseResult = poseResult.result,
                     segmentationMask = segmentationMask,
                     profile = profile
+                ).copy(
+                    biometricMetrics = biometricMetrics,
+                    bodyComposition = bodyComposition
                 )
 
                 withContext(Dispatchers.Main) {
@@ -647,6 +720,139 @@ class MuscleCompareViewModel(
                 // Cleanup
                 segmentationMask?.recycle()
 
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    _bodyIntelligenceState.value = BodyIntelligenceState.Error(
+                        "Errore nell'analisi: ${e.message}"
+                    )
+                }
+            }
+        }
+    }
+
+    fun processBodyIntelligencePhotos(photos: List<CapturedPhoto>) {
+        val profile = _currentProfile.value ?: return
+
+        viewModelScope.launch(Dispatchers.Default) {
+            try {
+                withContext(Dispatchers.Main) {
+                    _bodyIntelligenceState.value = BodyIntelligenceState.Analyzing(
+                        profile = profile,
+                        progress = 0.1f,
+                        currentStep = "Rilevamento pose..."
+                    )
+                }
+
+                val frontPhoto = photos.firstOrNull { it.view == PhotoView.FRONT }
+                    ?: throw IllegalStateException("Foto frontale mancante")
+                val sidePhoto = photos.firstOrNull { it.view == PhotoView.SIDE }
+                    ?: throw IllegalStateException("Foto laterale mancante")
+                val backPhoto = photos.firstOrNull { it.view == PhotoView.BACK }
+
+                val frontPose = poseLandmarkerHelper?.detectImage(frontPhoto.bitmap)
+                    ?: throw IllegalStateException("Pose frontale non rilevata")
+                val sidePose = poseLandmarkerHelper?.detectImage(sidePhoto.bitmap)
+                    ?: throw IllegalStateException("Pose laterale non rilevata")
+                val backPose = backPhoto?.let { poseLandmarkerHelper?.detectImage(it.bitmap) }
+
+                if (!poseLandmarkerHelper!!.hasValidPose(frontPose.result)) {
+                    throw IllegalStateException("Pose frontale non valida")
+                }
+                if (!poseLandmarkerHelper!!.hasValidPose(sidePose.result)) {
+                    throw IllegalStateException("Pose laterale non valida")
+                }
+
+                withContext(Dispatchers.Main) {
+                    _bodyIntelligenceState.value = BodyIntelligenceState.Analyzing(
+                        profile = profile,
+                        progress = 0.35f,
+                        currentStep = "Segmentazione immagini..."
+                    )
+                }
+
+                val frontSeg = imageSegmenterHelper?.segmentImage(frontPhoto.bitmap)
+                val frontMask = frontSeg?.let {
+                    imageSegmenterHelper?.createMaskBitmap(it.result, frontPhoto.bitmap.width, frontPhoto.bitmap.height)
+                } ?: throw IllegalStateException("Segmentazione frontale fallita")
+
+                val sideSeg = imageSegmenterHelper?.segmentImage(sidePhoto.bitmap)
+                val sideMask = sideSeg?.let {
+                    imageSegmenterHelper?.createMaskBitmap(it.result, sidePhoto.bitmap.width, sidePhoto.bitmap.height)
+                } ?: throw IllegalStateException("Segmentazione laterale fallita")
+
+                val backMask = backPhoto?.let { photo ->
+                    val seg = imageSegmenterHelper?.segmentImage(photo.bitmap)
+                    seg?.let { imageSegmenterHelper?.createMaskBitmap(it.result, photo.bitmap.width, photo.bitmap.height) }
+                }
+
+                withContext(Dispatchers.Main) {
+                    _bodyIntelligenceState.value = BodyIntelligenceState.Analyzing(
+                        profile = profile,
+                        progress = 0.6f,
+                        currentStep = "Misure reali..."
+                    )
+                }
+
+                val measurements = MultiViewMeasurements.estimate(
+                    front = MeasurementViewInput(frontPhoto.bitmap, frontPose.result, frontMask),
+                    side = MeasurementViewInput(sidePhoto.bitmap, sidePose.result, sideMask),
+                    back = backPhoto?.let { photo ->
+                        val pose = backPose?.result
+                        if (pose != null && backMask != null) {
+                            MeasurementViewInput(photo.bitmap, pose, backMask)
+                        } else {
+                            null
+                        }
+                    },
+                    profile = profile,
+                    depthEstimator = midasDepthEstimator
+                )
+
+                withContext(Dispatchers.Main) {
+                    _bodyIntelligenceState.value = BodyIntelligenceState.Analyzing(
+                        profile = profile,
+                        progress = 0.8f,
+                        currentStep = "Analisi biometrica..."
+                    )
+                }
+
+                val biometricMetrics = biometricAnalyzer?.analyze(
+                    bitmap = frontPhoto.bitmap,
+                    segmentationMask = frontMask,
+                    profile = profile
+                )
+                val classifierReady = bodyCompositionClassifier != null
+                Log.d("BodyComposition", "Classifier ready=$classifierReady bitmap=${frontPhoto.bitmap.width}x${frontPhoto.bitmap.height}")
+                val bodyComposition = bodyCompositionClassifier?.classify(frontPhoto.bitmap)
+
+                val analysisResult = bodyIntelligenceAnalyzer.analyze(
+                    bitmap = frontPhoto.bitmap,
+                    poseResult = frontPose.result,
+                    segmentationMask = frontMask,
+                    profile = profile
+                ).copy(
+                    biometricMetrics = biometricMetrics,
+                    bodyComposition = bodyComposition,
+                    realMeasurements = measurements
+                )
+
+                withContext(Dispatchers.Main) {
+                    _bodyIntelligenceState.value = BodyIntelligenceState.Analyzing(
+                        profile = profile,
+                        progress = 1.0f,
+                        currentStep = "Completato!"
+                    )
+                }
+
+                kotlinx.coroutines.delay(300)
+
+                withContext(Dispatchers.Main) {
+                    _bodyIntelligenceState.value = BodyIntelligenceState.ResultReady(analysisResult)
+                }
+
+                frontMask.recycle()
+                sideMask.recycle()
+                backMask?.recycle()
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     _bodyIntelligenceState.value = BodyIntelligenceState.Error(
@@ -684,6 +890,15 @@ class MuscleCompareViewModel(
         _currentProfile.value?.let { profile ->
             _bodyIntelligenceState.value = BodyIntelligenceState.ProfileReady(profile)
         }
+        _bodyIntelligenceGalleryPhoto.value = null
+    }
+
+    fun processBodyIntelligenceGalleryPhoto(bitmap: Bitmap) {
+        _bodyIntelligenceGalleryPhoto.value = bitmap
+    }
+
+    fun clearBodyIntelligenceGalleryPhoto() {
+        _bodyIntelligenceGalleryPhoto.value = null
     }
 
     // ==================== Avatar 3D Methods ====================
@@ -1123,7 +1338,9 @@ class MuscleCompareViewModel(
                     armsVariation = entity.armsVariation,
                     absVariation = entity.absVariation,
                     legsVariation = entity.legsVariation,
-                    glutesVariation = entity.glutesVariation
+                    glutesVariation = entity.glutesVariation,
+                    scaleFactorA = entity.scaleFactorA,
+                    scaleFactorB = entity.scaleFactorB
                 )
                 withContext(Dispatchers.Main) {
                     _viewingComparisonDetail.value = historyItem

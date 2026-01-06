@@ -55,8 +55,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.app.fityo.biometrics.BiometricMetrics
+import com.app.fityo.biometrics.BodyCompositionLabel
+import com.app.fityo.biometrics.BodyCompositionResult
+import com.app.fityo.biometrics.RealBodyMeasurements
 import com.app.fityo.dominio.FfmiEvaluation
 import com.app.fityo.mediapipe.BodyIntelligenceAnalyzer
+import kotlin.math.abs
 
 /**
  * Schermata dei risultati Body Intelligence.
@@ -102,6 +107,21 @@ fun BodyIntelligenceResultScreen(
             BodyMetricsCard(result.bodyMetrics, result.profile.sex.displayName)
 
             Spacer(modifier = Modifier.height(16.dp))
+
+            result.realMeasurements?.let { measurements ->
+                RealMeasurementsCard(measurements)
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            result.bodyComposition?.let { composition ->
+                BodyCompositionCard(composition)
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            result.biometricMetrics?.let { metrics ->
+                BiometricMetricsCard(metrics)
+                Spacer(modifier = Modifier.height(16.dp))
+            }
 
             // Zone Analysis
             ZoneAnalysisCard(result.bodyZoneAnalysis)
@@ -397,6 +417,224 @@ private fun BodyMetricsCard(
                         fontWeight = FontWeight.Medium
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun BiometricMetricsCard(metrics: BiometricMetrics) {
+    val adonisValue = metrics.adonisRatio?.let { String.format("%.2f", it) } ?: "-"
+    val symmetryValue = metrics.symmetryIndex?.let { String.format("%.0f%%", it * 100f) } ?: "-"
+    val postureValue = metrics.postureScore?.let { String.format("%.0f%%", it * 100f) } ?: "-"
+    val shoulderValue = metrics.shoulderWidthCm?.let { String.format("%.1f cm", it) } ?: "-"
+    val waistValue = metrics.waistWidthCm?.let { String.format("%.1f cm", it) } ?: "-"
+    val depthValue = metrics.depthScale?.let { String.format("%.0f%%", it * 100f) } ?: "-"
+
+    val symmetryColor = when {
+        metrics.symmetryIndex == null -> TextSecondary
+        metrics.symmetryIndex >= 0.9f -> AccentGreen
+        metrics.symmetryIndex >= 0.8f -> AccentYellow
+        else -> AccentOrange
+    }
+    val postureColor = when {
+        metrics.postureScore == null -> TextSecondary
+        metrics.postureScore >= 0.9f -> AccentGreen
+        metrics.postureScore >= 0.8f -> AccentYellow
+        else -> AccentOrange
+    }
+    val depthColor = when {
+        metrics.depthScale == null -> TextSecondary
+        abs(metrics.depthScale - 1f) <= 0.05f -> AccentGreen
+        abs(metrics.depthScale - 1f) <= 0.1f -> AccentYellow
+        else -> AccentOrange
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = DarkCard),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Default.Analytics,
+                    contentDescription = null,
+                    tint = AccentBlue,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    "Metriche Biometriche",
+                    color = TextPrimary,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                MetricItem(value = adonisValue, label = "V-Taper", color = AccentBlue)
+                MetricItem(value = symmetryValue, label = "Simmetria", color = symmetryColor)
+                MetricItem(value = postureValue, label = "Postura", color = postureColor)
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                MetricItem(value = shoulderValue, label = "Spalle", color = AccentGreen)
+                MetricItem(value = waistValue, label = "Vita", color = AccentOrange)
+                MetricItem(value = depthValue, label = "Prospettiva", color = depthColor)
+            }
+        }
+    }
+}
+
+@Composable
+private fun RealMeasurementsCard(measurements: RealBodyMeasurements) {
+    val shoulderValue = measurements.shoulderWidthCm?.let { String.format("%.1f cm", it) } ?: "-"
+    val waistValue = measurements.waistWidthCm?.let { String.format("%.1f cm", it) } ?: "-"
+    val hipValue = measurements.hipWidthCm?.let { String.format("%.1f cm", it) } ?: "-"
+    val chestValue = measurements.chestCircumferenceCm?.let { String.format("%.1f cm", it) } ?: "-"
+    val armValue = measurements.armCircumferenceCm?.let { String.format("%.1f cm", it) } ?: "-"
+    val thighValue = measurements.thighCircumferenceCm?.let { String.format("%.1f cm", it) } ?: "-"
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = DarkCard),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Default.FitnessCenter,
+                    contentDescription = null,
+                    tint = AccentGreen,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    "Misure reali (cm)",
+                    color = TextPrimary,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                MetricItem(value = shoulderValue, label = "Spalle", color = AccentBlue)
+                MetricItem(value = waistValue, label = "Vita", color = AccentOrange)
+                MetricItem(value = hipValue, label = "Anche", color = AccentGreen)
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                MetricItem(value = chestValue, label = "Torace", color = AccentBlue)
+                MetricItem(value = armValue, label = "Braccio", color = AccentGreen)
+                MetricItem(value = thighValue, label = "Coscia", color = AccentOrange)
+            }
+        }
+    }
+}
+
+@Composable
+private fun BodyCompositionCard(result: BodyCompositionResult) {
+    val label = when (result.label) {
+        BodyCompositionLabel.FIT -> "In forma"
+        BodyCompositionLabel.FAT -> "Fuori forma"
+        BodyCompositionLabel.POWERLIFTER -> "Powerlifter"
+    }
+    val accentColor = when (result.label) {
+        BodyCompositionLabel.FIT -> AccentGreen
+        BodyCompositionLabel.FAT -> AccentOrange
+        BodyCompositionLabel.POWERLIFTER -> AccentBlue
+    }
+    val confidence = String.format("%.0f%%", result.confidence * 100f)
+    val fitValue = String.format("%.0f%%", result.fitProbability * 100f)
+    val fatValue = String.format("%.0f%%", result.fatProbability * 100f)
+    val powerValue = String.format("%.0f%%", result.powerlifterProbability * 100f)
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = DarkCard),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Default.FitnessCenter,
+                    contentDescription = null,
+                    tint = accentColor,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    "Forma del corpo",
+                    color = TextPrimary,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = label,
+                    color = accentColor,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = confidence,
+                    color = accentColor,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            LinearProgressIndicator(
+                progress = { result.confidence },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(6.dp)
+                    .clip(RoundedCornerShape(3.dp)),
+                color = accentColor,
+                trackColor = accentColor.copy(alpha = 0.2f),
+                strokeCap = StrokeCap.Round
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                MetricItem(value = fitValue, label = "In forma", color = AccentGreen)
+                MetricItem(value = fatValue, label = "Fuori forma", color = AccentOrange)
+                MetricItem(value = powerValue, label = "Powerlifter", color = AccentBlue)
             }
         }
     }

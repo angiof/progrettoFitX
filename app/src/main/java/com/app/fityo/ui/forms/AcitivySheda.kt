@@ -16,6 +16,7 @@ import com.app.fityo.dominio.UsesCasesSheda
 import com.app.fityo.ui.factory.GenericViewModelFactory
 import com.app.fityo.data_layer.repository.SchedeRepository
 import com.app.fityo.ui.shedeForms.SchedeViewModel
+import com.app.fityo.ui.coach.CoachActivity
 
 class AcitivySheda : BaseAcitivity() {
 
@@ -41,6 +42,9 @@ class AcitivySheda : BaseAcitivity() {
         // 1) Recupera extra in modo sicuro
         val schedaIntent = intent.getSerializableExtra("f") as? SchedeEntity
         val isNew = intent.getBooleanExtra("isNew", true)
+        // Recupera coachProfileId se presente (da Coach Mode)
+        val coachProfileId = intent.getIntExtra(CoachActivity.EXTRA_COACH_PROFILE_ID, -1)
+            .takeIf { it != -1 }
 
         // 2) Se non ho ricevuto alcuna scheda, proseguo senza logica "esistente"
         val navGraph: NavGraph = navInflater.inflate(R.navigation.create_schedes_navigations)
@@ -48,7 +52,11 @@ class AcitivySheda : BaseAcitivity() {
             if (!isNew) navGraph.setStartDestination(R.id.fragEssercissi)
             navHostFragment.navController.setGraph(
                 navGraph,
-                bundleOf("f" to schedaIntent, "isNew" to isNew)
+                bundleOf(
+                    "f" to schedaIntent,
+                    "isNew" to isNew,
+                    "coachProfileId" to coachProfileId
+                )
             )
 
             if (!isNew) {
@@ -63,7 +71,11 @@ class AcitivySheda : BaseAcitivity() {
                 finish()
             }
         } else {
-            navHostFragment.navController.graph = navGraph
+            // Passa coachProfileId anche quando si crea una nuova scheda
+            navHostFragment.navController.setGraph(
+                navGraph,
+                bundleOf("coachProfileId" to coachProfileId)
+            )
             binding.btnClose.setOnClickListener { finish() }
         }
 

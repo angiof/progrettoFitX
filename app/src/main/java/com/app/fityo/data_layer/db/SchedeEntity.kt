@@ -23,7 +23,8 @@ data class SchedeEntity(
     var completedDate: String? = null, // Data completamento scheda
     var totalSteps: Int? = null, // Passi totali durante l'allenamento
     var avgHeartRate: Int? = null, // BPM medio durante l'allenamento
-    var maxHeartRate: Int? = null // BPM massimo durante l'allenamento
+    var maxHeartRate: Int? = null, // BPM massimo durante l'allenamento
+    val coachProfileId: Int? = null // FK a coach_profiles.id (null = scheda personale)
 ) : Serializable {
     // Helper per ottenere tutti i gruppi muscolari (sia singolo che multipli)
     fun getAllGruppiMuscolari(): List<String> {

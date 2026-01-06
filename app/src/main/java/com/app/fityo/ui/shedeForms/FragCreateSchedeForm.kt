@@ -39,6 +39,7 @@ class FragCreateSchedeForm : Fragment() {
     private var existingRecordId: Int? = null
     private val isoFormatter: DateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE
     private val selectedMuscleGroups = mutableSetOf<String>()
+    private var coachProfileId: Int? = null
 
 
     override fun onCreateView(
@@ -62,11 +63,16 @@ class FragCreateSchedeForm : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Recupera coachProfileId dagli arguments (passato da AcitivySheda)
+        coachProfileId = arguments?.getInt("coachProfileId", -1)?.takeIf { it != -1 }
 
         // Ripristina lo stato da savedInstanceState
         savedInstanceState?.let {
             existingRecordId = it.getInt("existingRecordId", -1)
             if (existingRecordId == -1) existingRecordId = null
+            // Ripristina anche coachProfileId
+            val savedCoachId = it.getInt("coachProfileId", -1)
+            if (savedCoachId != -1) coachProfileId = savedCoachId
         }
 
         binding.edEventData.setOnClickListener { showDatePickerDialog() }
@@ -195,7 +201,8 @@ class FragCreateSchedeForm : Fragment() {
                     intesita = intensita,
                     notes = notes,
                     titolo = titolo,
-                    data = data
+                    data = data,
+                    coachProfileId = coachProfileId
                 )
 
                 viewModel.viewModelScope.launch(Dispatchers.IO) {
@@ -236,6 +243,7 @@ class FragCreateSchedeForm : Fragment() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putInt("existingRecordId", existingRecordId ?: -1)
+        outState.putInt("coachProfileId", coachProfileId ?: -1)
     }
 
     override fun onResume() {

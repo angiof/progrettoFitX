@@ -101,13 +101,12 @@ fun HistoryScreen(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Mode Selection Cards
             item {
                 Spacer(modifier = Modifier.height(8.dp))
-                ModeSelectionSection(
-                    onNewCompare = onNewCompare,
-                    onBodyIntelligence = onBodyIntelligence,
-                    onAvatar3DHistory = onAvatar3DHistory
+                Text(
+                    "Storico Confronti",
+                    color = TextSecondary,
+                    fontSize = 14.sp
                 )
             }
 
@@ -130,15 +129,6 @@ fun HistoryScreen(
                 }
 
                 is HistoryState.Success -> {
-                    item {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            "Storico Confronti",
-                            color = TextSecondary,
-                            fontSize = 14.sp
-                        )
-                    }
-
                     items(historyState.comparisons) { item ->
                         HistoryItemCard(
                             item = item,
@@ -147,6 +137,15 @@ fun HistoryScreen(
                         )
                     }
                 }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                ModeSelectionSection(
+                    onNewCompare = onNewCompare,
+                    onBodyIntelligence = onBodyIntelligence,
+                    onAvatar3DHistory = onAvatar3DHistory
+                )
             }
 
             item { Spacer(modifier = Modifier.height(16.dp)) }

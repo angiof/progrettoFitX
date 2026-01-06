@@ -13,6 +13,7 @@ enum class HomeMenuAction {
     OPEN_SCHEDE,
     VIEW_STATS,
     MUSCLE_COMPARE,
-    TUTOR_MODE
+    TUTOR_MODE,
+    COACH_MODE
 }
 

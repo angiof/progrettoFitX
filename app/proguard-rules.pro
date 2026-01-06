@@ -41,3 +41,7 @@
 # Keep MediaPipe tasks
 -keep class com.google.mediapipe.tasks.** { *; }
 -keep class com.google.mediapipe.framework.** { *; }
+
+# TensorFlow Lite
+-keep class org.tensorflow.lite.** { *; }
+-dontwarn org.tensorflow.lite.**

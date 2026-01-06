@@ -172,10 +172,19 @@ class TutorPoseLandmarkerHelper(
             AngleCalculator.LandmarkIndex.RIGHT_KNEE
         )
 
-        return keyPoints.all { index ->
+        val visibleKeyPoints = keyPoints.count { index ->
             val visibility = landmarks[index].visibility()
             visibility.isPresent && visibility.get() > MIN_VISIBILITY_THRESHOLD
         }
+        if (visibleKeyPoints >= MIN_REQUIRED_KEYPOINTS) {
+            return true
+        }
+
+        val visibleAnyPoints = landmarks.count { landmark ->
+            val visibility = landmark.visibility()
+            visibility.isPresent && visibility.get() > MIN_ANY_VISIBILITY_THRESHOLD
+        }
+        return visibleAnyPoints >= MIN_ANY_VISIBLE_POINTS
     }
 
     /**
@@ -205,6 +214,9 @@ class TutorPoseLandmarkerHelper(
 
     companion object {
         private const val MODEL_POSE_LANDMARKER = "pose_landmarker_full.task"
-        private const val MIN_VISIBILITY_THRESHOLD = 0.5f
+        private const val MIN_VISIBILITY_THRESHOLD = 0.2f
+        private const val MIN_REQUIRED_KEYPOINTS = 3
+        private const val MIN_ANY_VISIBILITY_THRESHOLD = 0.1f
+        private const val MIN_ANY_VISIBLE_POINTS = 5
     }
 }

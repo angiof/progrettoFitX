@@ -109,4 +109,32 @@ class SchedeRepository(private val daoSchede: DaoSchede) {
 
     suspend fun getAverageWorkoutsPerWeek(): Double? = daoSchede.getAverageWorkoutsPerWeek()
 
+    // ==================== METODI PER COACH MODE ====================
+
+    suspend fun getSchedeByCoachProfile(profileId: Int): List<SchedeEntity> =
+        daoSchede.getSchedeByCoachProfile(profileId)
+
+    suspend fun getPersonalSchede(): List<SchedeEntity> =
+        daoSchede.getPersonalSchede()
+
+    suspend fun countSchedeByCoachProfile(profileId: Int): Int =
+        daoSchede.countSchedeByCoachProfile(profileId)
+
+    suspend fun getPercentualeByCoachProfile(profileId: Int): List<GruppoMuscolarePercentuale> =
+        daoSchede.getPercentualeByCoachProfile(profileId)
+
+    suspend fun getMediaIntensitaByCoachProfile(profileId: Int): List<GruppoMuscolareIntensitaMedia> =
+        daoSchede.getMediaIntensitaByCoachProfile(profileId)
+
+    suspend fun getWorkoutCountByWeekdayForCoach(profileId: Int) =
+        daoSchede.getWorkoutCountByWeekdayForCoach(profileId)
+
+    suspend fun getLastWorkoutDateByCoach(profileId: Int): String? =
+        daoSchede.getLastWorkoutDateByCoach(profileId)
+
+    suspend fun getMostTrainedMuscleGroupByCoach(profileId: Int): String? =
+        daoSchede.getMostTrainedMuscleGroupByCoach(profileId)
+
+    suspend fun countFavoriteSchedeByCoach(profileId: Int): Int =
+        daoSchede.countFavoriteSchedeByCoach(profileId)
 }

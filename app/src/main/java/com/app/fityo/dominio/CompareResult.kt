@@ -119,7 +119,9 @@ data class CompareHistoryItem(
     val legsVariation: Float,
     val glutesVariation: Float,
     val photoAPath: String,
-    val photoBPath: String
+    val photoBPath: String,
+    val scaleFactorA: Float = 1.0f,
+    val scaleFactorB: Float = 1.0f
 ) {
     val averageVariation: Float
         get() = listOf(

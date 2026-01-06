@@ -31,7 +31,9 @@ class MuscleCompareRepository(private val dao: DaoMuscleCompare) {
                     legsVariation = entity.legsVariation,
                     glutesVariation = entity.glutesVariation,
                     photoAPath = entity.photoAPath,
-                    photoBPath = entity.photoBPath
+                    photoBPath = entity.photoBPath,
+                    scaleFactorA = entity.scaleFactorA,
+                    scaleFactorB = entity.scaleFactorB
                 )
             }
         }

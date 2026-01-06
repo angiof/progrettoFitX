@@ -2,6 +2,7 @@ package com.app.fityo.tutor.analysis
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Matrix
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import kotlinx.coroutines.Dispatchers
@@ -105,6 +106,7 @@ class VideoFrameExtractor(private val context: Context) {
 
             val durationStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
             val durationMs = durationStr?.toLongOrNull() ?: 0L
+            val rotationDegrees = getRotationDegrees(retriever)
 
             if (durationMs <= 0) {
                 withContext(Dispatchers.Main) {
@@ -135,8 +137,9 @@ class VideoFrameExtractor(private val context: Context) {
                 )
 
                 if (bitmap != null) {
+                    val rotatedBitmap = rotateBitmapIfNeeded(bitmap, rotationDegrees)
                     val frame = ExtractedFrame(
-                        bitmap = bitmap,
+                        bitmap = rotatedBitmap,
                         timestampMs = currentTimeMs,
                         frameIndex = frameIndex
                     )
@@ -172,10 +175,12 @@ class VideoFrameExtractor(private val context: Context) {
         val retriever = MediaMetadataRetriever()
         try {
             retriever.setDataSource(videoPath)
-            retriever.getFrameAtTime(
+            val rotationDegrees = getRotationDegrees(retriever)
+            val bitmap = retriever.getFrameAtTime(
                 timestampMs * 1000,
                 MediaMetadataRetriever.OPTION_CLOSEST_SYNC
             )
+            bitmap?.let { rotateBitmapIfNeeded(it, rotationDegrees) }
         } catch (e: Exception) {
             null
         } finally {
@@ -190,21 +195,43 @@ class VideoFrameExtractor(private val context: Context) {
         val retriever = MediaMetadataRetriever()
         try {
             retriever.setDataSource(videoPath)
+            val rotationDegrees = getRotationDegrees(retriever)
 
             // Estrai frame al 10% del video per una thumbnail rappresentativa
             val durationStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
             val durationMs = durationStr?.toLongOrNull() ?: 0L
             val thumbnailTimeMs = (durationMs * 0.1).toLong()
 
-            retriever.getFrameAtTime(
+            val bitmap = retriever.getFrameAtTime(
                 thumbnailTimeMs * 1000,
                 MediaMetadataRetriever.OPTION_CLOSEST_SYNC
             )
+            bitmap?.let { rotateBitmapIfNeeded(it, rotationDegrees) }
         } catch (e: Exception) {
             null
         } finally {
             retriever.release()
         }
+    }
+
+    private fun rotateBitmapIfNeeded(bitmap: Bitmap, rotationDegrees: Int): Bitmap {
+        val normalized = ((rotationDegrees % 360) + 360) % 360
+        if (normalized == 0) return bitmap
+        return try {
+            val matrix = Matrix().apply { postRotate(normalized.toFloat()) }
+            val rotated = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+            if (rotated != bitmap) {
+                bitmap.recycle()
+            }
+            rotated
+        } catch (e: Exception) {
+            bitmap
+        }
+    }
+
+    private fun getRotationDegrees(retriever: MediaMetadataRetriever): Int {
+        val rotationStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)
+        return rotationStr?.toIntOrNull() ?: 0
     }
 
     /**

@@ -48,11 +48,16 @@ object ExerciseValidator {
         val detectedCategory = detectExerciseCategory(postureAnalysis)
 
         // Verifica se la categoria corrisponde
+        // NOTA: Temporaneamente più permissivo per evitare falsi positivi
         val isValid = when {
-            detectedCategory == null -> false
+            // Se confidence bassa, non invalidare
+            postureAnalysis.confidence < 0.6f -> true
+            detectedCategory == null -> true // Non invalidare se non riusciamo a determinare
             detectedCategory == expectedExercise.category -> true
             // Permetti alcune eccezioni (es. deadlift vs squat hanno posture simili in certi momenti)
             areCompatibleCategories(detectedCategory, expectedExercise.category) -> true
+            // Fallback più permissivo: richiedi alta confidence per invalidare
+            postureAnalysis.confidence < 0.8f -> true
             else -> false
         }
 

@@ -15,6 +15,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.app.fityo.analytics.AnalyticsActivity
 import com.app.fityo.R
+import com.app.fityo.data_layer.db.CoachProfileEntity
 import com.app.fityo.data_layer.db.DB.DbFit
 import com.app.fityo.data_layer.db.dao.GruppoMuscolareIntensitaMedia
 import com.app.fityo.databinding.FragmentDashboardBinding
@@ -40,6 +41,7 @@ import com.github.mikephil.charting.listener.ChartTouchListener
 import com.github.mikephil.charting.listener.OnChartGestureListener
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener
 import com.google.android.material.datepicker.MaterialDatePicker
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -48,9 +50,11 @@ class DashFrag : Fragment() {
     private lateinit var binding: FragmentDashboardBinding
 
     private val viewModel: DashViewModel by viewModels {
+        val db = DbFit.getDatabase(requireContext())
         DashViewModelFactory(
-            DbFit.getDatabase(requireContext()).schedeDao(),
-            requireActivity().application
+            db.schedeDao(),
+            requireActivity().application,
+            db.coachProfileDao()
         )
     }
 
@@ -69,8 +73,20 @@ class DashFrag : Fragment() {
             startActivity(Intent(requireContext(), AnalyticsActivity::class.java))
         }
 
+        binding.btnSelectProfile.setOnClickListener {
+            showProfileSelectionDialog()
+        }
+
         viewModel.percentualiGruppiMuscolari.observe(viewLifecycleOwner) { percentuali ->
             updatePieChart(percentuali)
+        }
+
+        viewModel.selectedProfileName.observe(viewLifecycleOwner) { name ->
+            binding.btnSelectProfile.text = if (name != null) {
+                getString(R.string.dashboard_showing_profile, name)
+            } else {
+                getString(R.string.dashboard_profile_all)
+            }
         }
 
         observeStatusData()
@@ -81,8 +97,28 @@ class DashFrag : Fragment() {
         return binding.root
     }
 
+    private fun showProfileSelectionDialog() {
+        val profiles = viewModel.coachProfiles.value ?: emptyList()
+
+        val items = mutableListOf(getString(R.string.dashboard_profile_all))
+        items.addAll(profiles.map { it.name })
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(getString(R.string.dashboard_select_profile))
+            .setItems(items.toTypedArray()) { _, which ->
+                if (which == 0) {
+                    viewModel.setSelectedProfile(null, null)
+                } else {
+                    val selectedProfile = profiles[which - 1]
+                    viewModel.setSelectedProfile(selectedProfile.id, selectedProfile.name)
+                }
+            }
+            .show()
+    }
+
     override fun onResume() {
         super.onResume()
+        viewModel.loadCoachProfiles()
         viewModel.refreshStats()
         viewModel.refreshPercentuali()
         viewModel.loadMediaIntensitaAll()

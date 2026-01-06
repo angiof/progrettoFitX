@@ -27,7 +27,7 @@ sealed class BodyIntelligenceState {
     data class ProfileReady(val profile: UserProfile) : BodyIntelligenceState()
 
     /**
-     * Cattura foto in corso.
+     * Cattura foto frontale/laterale/posteriore in corso.
      */
     data class CapturingPhoto(val profile: UserProfile) : BodyIntelligenceState()
 

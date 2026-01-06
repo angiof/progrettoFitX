@@ -164,5 +164,92 @@ interface DaoSchede {
         WHERE (SELECT COUNT(*) FROM schede) > 1
     """)
     suspend fun getAverageWorkoutsPerWeek(): Double?
+
+    // ==================== QUERY PER COACH MODE ====================
+
+    /**
+     * Ottiene tutte le schede di un profilo coach specifico.
+     */
+    @Query("SELECT * FROM schede WHERE coachProfileId = :profileId ORDER BY date(data) DESC")
+    suspend fun getSchedeByCoachProfile(profileId: Int): List<SchedeEntity>
+
+    /**
+     * Ottiene le schede personali (senza coach profile).
+     */
+    @Query("SELECT * FROM schede WHERE coachProfileId IS NULL ORDER BY date(data) DESC")
+    suspend fun getPersonalSchede(): List<SchedeEntity>
+
+    /**
+     * Conta le schede di un profilo coach.
+     */
+    @Query("SELECT COUNT(*) FROM schede WHERE coachProfileId = :profileId")
+    suspend fun countSchedeByCoachProfile(profileId: Int): Int
+
+    /**
+     * Percentuale gruppi muscolari per coach profile.
+     */
+    @Query("""
+        SELECT gruppoMuscolare, COUNT(*) * 100.0 / (
+            SELECT COUNT(*) FROM schede WHERE coachProfileId = :profileId
+        ) as percentuale
+        FROM schede
+        WHERE coachProfileId = :profileId
+        GROUP BY gruppoMuscolare
+    """)
+    suspend fun getPercentualeByCoachProfile(profileId: Int): List<GruppoMuscolarePercentuale>
+
+    /**
+     * Media intensita per gruppo muscolare per coach profile.
+     */
+    @Query("""
+        SELECT gruppoMuscolare, AVG(
+            CASE intesita
+                WHEN 'Bassa' THEN 5
+                WHEN 'Media' THEN 10
+                WHEN 'Alta' THEN 15
+                ELSE 0
+            END
+        ) AS mediaIntensita
+        FROM schede
+        WHERE coachProfileId = :profileId
+        GROUP BY gruppoMuscolare
+    """)
+    suspend fun getMediaIntensitaByCoachProfile(profileId: Int): List<GruppoMuscolareIntensitaMedia>
+
+    /**
+     * Frequenza settimanale per coach profile.
+     */
+    @Query("""
+        SELECT strftime('%w', data) AS dayOfWeek, COUNT(*) AS count
+        FROM schede
+        WHERE coachProfileId = :profileId
+        GROUP BY dayOfWeek
+    """)
+    suspend fun getWorkoutCountByWeekdayForCoach(profileId: Int): List<WeekdayWorkoutCount>
+
+    /**
+     * Ultimo allenamento per coach profile.
+     */
+    @Query("SELECT data FROM schede WHERE coachProfileId = :profileId ORDER BY date(data) DESC LIMIT 1")
+    suspend fun getLastWorkoutDateByCoach(profileId: Int): String?
+
+    /**
+     * Gruppo muscolare piu allenato per coach profile.
+     */
+    @Query("""
+        SELECT gruppoMuscolare
+        FROM schede
+        WHERE coachProfileId = :profileId
+        GROUP BY gruppoMuscolare
+        ORDER BY COUNT(*) DESC
+        LIMIT 1
+    """)
+    suspend fun getMostTrainedMuscleGroupByCoach(profileId: Int): String?
+
+    /**
+     * Conta schede favorite per coach profile.
+     */
+    @Query("SELECT COUNT(*) FROM schede WHERE coachProfileId = :profileId AND favorite = 1")
+    suspend fun countFavoriteSchedeByCoach(profileId: Int): Int
 }
 

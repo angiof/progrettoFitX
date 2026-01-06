@@ -2,6 +2,9 @@ package com.app.fityo.mediapipe
 
 import android.graphics.Bitmap
 import android.graphics.Color
+import com.app.fityo.biometrics.BiometricMetrics
+import com.app.fityo.biometrics.BodyCompositionResult
+import com.app.fityo.biometrics.RealBodyMeasurements
 import com.app.fityo.dominio.AthleticDiscipline
 import com.app.fityo.dominio.BiologicalSex
 import com.app.fityo.dominio.FfmiEvaluation
@@ -25,7 +28,10 @@ class BodyIntelligenceAnalyzer {
         val bodyMetrics: BodyMetrics,
         val bodyZoneAnalysis: List<BodyZoneAnalysis>,
         val overallEvaluation: OverallEvaluation,
-        val recommendations: List<Recommendation>
+        val recommendations: List<Recommendation>,
+        val biometricMetrics: BiometricMetrics? = null,
+        val bodyComposition: BodyCompositionResult? = null,
+        val realMeasurements: RealBodyMeasurements? = null
     )
 
     /**

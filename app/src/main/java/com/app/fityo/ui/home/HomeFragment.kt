@@ -17,6 +17,7 @@ import com.app.fityo.ui.compose.SchedeListActivity
 import com.app.fityo.ui.forms.AcitivySheda
 import com.app.fityo.ui.musclecompare.MuscleCompareActivity
 import com.app.fityo.ui.tutor.TutorActivity
+import com.app.fityo.ui.coach.CoachActivity
 
 class HomeFragment : Fragment() {
 
@@ -71,6 +72,11 @@ class HomeFragment : Fragment() {
             copertina = R.drawable.powerlifting,
             titolo = getString(R.string.tutor_mode),
             action = HomeMenuAction.TUTOR_MODE
+        ),
+        ModelHomemenu(
+            copertina = R.drawable.donna_spalle,
+            titolo = getString(R.string.coach_mode),
+            action = HomeMenuAction.COACH_MODE
         )
     )
 
@@ -94,6 +100,10 @@ class HomeFragment : Fragment() {
 
             HomeMenuAction.TUTOR_MODE -> {
                 startActivity(Intent(requireContext(), TutorActivity::class.java))
+            }
+
+            HomeMenuAction.COACH_MODE -> {
+                startActivity(Intent(requireContext(), CoachActivity::class.java))
             }
         }
     }

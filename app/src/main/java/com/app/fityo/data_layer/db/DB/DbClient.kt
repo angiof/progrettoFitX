@@ -14,6 +14,7 @@ import com.app.fityo.data_layer.db.NotificationEntity
 import com.app.fityo.data_layer.db.MuscleCompareEntity
 import com.app.fityo.data_layer.db.TutorSessionEntity
 import com.app.fityo.data_layer.db.UserProfileEntity
+import com.app.fityo.data_layer.db.CoachProfileEntity
 import com.app.fityo.data_layer.db.converters.Converters
 import com.app.fityo.data_layer.db.dao.DaoAvatar3D
 import com.app.fityo.data_layer.db.dao.DaoEssercissi
@@ -22,6 +23,7 @@ import com.app.fityo.data_layer.db.dao.DaoNotifications
 import com.app.fityo.data_layer.db.dao.DaoMuscleCompare
 import com.app.fityo.data_layer.db.dao.DaoTutorSession
 import com.app.fityo.data_layer.db.dao.DaoUserProfile
+import com.app.fityo.data_layer.db.dao.DaoCoachProfile
 
 @Database(
     entities = [
@@ -31,9 +33,10 @@ import com.app.fityo.data_layer.db.dao.DaoUserProfile
         MuscleCompareEntity::class,
         TutorSessionEntity::class,
         UserProfileEntity::class,
-        Avatar3DEntity::class
+        Avatar3DEntity::class,
+        CoachProfileEntity::class
     ],
-    version = 9
+    version = 10
 )
 @TypeConverters(Converters::class)
 
@@ -46,6 +49,7 @@ abstract class DbFit : RoomDatabase() {
     abstract fun tutorSessionDao(): DaoTutorSession
     abstract fun userProfileDao(): DaoUserProfile
     abstract fun avatar3dDao(): DaoAvatar3D
+    abstract fun coachProfileDao(): DaoCoachProfile
 
 
     companion object {
@@ -190,6 +194,31 @@ abstract class DbFit : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Crea tabella profili coach
+                database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS coach_profiles (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        name TEXT NOT NULL,
+                        avatarColor INTEGER NOT NULL,
+                        notes TEXT,
+                        createdAt INTEGER NOT NULL,
+                        updatedAt INTEGER NOT NULL
+                    )
+                """)
+                // Aggiungi colonna coachProfileId a schede (nullable FK)
+                database.execSQL(
+                    "ALTER TABLE schede ADD COLUMN coachProfileId INTEGER DEFAULT NULL"
+                )
+                // Crea indice per performance
+                database.execSQL("""
+                    CREATE INDEX IF NOT EXISTS index_schede_coachProfileId
+                    ON schede(coachProfileId)
+                """)
+            }
+        }
+
         fun getDatabase(context: Context): DbFit {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -197,7 +226,7 @@ abstract class DbFit : RoomDatabase() {
                     DbFit::class.java,
                     "dbFit"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10)
                     .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance

@@ -2,6 +2,8 @@ package com.app.fityo.tutor.analysis
 
 import android.content.Context
 import android.graphics.Bitmap
+import com.app.fityo.biometrics.MoveNetPoseEstimator
+import com.app.fityo.biometrics.PoseEstimate
 import com.app.fityo.dominio.ExerciseError
 import com.app.fityo.dominio.ExerciseType
 import com.google.mediapipe.tasks.vision.core.RunningMode
@@ -16,6 +18,7 @@ class VideoAnalyzer(private val context: Context) {
 
     private var poseLandmarker: TutorPoseLandmarkerHelper? = null
     private var frameExtractor: VideoFrameExtractor? = null
+    private var moveNetPoseEstimator: MoveNetPoseEstimator? = null
 
     /**
      * Risultato dell'analisi completa di un video.
@@ -52,6 +55,12 @@ class VideoAnalyzer(private val context: Context) {
                 minTrackingConfidence = 0.5f
             )
             frameExtractor = VideoFrameExtractor(context)
+            try {
+                moveNetPoseEstimator = MoveNetPoseEstimator(context)
+            } catch (e: Exception) {
+                android.util.Log.e("VideoAnalyzer", "MoveNet init failed: ${e.message}", e)
+                moveNetPoseEstimator = null
+            }
         } catch (e: Exception) {
             throw Exception("Inizializzazione fallita: ${e.message}")
         }
@@ -111,6 +120,11 @@ class VideoAnalyzer(private val context: Context) {
 
                 override fun onFrameExtracted(frame: VideoFrameExtractor.ExtractedFrame) {
                     // Analizza il frame
+                    if (!hasMoveNetPose(frame.bitmap)) {
+                        analyzedFrames++
+                        frame.bitmap.recycle()
+                        return
+                    }
                     val poseResult = landmarker.detectVideoFrame(frame.bitmap, frame.timestampMs)
 
                     if (poseResult != null && landmarker.hasValidPose(poseResult.result)) {
@@ -221,6 +235,16 @@ class VideoAnalyzer(private val context: Context) {
                 )
 
                 if (bitmap != null) {
+                    if (!hasMoveNetPose(bitmap)) {
+                        bitmap.recycle()
+                        frameIndex++
+                        currentTimeMs += intervalMs
+                        val progress = frameIndex.toFloat() / totalFrames.coerceAtLeast(1)
+                        withContext(Dispatchers.Main) {
+                            onProgress(progress, frameIndex, totalFrames)
+                        }
+                        continue
+                    }
                     // Analizza il frame
                     val poseResult = landmarker.detectVideoFrame(bitmap, currentTimeMs)
 
@@ -342,5 +366,43 @@ class VideoAnalyzer(private val context: Context) {
         poseLandmarker?.close()
         poseLandmarker = null
         frameExtractor = null
+        moveNetPoseEstimator?.close()
+        moveNetPoseEstimator = null
+    }
+
+    private fun hasMoveNetPose(bitmap: Bitmap): Boolean {
+        // Temporaneamente disabilitato MoveNet pre-filter per debug
+        // TODO: Riattivare dopo aver risolto il problema di validazione
+        val estimator = moveNetPoseEstimator ?: return true
+        val pose = estimator.estimatePose(bitmap) ?: return true
+
+        // Prima verifica: keypoints principali con score alto
+        if (isPoseConfident(pose, MOVENET_REQUIRED, MOVENET_MIN_SCORE)) {
+            return true
+        }
+
+        // Seconda verifica più permissiva: almeno alcuni punti visibili
+        val presentPoints = pose.keypoints.count { it.score >= MOVENET_PRESENCE_SCORE }
+        if (presentPoints >= MOVENET_MIN_POINTS) {
+            return true
+        }
+
+        // Fallback: se MediaPipe è disponibile, lascia passare comunque
+        // per permettere a MediaPipe di tentare l'analisi
+        android.util.Log.w("VideoAnalyzer", "MoveNet low confidence ($presentPoints pts), allowing MediaPipe fallback")
+        return true
+    }
+
+    private fun isPoseConfident(pose: PoseEstimate, indices: List<Int>, minScore: Float): Boolean {
+        return indices.all { index ->
+            pose.keypoints.getOrNull(index)?.score?.let { it >= minScore } == true
+        }
+    }
+
+    companion object {
+        private const val MOVENET_MIN_SCORE = 0.3f
+        private const val MOVENET_PRESENCE_SCORE = 0.05f
+        private const val MOVENET_MIN_POINTS = 3
+        private val MOVENET_REQUIRED = listOf(5, 6, 11, 12)
     }
 }

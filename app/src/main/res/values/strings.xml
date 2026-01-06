@@ -317,6 +317,10 @@
     <string name="tutor_exercise_lunges">Affondi</string>
     <string name="tutor_exercise_deadlift">Stacco da Terra</string>
 
+    <!-- Coach Mode -->
+    <string name="coach_mode">Coach Mode</string>
+    <string name="home_card_subtitle_coach">Gestisci atleti e profili</string>
+
     <!-- Avatar 3D -->
     <string name="avatar_3d_title">Avatar 3D</string>
     <string name="avatar_360_instruction_title">Scansione 360°</string>
@@ -335,4 +339,10 @@
     <string name="avatar_no_history">Nessun avatar salvato</string>
     <string name="button_back">Indietro</string>
     <string name="button_stop">Stop</string>
+
+    <!-- Dashboard Profile Filter -->
+    <string name="dashboard_profile_all">Tutti i dati</string>
+    <string name="dashboard_select_profile">Seleziona profilo</string>
+    <string name="dashboard_personal_data">Dati personali</string>
+    <string name="dashboard_showing_profile">Profilo: %s</string>
 </resources>

@@ -101,6 +101,13 @@
             android:screenOrientation="portrait"
             android:theme="@style/Theme.Fityo" />
 
+        <activity
+            android:name=".ui.coach.CoachActivity"
+            android:exported="false"
+            android:label="@string/coach_mode"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Fityo" />
+
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />

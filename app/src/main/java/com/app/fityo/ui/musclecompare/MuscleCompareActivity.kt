@@ -93,6 +93,7 @@ class MuscleCompareActivity : ComponentActivity() {
         val avatarHistory by viewModel.avatarHistory.collectAsState()
         val viewingComparisonDetail by viewModel.viewingComparisonDetail.collectAsState()
         val trueCloneGalleryPhoto by viewModel.trueCloneGalleryPhoto.collectAsState()
+        val bodyIntelligenceGalleryPhoto by viewModel.bodyIntelligenceGalleryPhoto.collectAsState()
 
         // Permission launcher for Muscle Compare
         val permissionLauncher = rememberLauncherForActivityResult(
@@ -157,8 +158,6 @@ class MuscleCompareActivity : ComponentActivity() {
                 state = biState,
                 currentProfile = currentProfile,
                 isEditingProfile = isEditingProfile,
-                poseDetected = poseDetected,
-                liveLandmarks = liveLandmarks,
                 useFrontCamera = useFrontCamera,
                 onBack = { viewModel.exitBodyIntelligence() },
                 onStartEditProfile = { viewModel.startEditProfile() },
@@ -169,8 +168,10 @@ class MuscleCompareActivity : ComponentActivity() {
                     checkCameraPermissionAndStartBodyIntelligence(bodyIntelligencePermissionLauncher)
                 },
                 onCancelCapture = { viewModel.cancelBodyIntelligenceCapture() },
-                onCapturePhoto = { bitmap -> viewModel.processBodyIntelligencePhoto(bitmap) },
-                onPoseUpdate = { bitmap -> viewModel.checkLivePoseAlignment(bitmap) },
+                onCapturePhotos = { photos -> viewModel.processBodyIntelligencePhotos(photos) },
+                onGallerySelect = { galleryLauncher.launch("image/*") },
+                galleryPhoto = bodyIntelligenceGalleryPhoto,
+                onGalleryPhotoConsumed = { viewModel.clearBodyIntelligenceGalleryPhoto() },
                 onToggleCamera = { viewModel.toggleCamera() },
                 onSaveResult = { viewModel.saveBodyIntelligenceResult() },
                 onDiscardResult = { viewModel.discardBodyIntelligenceResult() },
@@ -339,7 +340,7 @@ class MuscleCompareActivity : ComponentActivity() {
                     result = state.result,
                     workoutAnalysis = workoutAnalysis,
                     onSave = {
-                        viewModel.saveComparisonResult("", "", state.result)
+                        viewModel.saveComparisonResult(result = state.result)
                         viewModel.resetComparison()
                     },
                     onDiscard = {
@@ -395,10 +396,12 @@ class MuscleCompareActivity : ComponentActivity() {
             inputStream?.close()
 
             if (bitmap != null) {
-                val state = viewModel.compareState.value
-                when (state) {
-                    is CompareState.CapturingPhotoA -> viewModel.processPhotoA(bitmap)
-                    is CompareState.CapturingPhotoB -> viewModel.processPhotoB(bitmap)
+                val compareState = viewModel.compareState.value
+                val bodyState = viewModel.bodyIntelligenceState.value
+                when {
+                    compareState is CompareState.CapturingPhotoA -> viewModel.processPhotoA(bitmap)
+                    compareState is CompareState.CapturingPhotoB -> viewModel.processPhotoB(bitmap)
+                    bodyState is BodyIntelligenceState.CapturingPhoto -> viewModel.processBodyIntelligenceGalleryPhoto(bitmap)
                     else -> { }
                 }
             } else {
@@ -446,8 +449,6 @@ class MuscleCompareActivity : ComponentActivity() {
         state: BodyIntelligenceState,
         currentProfile: com.app.fityo.dominio.UserProfile?,
         isEditingProfile: Boolean,
-        poseDetected: Boolean,
-        liveLandmarks: com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarkerResult?,
         useFrontCamera: Boolean,
         onBack: () -> Unit,
         onStartEditProfile: () -> Unit,
@@ -456,8 +457,10 @@ class MuscleCompareActivity : ComponentActivity() {
         onDeleteProfile: () -> Unit,
         onStartCapture: () -> Unit,
         onCancelCapture: () -> Unit,
-        onCapturePhoto: (Bitmap) -> Unit,
-        onPoseUpdate: (Bitmap) -> Unit,
+        onCapturePhotos: (List<CapturedPhoto>) -> Unit,
+        onGallerySelect: () -> Unit,
+        galleryPhoto: Bitmap?,
+        onGalleryPhotoConsumed: () -> Unit,
         onToggleCamera: () -> Unit,
         onSaveResult: () -> Unit,
         onDiscardResult: () -> Unit,
@@ -512,20 +515,13 @@ class MuscleCompareActivity : ComponentActivity() {
             }
 
             is BodyIntelligenceState.CapturingPhoto -> {
-                CameraScreen(
+                TrueCloneCaptureScreen(
                     title = "Body Intelligence",
-                    subtitle = "Posizionati in piedi di fronte alla camera.\nCorpo intero visibile dalla testa ai piedi.",
-                    ghostOverlay = null,
-                    poseDetected = poseDetected,
-                    alignmentPercent = 0f,
-                    showAlignmentIndicator = false,
-                    useFrontCamera = useFrontCamera,
-                    liveLandmarks = liveLandmarks,
-                    onCapture = onCapturePhoto,
-                    onGallerySelect = { },
-                    onBack = onCancelCapture,
-                    onPoseUpdate = onPoseUpdate,
-                    onToggleCamera = onToggleCamera
+                    onComplete = onCapturePhotos,
+                    onCancel = onCancelCapture,
+                    onGallerySelect = onGallerySelect,
+                    galleryPhoto = galleryPhoto,
+                    onGalleryPhotoConsumed = onGalleryPhotoConsumed
                 )
             }
 
