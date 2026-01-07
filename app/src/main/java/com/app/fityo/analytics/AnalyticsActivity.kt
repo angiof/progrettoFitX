@@ -24,12 +24,25 @@ class AnalyticsActivity : ComponentActivity() {
 
     private val viewModel: AnalyticsViewModel by viewModels()
 
+    companion object {
+        const val EXTRA_PROFILE_ID = "extra_profile_id"
+        const val EXTRA_PROFILE_NAME = "extra_profile_name"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Ricevi profilo dalla Dashboard
+        val profileId = intent.getIntExtra(EXTRA_PROFILE_ID, -1).takeIf { it != -1 }
+        val profileName = intent.getStringExtra(EXTRA_PROFILE_NAME)
+
+        // Passa profilo al ViewModel
+        viewModel.setSelectedProfile(profileId, profileName)
 
         setContent {
             AnalyticsScreen(
                 viewModel = viewModel,
+                profileName = profileName,
                 onBackClick = { finish() }
             )
         }
@@ -40,18 +53,28 @@ class AnalyticsActivity : ComponentActivity() {
 @Composable
 private fun AnalyticsScreen(
     viewModel: AnalyticsViewModel,
+    profileName: String?,
     onBackClick: () -> Unit
 ) {
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        "Analytics Avanzate",
-                        color = TextPrimary,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Column {
+                        Text(
+                            "Analytics Avanzate",
+                            color = TextPrimary,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        profileName?.let { name ->
+                            Text(
+                                text = name,
+                                color = Color(0xFF8B5CF6),
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
                 },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {

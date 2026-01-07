@@ -1,4 +1,4 @@
-package com.app.fityo.import_scheda
+﻿package com.app.fityo.import_scheda
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -34,11 +34,11 @@ import kotlin.math.abs
  * Con Gemma attivo:
  * - Correzione automatica errori OCR
  * - Comprensione semantica del contesto fitness
- * - Validazione intelligente (es: "400kg" → "40kg")
+ * - Validazione intelligente (es: "400kg" â†’ "40kg")
  */
 class WorkoutOcrHelper(
     private val context: android.content.Context? = null,
-    private val useGemma: Boolean = false
+    private val useGemma: Boolean = true
 ) {
 
     private val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
@@ -56,13 +56,38 @@ class WorkoutOcrHelper(
         }
     }
 
+    private fun reportRecognizedLines(text: Text, onProgress: ((String) -> Unit)?) {
+        if (onProgress == null) return
+
+        val lines = text.textBlocks
+            .flatMap { it.lines }
+            .map { it.text.trim().replace(Regex("""\s+"""), " ") }
+            .filter { it.isNotBlank() }
+
+        val candidates = lines.filter { line ->
+            line.any { it.isLetter() } && !OcrPatterns.isHeaderLine(line)
+        }
+
+        if (candidates.isEmpty()) {
+            onProgress("OCR: nessuna riga leggibile")
+            return
+        }
+
+        for (line in candidates) {
+            if (!line.any { it.isLetter() }) continue
+            if (OcrPatterns.isHeaderLine(line)) continue
+            val preview = if (line.length > 60) "${line.take(57)}..." else line
+            onProgress("Lettura: $preview")
+        }
+    }
+
     /**
-     * Verifica se Gemma è pronto per l'uso
+     * Verifica se Gemma Ã¨ pronto per l'uso
      */
     fun isGemmaReady(): Boolean = gemmaHelper?.isReady() == true
 
     /**
-     * Verifica se il modello Gemma è disponibile (file esiste)
+     * Verifica se il modello Gemma Ã¨ disponibile (file esiste)
      */
     fun isGemmaAvailable(): Boolean = gemmaHelper?.isModelAvailable() == true
 
@@ -70,14 +95,17 @@ class WorkoutOcrHelper(
      * Inizializza Gemma (operazione asincrona, ~5-10 secondi)
      */
     suspend fun initializeGemma(): Result<Unit> {
-        return gemmaHelper?.initializeModel() ?: Result.failure(Exception("Gemma non configurato"))
+        return gemmaHelper?.initializeModelWithFallback() ?: Result.failure(Exception("Gemma non configurato"))
     }
 
     /**
      * Processa un'immagine ed estrae gli esercizi.
-     * Se Gemma è disponibile e pronto, usa l'intelligenza AI per correggere gli errori.
+     * Se Gemma Ã¨ disponibile e pronto, usa l'intelligenza AI per correggere gli errori.
      */
-    suspend fun processImage(bitmap: Bitmap): OcrResult {
+    suspend fun processImage(
+        bitmap: Bitmap,
+        onProgress: ((String) -> Unit)? = null
+    ): OcrResult {
         val startTime = System.currentTimeMillis()
 
         return try {
@@ -99,13 +127,17 @@ class WorkoutOcrHelper(
             val rawText = text.text
             Log.d(TAG, "Raw OCR text:\n$rawText")
 
-            // 3. Se Gemma è pronto, usa AI per parsing intelligente
+            reportRecognizedLines(text, onProgress)
+
+            // 3. Se Gemma Ã¨ pronto, usa AI per parsing intelligente
             val parsedRows = if (isGemmaReady()) {
                 Log.d(TAG, "Using Gemma AI for intelligent parsing...")
+                onProgress?.invoke("Analisi IA...")
                 parseWithGemma(rawText, text, bitmap)
             } else {
                 // Fallback: parsing tradizionale multi-strategia
                 Log.d(TAG, "Using traditional multi-strategy parsing...")
+                onProgress?.invoke("Parsing classico...")
                 parseTextMultiStrategy(text, rawText, bitmap)
             }
 
@@ -117,7 +149,7 @@ class WorkoutOcrHelper(
                 rawText = rawText,
                 parsedRows = parsedRows,
                 originalImage = bitmap,
-                errorMessage = if (parsedRows.isEmpty()) "Nessun esercizio rilevato. Prova con una foto più nitida." else null,
+                errorMessage = if (parsedRows.isEmpty()) "Nessun esercizio rilevato. Prova con una foto piÃ¹ nitida." else null,
                 processingTimeMs = processingTime,
                 usedGemma = isGemmaReady()
             )
@@ -135,7 +167,7 @@ class WorkoutOcrHelper(
 
     /**
      * Parsing intelligente con Gemma AI.
-     * Combina OCR + LLM per risultati di alta qualità.
+     * Combina OCR + LLM per risultati di alta qualitÃ .
      */
     private suspend fun parseWithGemma(
         rawText: String,
@@ -151,7 +183,7 @@ class WorkoutOcrHelper(
                 Log.d(TAG, "Gemma found ${gemmaResult.exercises.size} exercises with ${gemmaResult.corrections.size} corrections")
 
                 // Converti risultati Gemma in ParsedExerciseRow
-                gemmaResult.exercises.map { ex ->
+                val gemmaRows = gemmaResult.exercises.map { ex ->
                     ParsedExerciseRow(
                         rawText = ex.originalText,
                         exerciseName = ex.name,
@@ -162,13 +194,20 @@ class WorkoutOcrHelper(
                         notes = ex.notes,
                         confidence = ex.confidence,
                         boundingBox = null,
-                        errors = emptyList() // Gemma ha già corretto gli errori
+                        errors = emptyList() // Gemma ha gia corretto gli errori
                     )
-                }.ifEmpty {
-                    // Fallback se Gemma non trova nulla
-                    Log.w(TAG, "Gemma returned empty, falling back to traditional parsing")
-                    parseTextMultiStrategy(mlKitText, rawText, originalBitmap)
                 }
+
+                val fallbackRows = parseTextMultiStrategy(mlKitText, rawText, originalBitmap)
+                val merged = (gemmaRows + fallbackRows)
+                    .filter { it.exerciseName.isNotBlank() }
+                    .distinctBy { it.exerciseName.lowercase() }
+
+                if (merged.isEmpty()) {
+                    Log.w(TAG, "Gemma + fallback returned empty")
+                }
+
+                merged
             } else {
                 Log.e(TAG, "Gemma failed: ${result.exceptionOrNull()?.message}")
                 parseTextMultiStrategy(mlKitText, rawText, originalBitmap)
@@ -253,7 +292,7 @@ class WorkoutOcrHelper(
         }
 
     /**
-     * Parsing multi-strategia: prova diverse strategie in ordine di specificità.
+     * Parsing multi-strategia: prova diverse strategie in ordine di specificitÃ .
      */
     private fun parseTextMultiStrategy(text: Text, rawText: String, originalBitmap: Bitmap): List<ParsedExerciseRow> {
         val exercises = mutableListOf<ParsedExerciseRow>()
@@ -548,7 +587,7 @@ class WorkoutOcrHelper(
             errors.add(ValidationError("exerciseName", "Nome troppo corto"))
         }
 
-        // Non restituire se la confidenza è troppo bassa e mancano i dati chiave
+        // Non restituire se la confidenza Ã¨ troppo bassa e mancano i dati chiave
         if (confidence < 0.4f && sets.isEmpty() && reps.isEmpty()) {
             return null
         }
@@ -582,7 +621,7 @@ class WorkoutOcrHelper(
             if (setsReps != null) {
                 var exerciseName = OcrPatterns.cleanExerciseName(line)
 
-                // Se il nome è vuoto o troppo corto, prova la linea precedente
+                // Se il nome Ã¨ vuoto o troppo corto, prova la linea precedente
                 if (exerciseName.length < MIN_EXERCISE_NAME_LENGTH && index > 0) {
                     val prevLine = lines[index - 1]
                     if (!OcrPatterns.isHeaderLine(prevLine) && !OcrPatterns.isInstructionLine(prevLine)) {
@@ -590,7 +629,7 @@ class WorkoutOcrHelper(
                     }
                 }
 
-                // Se ancora vuoto, prova la linea successiva (se è solo un nome)
+                // Se ancora vuoto, prova la linea successiva (se Ã¨ solo un nome)
                 if (exerciseName.length < MIN_EXERCISE_NAME_LENGTH && index < lines.size - 1) {
                     val nextLine = lines[index + 1]
                     if (OcrPatterns.extractSetsReps(nextLine) == null &&
@@ -636,7 +675,7 @@ class WorkoutOcrHelper(
 
             // Pattern per tabelle: testo seguito da numeri separati
             // Es: "Panca Piana    4    12    50"
-            val tablePattern = Regex("""^([A-Za-zàèéìòùÀÈÉÌÒÙ\s]+)\s+(\d+)\s+(\d+)(?:\s+(\d+(?:[.,]\d+)?))?""")
+            val tablePattern = Regex("""^([A-Za-zÃ Ã¨Ã©Ã¬Ã²Ã¹Ã€ÃˆÃ‰ÃŒÃ’Ã™\s]+)\s+(\d+)\s+(\d+)(?:\s+(\d+(?:[.,]\d+)?))?""")
             val match = tablePattern.find(line)
 
             if (match != null) {
@@ -697,3 +736,6 @@ class WorkoutOcrHelper(
         gemmaHelper = null
     }
 }
+
+
+

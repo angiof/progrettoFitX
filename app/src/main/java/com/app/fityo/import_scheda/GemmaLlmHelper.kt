@@ -1,4 +1,4 @@
-package com.app.fityo.import_scheda
+﻿package com.app.fityo.import_scheda
 
 import android.content.Context
 import android.util.Log
@@ -39,6 +39,9 @@ class GemmaLlmHelper private constructor(
         @Volatile
         private var currentEngineType: GemmaEngineType = GemmaEngineType.CPU
 
+        @Volatile
+        private var userSelectedEngine = false
+
         fun getInstance(context: Context): GemmaLlmHelper {
             return INSTANCE ?: synchronized(this) {
                 INSTANCE ?: GemmaLlmHelper(context.applicationContext).also {
@@ -49,6 +52,7 @@ class GemmaLlmHelper private constructor(
 
         fun setEngineType(engineType: GemmaEngineType) {
             currentEngineType = engineType
+            userSelectedEngine = true
             Log.d(TAG, "Engine type set to: ${engineType.displayName}")
         }
 
@@ -189,18 +193,32 @@ class GemmaLlmHelper private constructor(
     }
 
     suspend fun initializeModelWithFallback(): Result<Unit> = withContext(Dispatchers.IO) {
+        val availableEngines = getAvailableEngines(context)
+        if (availableEngines.isNotEmpty()) {
+            if (!availableEngines.contains(currentEngineType)) {
+                currentEngineType = when {
+                    availableEngines.contains(GemmaEngineType.GPU) -> GemmaEngineType.GPU
+                    availableEngines.contains(GemmaEngineType.CPU) -> GemmaEngineType.CPU
+                    else -> currentEngineType
+                }
+            } else if (!userSelectedEngine) {
+                currentEngineType = when {
+                    availableEngines.contains(GemmaEngineType.GPU) -> GemmaEngineType.GPU
+                    availableEngines.contains(GemmaEngineType.CPU) -> GemmaEngineType.CPU
+                    else -> currentEngineType
+                }
+            }
+        }
+
         val result = initializeModel()
         if (result.isSuccess) {
             return@withContext result
         }
 
-        if (currentEngineType == GemmaEngineType.GPU) {
-            val availableEngines = getAvailableEngines(context)
-            if (availableEngines.contains(GemmaEngineType.CPU)) {
-                Log.w(TAG, "GPU failed, falling back to CPU")
-                setEngineType(GemmaEngineType.CPU)
-                return@withContext initializeModel()
-            }
+        if (currentEngineType == GemmaEngineType.GPU && availableEngines.contains(GemmaEngineType.CPU)) {
+            Log.w(TAG, "GPU failed, falling back to CPU")
+            currentEngineType = GemmaEngineType.CPU
+            return@withContext initializeModel()
         }
 
         return@withContext result
@@ -288,24 +306,33 @@ class GemmaLlmHelper private constructor(
 
     private fun buildExerciseExtractionPrompt(ocrText: String): String {
         return """<start_of_turn>user
-Sei un esperto di fitness e powerlifting. Analizza questo testo OCR di una scheda di allenamento ed estrai gli esercizi in formato JSON.
+Sei un esperto di fitness. Analizza questo testo OCR di una scheda di allenamento ed estrai gli esercizi in formato JSON.
 
 REGOLE IMPORTANTI:
-1. Correggi gli errori OCR comuni (es: "Squat 400kg" -> probabilmente "40kg")
-2. Il formato serie: "3x12" = 3 serie da 12 ripetizioni
-3. "5-3-2" = schema piramidale, 3 serie con 5,3,2 reps
-4. Recupero: converti SEMPRE in secondi interi
+1. Tratta il testo come tabella con colonne: N, Gruppi muscolari, Esercizi, Time-Serie-Reps, Recuperi.
+2. Crea UNA entry per ogni riga numerata della tabella. Non saltare righe.
+3. Includi anche Warm up, Cardio e Stretching.
+4. Le righe non numerate (es. "Fase Positiva", "Tecnica stripping", istruzioni) sono NOTE: aggiungile alla voce precedente e NON creare un nuovo esercizio.
+5. Nome esercizio = colonna "Esercizi". Se presente il gruppo muscolare, aggiungilo in notes come "Gruppo: ...".
+6. SERIE/RIPETIZIONI: devono essere interi.
+   - "4x12" -> sets=4, reps=12
+   - "5-3-2" -> sets=3, reps=5 e notes += "schema: 5-3-2"
+   - "4x3 + 3x6" -> sets=4, reps=3 e notes += "schema completo: 4x3 + 3x6"
+   - "3x(12+12+12)" -> sets=3, reps=12 e notes += "schema: 12+12+12"
+   - "2xMAX" -> sets=2, reps=0 e notes += "MAX"
+   - "5/8 min" o "5-8 min" -> sets=5, reps=8 e notes += "tempo: 5/8 min"
+7. Recupero: converti SEMPRE in secondi interi
    - "Rec.: 02.00" = 120
+   - "1:15" o "1.15" = 75
+   - "2.0" = 120
+   - "0.20" = 20
    - "1'30" = 90
    - "2 min" = 120
-5. ATTREZZO: Inferisci l'attrezzo dall'esercizio:
-   - Squat, Stacco, Panca, Military Press -> "Bilanciere, Power Rack"
-   - Curl, Alzate laterali -> "Manubri"
-   - Lat Machine, Pulley, Cavi -> "Cavi/Macchina"
-   - Trazioni -> "Sbarra"
-   - Push up, Plank -> null (corpo libero)
-6. Se un dato non e chiaro, lascialo null
-7. Restituisci SOLO il JSON, nessun altro testo
+8. Peso: SOLO se esplicito in kg/lb, altrimenti null. NON inventare peso.
+9. ATTREZZO: inferisci se possibile, altrimenti null.
+10. Se un dato non e chiaro, mettilo null. NON inventare.
+11. Mantieni l'ordine delle righe e includi tutte le tabelle presenti nello stesso testo.
+12. Restituisci SOLO il JSON, nessun altro testo.
 
 SCHEMA JSON:
 {
@@ -513,7 +540,7 @@ $ocrText
 
     fun isModelAvailable(): Boolean {
         if (!isLibraryAvailable) return false
-        return isModelFileAvailable(context, currentEngineType)
+        return getAvailableEngines(context).isNotEmpty()
     }
 
     fun getRecommendedModelPath(): String {
@@ -544,3 +571,4 @@ $ocrText
         """.trimMargin()
     }
 }
+

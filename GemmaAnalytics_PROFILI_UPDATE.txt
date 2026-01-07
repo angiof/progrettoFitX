@@ -1,0 +1,292 @@
+// ============================================
+// AGGIORNAMENTO: Supporto Profili in GemmaAnalyticsHelper
+// ============================================
+
+// 1. MODIFICA generateInsights() per accettare profileId
+
+    /**
+     * Genera insights personalizzati basati sui dati di allenamento.
+     * Filtra per profilo se specificato.
+     *
+     * @param schede Lista schede (già filtrate per profilo se necessario)
+     * @param esercizi Lista esercizi
+     * @param muscleDistribution Distribuzione muscolare
+     * @param profileId ID profilo selezionato (null = tutti i profili)
+     * @param profileName Nome profilo per personalizzazione messaggio
+     * @param forceRefresh Ignora cache
+     */
+    suspend fun generateInsights(
+        schede: List<SchedeEntity>,
+        esercizi: List<EsserciziEntity>,
+        muscleDistribution: List<GruppoMuscolarePercentuale>,
+        profileId: Int? = null,
+        profileName: String? = null,
+        forceRefresh: Boolean = false
+    ): Result<GemmaLiveInsights> = withContext(Dispatchers.IO) {
+
+        // Filtra schede per profilo
+        val filteredSchede = if (profileId != null) {
+            schede.filter { it.coachProfileId == profileId }
+        } else {
+            schede
+        }
+
+        // Filtra esercizi per le schede filtrate
+        val schedaIds = filteredSchede.mapNotNull { it.id }.toSet()
+        val filteredEsercizi = esercizi.filter { it.schedaId in schedaIds }
+
+        // Check cache con chiave profilo-specifica
+        val cacheKey = getCacheKey(profileId)
+        if (!forceRefresh && isCacheValid(cacheKey)) {
+            val cached = loadCachedInsights(cacheKey)
+            if (cached != null) {
+                Log.d(TAG, "Using cached insights for profile $profileId from ${cached.generatedDate}")
+                return@withContext Result.success(cached)
+            }
+        }
+
+        // ... resto del codice esistente ...
+
+        // Passa profileName al prompt
+        val analysis = analyzeWorkoutData(filteredSchede, filteredEsercizi, muscleDistribution)
+        val prompt = buildSmartPrompt(analysis, profileName)
+
+        // ... genera response ...
+
+        // Cache con chiave profilo
+        cacheInsights(insights, cacheKey)
+
+        Result.success(insights)
+    }
+
+// 2. AGGIUNGI supporto cache per profilo
+
+    private fun getCacheKey(profileId: Int?): String {
+        return if (profileId != null) {
+            "profile_$profileId"
+        } else {
+            "all_profiles"
+        }
+    }
+
+    private fun isCacheValid(cacheKey: String): Boolean {
+        val lastUpdate = prefs.getLong("${KEY_LAST_UPDATE}_$cacheKey", 0L)
+        if (lastUpdate == 0L) return false
+        val today = LocalDate.now().toEpochDay()
+        return (today - lastUpdate) < CACHE_VALIDITY_DAYS
+    }
+
+    private fun loadCachedInsights(cacheKey: String): GemmaLiveInsights? {
+        val json = prefs.getString("${KEY_CACHED_INSIGHTS}_$cacheKey", null) ?: return null
+        return try {
+            parseInsightsFromJson(json)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error loading cached insights for $cacheKey", e)
+            null
+        }
+    }
+
+    private fun cacheInsights(insights: GemmaLiveInsights, cacheKey: String) {
+        val json = insightsToJson(insights)
+        prefs.edit()
+            .putLong("${KEY_LAST_UPDATE}_$cacheKey", LocalDate.now().toEpochDay())
+            .putString("${KEY_CACHED_INSIGHTS}_$cacheKey", json)
+            .putString("${KEY_ENGINE_USED}_$cacheKey", insights.engineUsed)
+            .apply()
+        Log.d(TAG, "Insights cached for $cacheKey")
+    }
+
+    /**
+     * Cancella cache per un profilo specifico
+     */
+    fun clearCacheForProfile(profileId: Int?) {
+        val cacheKey = getCacheKey(profileId)
+        prefs.edit()
+            .remove("${KEY_LAST_UPDATE}_$cacheKey")
+            .remove("${KEY_CACHED_INSIGHTS}_$cacheKey")
+            .remove("${KEY_ENGINE_USED}_$cacheKey")
+            .apply()
+    }
+
+    /**
+     * Cancella tutta la cache (tutti i profili)
+     */
+    fun clearAllCache() {
+        prefs.edit().clear().apply()
+    }
+
+// 3. MODIFICA buildSmartPrompt() per includere info profilo
+
+    private fun buildSmartPrompt(analysis: WorkoutDataAnalysis, profileName: String? = null): String {
+        val profileIntro = if (profileName != null) {
+            """
+=== PROFILO ATLETA ===
+Nome: $profileName
+Stai analizzando i dati di allenamento SOLO per questo atleta.
+"""
+        } else {
+            """
+=== PROFILO ===
+Stai analizzando i dati AGGREGATI di tutti gli atleti/profili.
+"""
+        }
+
+        // ... resto del prompt ...
+
+        return """<start_of_turn>user
+Sei un coach fitness esperto e personalizzato.
+$profileIntro
+
+=== DATI ALLENAMENTO ===
+... (resto dei dati) ...
+"""
+    }
+
+// ============================================
+// MODIFICA AnalyticsViewModel per passare profilo
+// ============================================
+
+class AnalyticsViewModel(application: Application) : AndroidViewModel(application) {
+
+    // ... codice esistente ...
+
+    // NUOVO: Profilo selezionato
+    private var selectedProfileId: Int? = null
+    private var selectedProfileName: String? = null
+
+    /**
+     * Imposta il profilo per filtrare i dati
+     */
+    fun setSelectedProfile(profileId: Int?, profileName: String?) {
+        if (selectedProfileId != profileId) {
+            selectedProfileId = profileId
+            selectedProfileName = profileName
+            // Ricarica analytics con nuovo profilo
+            loadAnalytics()
+        }
+    }
+
+    fun loadGemmaInsights() {
+        viewModelScope.launch {
+            if (!gemmaHelper.isGemmaAvailable()) {
+                _gemmaState.value = GemmaInsightsState.NotAvailable
+                return@launch
+            }
+
+            _gemmaState.value = GemmaInsightsState.Loading
+            updateUiWithGemmaState(GemmaInsightsState.Loading)
+
+            // PASSA IL PROFILO!
+            val result = gemmaHelper.generateInsights(
+                schede = cachedSchede,
+                esercizi = cachedEsercizi,
+                muscleDistribution = cachedMuscleDistribution,
+                profileId = selectedProfileId,        // <-- NUOVO
+                profileName = selectedProfileName     // <-- NUOVO
+            )
+
+            // ... resto del codice ...
+        }
+    }
+
+    fun refreshGemmaInsights() {
+        viewModelScope.launch {
+            // ... setup ...
+
+            val result = gemmaHelper.refreshInsights(
+                schede = cachedSchede,
+                esercizi = cachedEsercizi,
+                muscleDistribution = cachedMuscleDistribution,
+                profileId = selectedProfileId,        // <-- NUOVO
+                profileName = selectedProfileName     // <-- NUOVO
+            )
+
+            // ... resto ...
+        }
+    }
+}
+
+// ============================================
+// MODIFICA GemmaLiveInsights per includere info profilo
+// ============================================
+
+data class GemmaLiveInsights(
+    val generatedDate: String,
+    val engineUsed: String,
+    val profileId: Int?,           // <-- NUOVO
+    val profileName: String?,      // <-- NUOVO
+    val weeklyMotivation: String,
+    val performanceSummary: String,
+    // ... resto dei campi ...
+)
+
+// ============================================
+// MODIFICA GemmaWeeklyMotivationCard per mostrare profilo
+// ============================================
+
+@Composable
+fun GemmaWeeklyMotivationCard(
+    insights: GemmaLiveInsights?,
+    isLoading: Boolean,
+    engineType: GemmaEngineType,
+    onRefresh: () -> Unit,
+    onEngineClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        // ...
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            // Header con profilo
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.AutoAwesome, null, tint = AccentPurple)
+                    Spacer(Modifier.width(8.dp))
+                    Column {
+                        Text("Coach AI", color = TextPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        // NUOVO: Mostra profilo
+                        insights?.profileName?.let { name ->
+                            Text(
+                                text = "Analisi per: $name",
+                                color = AccentPurple,
+                                fontSize = 12.sp
+                            )
+                        } ?: Text(
+                            text = "Tutti i profili",
+                            color = TextSecondary,
+                            fontSize = 12.sp
+                        )
+                    }
+                }
+                // ... engine chip e refresh button ...
+            }
+
+            // ... resto della card ...
+        }
+    }
+}
+
+// ============================================
+// ESEMPIO PROMPT CON PROFILO
+// ============================================
+
+/*
+=== PROFILO ATLETA ===
+Nome: Marco Rossi
+Stai analizzando i dati di allenamento SOLO per questo atleta.
+
+=== DATI ALLENAMENTO ===
+Sessioni ultimo mese: 12
+Volume totale settimana: 8500kg
+...
+
+Genera suggerimenti PERSONALIZZATI per Marco Rossi:
+- Usa il suo nome nei messaggi
+- Riferisciti ai SUOI dati specifici
+- Adatta i consigli al SUO livello
+*/

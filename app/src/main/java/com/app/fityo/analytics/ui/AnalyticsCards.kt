@@ -349,8 +349,15 @@ fun MuscleBalanceCard(balance: MuscleBalance, modifier: Modifier = Modifier) {
 
             Spacer(Modifier.height(16.dp))
 
-            Box(modifier = Modifier.fillMaxWidth().height(180.dp), contentAlignment = Alignment.Center) {
-                RadarChart(balance.scores, Modifier.size(160.dp))
+            // Mostra lista muscoli se pochi dati, altrimenti radar chart
+            if (balance.scores.size < 3) {
+                // Lista semplice per pochi muscoli
+                MuscleBalanceList(balance.scores)
+            } else {
+                // Radar chart con etichette
+                Box(modifier = Modifier.fillMaxWidth().height(220.dp), contentAlignment = Alignment.Center) {
+                    RadarChartWithLabels(balance.scores)
+                }
             }
 
             if (balance.imbalances.isNotEmpty()) {
@@ -361,6 +368,137 @@ fun MuscleBalanceCard(balance: MuscleBalance, modifier: Modifier = Modifier) {
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun MuscleBalanceList(scores: Map<String, Float>) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        scores.entries.sortedByDescending { it.value }.forEach { (muscle, score) ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = formatMuscleLabel(muscle),
+                    color = TextPrimary,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    LinearProgressIndicator(
+                        progress = { (score / 100f).coerceIn(0f, 1f) },
+                        modifier = Modifier.width(100.dp).height(8.dp).clip(RoundedCornerShape(4.dp)),
+                        color = getBalanceColor(score),
+                        trackColor = DarkCardElevated
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = "${score.toInt()}%",
+                        color = getBalanceColor(score),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RadarChartWithLabels(data: Map<String, Float>) {
+    val entries = data.entries.toList()
+    if (entries.isEmpty()) return
+
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        // Radar chart
+        Canvas(modifier = Modifier.size(140.dp)) {
+            val center = Offset(size.width / 2, size.height / 2)
+            val radius = min(size.width, size.height) / 2 * 0.85f
+            val angleStep = (2 * PI / entries.size).toFloat()
+
+            // Grid circles
+            for (level in 1..4) {
+                val r = radius * level / 4
+                val path = Path()
+                for (i in entries.indices) {
+                    val angle = -PI.toFloat() / 2 + i * angleStep
+                    val x = center.x + r * cos(angle)
+                    val y = center.y + r * sin(angle)
+                    if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
+                }
+                path.close()
+                drawPath(path, TextSecondary.copy(alpha = 0.2f), style = Stroke(1.dp.toPx()))
+            }
+
+            // Data path
+            val dataPath = Path()
+            for (i in entries.indices) {
+                val value = (entries[i].value / 100f).coerceIn(0f, 1f)
+                val angle = -PI.toFloat() / 2 + i * angleStep
+                val x = center.x + radius * value * cos(angle)
+                val y = center.y + radius * value * sin(angle)
+                if (i == 0) dataPath.moveTo(x, y) else dataPath.lineTo(x, y)
+            }
+            dataPath.close()
+            drawPath(dataPath, AccentCyan.copy(alpha = 0.3f))
+            drawPath(dataPath, AccentCyan, style = Stroke(2.dp.toPx()))
+
+            // Points
+            for (i in entries.indices) {
+                val value = (entries[i].value / 100f).coerceIn(0f, 1f)
+                val angle = -PI.toFloat() / 2 + i * angleStep
+                val x = center.x + radius * value * cos(angle)
+                val y = center.y + radius * value * sin(angle)
+                drawCircle(AccentCyan, 4.dp.toPx(), Offset(x, y))
+            }
+        }
+
+        // Labels around the chart
+        entries.forEachIndexed { i, (muscle, score) ->
+            val angleStep = (2 * PI / entries.size).toFloat()
+            val angle = -PI.toFloat() / 2 + i * angleStep
+            val labelRadius = 95.dp
+
+            val offsetX = (labelRadius.value * cos(angle)).dp
+            val offsetY = (labelRadius.value * sin(angle)).dp
+
+            Box(
+                modifier = Modifier.offset(x = offsetX, y = offsetY),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = formatMuscleLabel(muscle).take(6),
+                        color = TextPrimary,
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Medium,
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        text = "${score.toInt()}%",
+                        color = AccentCyan,
+                        fontSize = 8.sp
+                    )
+                }
+            }
+        }
+    }
+}
+
+private fun formatMuscleLabel(muscle: String): String {
+    return when (muscle.lowercase()) {
+        "petto", "chest" -> "Petto"
+        "schiena", "back", "dorso" -> "Schiena"
+        "gambe", "legs", "quadricipiti" -> "Gambe"
+        "spalle", "shoulders", "deltoidi" -> "Spalle"
+        "bicipiti", "biceps" -> "Bicipiti"
+        "tricipiti", "triceps" -> "Tricipiti"
+        "addominali", "abs", "core" -> "Addome"
+        "glutei", "glutes" -> "Glutei"
+        "polpacci", "calves" -> "Polpacci"
+        else -> muscle.replaceFirstChar { it.uppercase() }.take(8)
     }
 }
 

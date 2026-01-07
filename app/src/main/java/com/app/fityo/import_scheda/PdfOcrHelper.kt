@@ -1,4 +1,4 @@
-package com.app.fityo.import_scheda
+﻿package com.app.fityo.import_scheda
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -48,11 +48,11 @@ class PdfOcrHelper(
      * Inizializza Gemma AI per parsing intelligente
      */
     suspend fun initializeGemma(): Result<Unit> {
-        return gemmaHelper?.initializeModel() ?: Result.failure(Exception("Gemma non configurato"))
+        return gemmaHelper?.initializeModelWithFallback() ?: Result.failure(Exception("Gemma non configurato"))
     }
 
     /**
-     * Verifica se Gemma è pronto
+     * Verifica se Gemma Ã¨ pronto
      */
     fun isGemmaReady(): Boolean = gemmaHelper?.isReady() == true
 
@@ -82,6 +82,13 @@ class PdfOcrHelper(
      */
     suspend fun processPdf(uri: Uri): PdfImportResult {
         return withContext(Dispatchers.IO) {
+            if (useGemma && !isGemmaReady() && gemmaHelper?.isModelAvailable() == true) {
+                Log.d(TAG, "Initializing Gemma for PDF parsing...")
+                val initResult = gemmaHelper?.initializeModelWithFallback()
+                if (initResult?.isFailure == true) {
+                    Log.w(TAG, "Gemma init failed: ${initResult.exceptionOrNull()?.message}")
+                }
+            }
             var pfd: ParcelFileDescriptor? = null
             var renderer: PdfRenderer? = null
 
@@ -146,7 +153,7 @@ class PdfOcrHelper(
             page = renderer.openPage(pageIndex)
 
             // Calcola dimensioni ad alta risoluzione per OCR
-            val scale = PDF_RENDER_DPI / 72f // 72 DPI è la risoluzione base PDF
+            val scale = PDF_RENDER_DPI / 72f // 72 DPI Ã¨ la risoluzione base PDF
             val width = (page.width * scale).toInt()
             val height = (page.height * scale).toInt()
 
@@ -202,7 +209,7 @@ class PdfOcrHelper(
      * Usa Gemma AI se disponibile per parsing intelligente.
      */
     private suspend fun parseTextToExercises(text: Text?, rawText: String): List<ParsedExerciseRow> {
-        // Se Gemma è pronto, usa AI per parsing intelligente
+        // Se Gemma Ã¨ pronto, usa AI per parsing intelligente
         if (isGemmaReady() && rawText.isNotBlank()) {
             Log.d(TAG, "Using Gemma AI for PDF parsing...")
             val gemmaResult = gemmaHelper?.analyzeOcrText(rawText)
@@ -381,3 +388,4 @@ class PdfOcrHelper(
         gemmaHelper = null
     }
 }
+

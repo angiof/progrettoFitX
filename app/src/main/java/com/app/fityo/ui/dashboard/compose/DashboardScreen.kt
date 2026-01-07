@@ -656,24 +656,7 @@ private fun ProfileSelectionDialog(
                 modifier = Modifier.verticalScroll(scrollState),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // All profiles option
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onSelectAll() },
-                    colors = CardDefaults.cardColors(containerColor = DashboardCard)
-                ) {
-                    Text(
-                        text = stringResource(R.string.all_profiles),
-                        modifier = Modifier.padding(16.dp),
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            color = DashboardAccentBlue,
-                            fontWeight = FontWeight.Bold
-                        )
-                    )
-                }
-
-                // Individual profiles
+                // Individual profiles (rimosso "tutti i profili")
                 profiles.forEach { profile ->
                     Card(
                         modifier = Modifier

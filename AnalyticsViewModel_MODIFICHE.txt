@@ -1,0 +1,412 @@
+// ============================================
+// MODIFICHE DA APPLICARE A AnalyticsViewModel.kt
+// per integrare GemmaAnalyticsHelper
+// ============================================
+
+// File: app/src/main/java/com/app/fityo/analytics/AnalyticsViewModel.kt
+
+package com.app.fityo.analytics
+
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import com.app.fityo.data_layer.db.DB.DbFit
+import com.app.fityo.data_layer.db.EsserciziEntity
+import com.app.fityo.data_layer.db.SchedeEntity
+import com.app.fityo.data_layer.db.UserProfileEntity
+import com.app.fityo.dominio.GruppoMuscolarePercentuale
+import com.app.fityo.import_scheda.GemmaEngineType
+import com.app.fityo.import_scheda.GemmaEngineSelectionDialog
+import com.app.fityo.import_scheda.GemmaLlmHelper
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
+// ============================================
+// 1. AGGIUNGI nuovo stato per Gemma
+// ============================================
+
+sealed class GemmaInsightsState {
+    object Idle : GemmaInsightsState()
+    object Loading : GemmaInsightsState()
+    object NotAvailable : GemmaInsightsState()
+    data class Success(val insights: GemmaLiveInsights) : GemmaInsightsState()
+    data class Error(val message: String) : GemmaInsightsState()
+}
+
+// ============================================
+// 2. MODIFICA AnalyticsUiState per includere Gemma
+// ============================================
+
+sealed class AnalyticsUiState {
+    object Loading : AnalyticsUiState()
+    object Empty : AnalyticsUiState()
+    data class Error(val message: String) : AnalyticsUiState()
+    data class Success(
+        val insights: WorkoutInsights,
+        val volumes: List<Float>,
+        val intensities: List<Float>,
+        val sessionStats: SessionStats,
+        // NUOVO: Gemma insights
+        val gemmaInsights: GemmaLiveInsights? = null,
+        val gemmaState: GemmaInsightsState = GemmaInsightsState.Idle
+    ) : AnalyticsUiState()
+}
+
+// ============================================
+// 3. MODIFICA AnalyticsViewModel
+// ============================================
+
+class AnalyticsViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val db = DbFit.getDatabase(application)
+    private val analyzer: WorkoutAnalyticsEngine = AnalyticsEngineProvider.create(application)
+
+    // NUOVO: Gemma helper
+    private val gemmaHelper = GemmaAnalyticsHelper(application)
+
+    private val _uiState = MutableStateFlow<AnalyticsUiState>(AnalyticsUiState.Loading)
+    val uiState: StateFlow<AnalyticsUiState> = _uiState.asStateFlow()
+
+    // NUOVO: Stato Gemma separato per refresh indipendente
+    private val _gemmaState = MutableStateFlow<GemmaInsightsState>(GemmaInsightsState.Idle)
+    val gemmaState: StateFlow<GemmaInsightsState> = _gemmaState.asStateFlow()
+
+    // NUOVO: Engine type corrente
+    private val _currentEngineType = MutableStateFlow(GemmaLlmHelper.getEngineType())
+    val currentEngineType: StateFlow<GemmaEngineType> = _currentEngineType.asStateFlow()
+
+    // Cache dei dati per refresh Gemma
+    private var cachedSchede: List<SchedeEntity> = emptyList()
+    private var cachedEsercizi: List<EsserciziEntity> = emptyList()
+    private var cachedMuscleDistribution: List<GruppoMuscolarePercentuale> = emptyList()
+
+    init {
+        loadAnalytics()
+    }
+
+    fun loadAnalytics() {
+        viewModelScope.launch {
+            _uiState.value = AnalyticsUiState.Loading
+
+            try {
+                withContext(Dispatchers.IO) {
+                    val schede = db.schedeDao().getAllSchede()
+                    val esercizi = mutableListOf<EsserciziEntity>()
+                    schede.forEach { scheda ->
+                        scheda.id?.let { id ->
+                            esercizi.addAll(db.essercissiDao().getEserciziByschedaIdSync(id))
+                        }
+                    }
+
+                    if (schede.isEmpty()) {
+                        _uiState.value = AnalyticsUiState.Empty
+                        return@withContext
+                    }
+
+                    // Cache per Gemma
+                    cachedSchede = schede
+                    cachedEsercizi = esercizi
+                    cachedMuscleDistribution = db.schedeDao().getPercentualePerGruppoMuscolare()
+
+                    val orderedSchede = sortSchedeByDate(schede)
+                    val profile = db.userProfileDao().getActiveProfile()
+
+                    val insights = analyzer.analyze(orderedSchede, esercizi, profile, cachedMuscleDistribution)
+                    val volumes = calculateVolumes(orderedSchede, esercizi)
+                    val intensities = calculateIntensities(orderedSchede)
+                    val sessionStats = calculateSessionStats(orderedSchede, esercizi, cachedMuscleDistribution)
+
+                    _uiState.value = AnalyticsUiState.Success(
+                        insights = insights,
+                        volumes = volumes,
+                        intensities = intensities,
+                        sessionStats = sessionStats,
+                        gemmaInsights = null,
+                        gemmaState = GemmaInsightsState.Idle
+                    )
+
+                    // Carica Gemma insights in background
+                    loadGemmaInsights()
+                }
+            } catch (e: Exception) {
+                _uiState.value = AnalyticsUiState.Error(e.message ?: "Errore sconosciuto")
+            }
+        }
+    }
+
+    /**
+     * Carica insights da Gemma (usa cache se valida)
+     */
+    fun loadGemmaInsights() {
+        viewModelScope.launch {
+            if (!gemmaHelper.isGemmaAvailable()) {
+                _gemmaState.value = GemmaInsightsState.NotAvailable
+                updateUiWithGemmaState(GemmaInsightsState.NotAvailable)
+                return@launch
+            }
+
+            _gemmaState.value = GemmaInsightsState.Loading
+            updateUiWithGemmaState(GemmaInsightsState.Loading)
+
+            val result = gemmaHelper.generateInsights(
+                schede = cachedSchede,
+                esercizi = cachedEsercizi,
+                muscleDistribution = cachedMuscleDistribution
+            )
+
+            result.onSuccess { insights ->
+                _gemmaState.value = GemmaInsightsState.Success(insights)
+                updateUiWithGemmaState(GemmaInsightsState.Success(insights), insights)
+                _currentEngineType.value = GemmaLlmHelper.getEngineType()
+            }.onFailure { error ->
+                _gemmaState.value = GemmaInsightsState.Error(error.message ?: "Errore Gemma")
+                updateUiWithGemmaState(GemmaInsightsState.Error(error.message ?: "Errore"))
+            }
+        }
+    }
+
+    /**
+     * Forza refresh Gemma insights (ignora cache)
+     */
+    fun refreshGemmaInsights() {
+        viewModelScope.launch {
+            if (!gemmaHelper.isGemmaAvailable()) {
+                _gemmaState.value = GemmaInsightsState.NotAvailable
+                return@launch
+            }
+
+            _gemmaState.value = GemmaInsightsState.Loading
+            updateUiWithGemmaState(GemmaInsightsState.Loading)
+
+            val result = gemmaHelper.refreshInsights(
+                schede = cachedSchede,
+                esercizi = cachedEsercizi,
+                muscleDistribution = cachedMuscleDistribution
+            )
+
+            result.onSuccess { insights ->
+                _gemmaState.value = GemmaInsightsState.Success(insights)
+                updateUiWithGemmaState(GemmaInsightsState.Success(insights), insights)
+                _currentEngineType.value = GemmaLlmHelper.getEngineType()
+            }.onFailure { error ->
+                _gemmaState.value = GemmaInsightsState.Error(error.message ?: "Errore Gemma")
+                updateUiWithGemmaState(GemmaInsightsState.Error(error.message ?: "Errore"))
+            }
+        }
+    }
+
+    /**
+     * Cambia engine Gemma
+     */
+    fun setGemmaEngine(engineType: GemmaEngineType) {
+        GemmaLlmHelper.setEngineType(engineType)
+        _currentEngineType.value = engineType
+        // Opzionale: forza refresh con nuovo engine
+        // refreshGemmaInsights()
+    }
+
+    /**
+     * Helper per aggiornare UI state con Gemma state
+     */
+    private fun updateUiWithGemmaState(
+        gemmaState: GemmaInsightsState,
+        insights: GemmaLiveInsights? = null
+    ) {
+        val current = _uiState.value
+        if (current is AnalyticsUiState.Success) {
+            _uiState.value = current.copy(
+                gemmaInsights = insights ?: current.gemmaInsights,
+                gemmaState = gemmaState
+            )
+        }
+    }
+
+    // ... resto del codice esistente (calculateVolumes, calculateIntensities, etc.) ...
+
+    private fun calculateVolumes(schede: List<SchedeEntity>, esercizi: List<EsserciziEntity>): List<Float> {
+        return schede.takeLast(15).map { scheda ->
+            esercizi.filter { it.schedaId == scheda.id }
+                .sumOf { (it.nSerie * it.nRipetizione * (it.peso ?: 1f)).toDouble() }
+                .toFloat()
+        }
+    }
+
+    private fun calculateIntensities(schede: List<SchedeEntity>): List<Float> {
+        return schede.takeLast(15).map {
+            when (it.intesita.lowercase()) {
+                "alta" -> 1f
+                "media" -> 0.66f
+                else -> 0.33f
+            }
+        }
+    }
+
+    private fun calculateSessionStats(
+        schede: List<SchedeEntity>,
+        esercizi: List<EsserciziEntity>,
+        distribution: List<GruppoMuscolarePercentuale>
+    ): SessionStats {
+        val totalVolume = esercizi.sumOf { (it.nSerie * it.nRipetizione * (it.peso ?: 1f)).toDouble() }.toFloat()
+        val avgIntensity = schede.map {
+            when (it.intesita.lowercase()) { "alta" -> 1f; "media" -> 0.66f; else -> 0.33f }
+        }.average().toFloat()
+
+        val weeklyFrequency = if (schede.isNotEmpty()) {
+            val days = schede.size.toFloat() / 4f
+            days.coerceAtMost(7f)
+        } else 0f
+
+        val completed = schede.count { it.completed }
+        val consistencyScore = if (schede.isNotEmpty()) (completed.toFloat() / schede.size * 100) else 0f
+
+        val strongestMuscle = distribution.maxByOrNull { it.percentuale }?.gruppoMuscolare
+        val weakestMuscle = distribution.minByOrNull { it.percentuale }?.gruppoMuscolare
+
+        return SessionStats(
+            totalWorkouts = schede.size,
+            totalVolume = totalVolume,
+            avgIntensity = avgIntensity,
+            weeklyFrequency = weeklyFrequency,
+            consistencyScore = consistencyScore,
+            streakDays = calculateStreak(schede),
+            strongestMuscle = strongestMuscle,
+            weakestMuscle = weakestMuscle
+        )
+    }
+
+    private fun calculateStreak(schede: List<SchedeEntity>): Int {
+        return schede.takeLast(7).count { it.completed }
+    }
+
+    private fun sortSchedeByDate(schede: List<SchedeEntity>): List<SchedeEntity> {
+        if (schede.isEmpty()) return schede
+        return schede.mapIndexed { index, scheda -> index to scheda }
+            .sortedWith(
+                compareBy<Pair<Int, SchedeEntity>>(
+                    { parseLocalDate(it.second.data) ?: LocalDate.MIN },
+                    { it.first }
+                )
+            )
+            .map { it.second }
+    }
+
+    private fun parseLocalDate(value: String): LocalDate? {
+        if (value.isBlank()) return null
+        val datePart = value.trim().let { if (it.length >= 10) it.substring(0, 10) else it }
+        val formats = listOf(
+            DateTimeFormatter.ISO_LOCAL_DATE,
+            DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.getDefault())
+        )
+        for (formatter in formats) {
+            try {
+                return LocalDate.parse(datePart, formatter)
+            } catch (_: Exception) {}
+        }
+        return null
+    }
+}
+
+// ============================================
+// 4. MODIFICA AnalyticsDashboard.kt per mostrare le cards Gemma
+// ============================================
+
+// In AnalyticsDashboard.kt, modifica AnalyticsContent():
+
+@Composable
+private fun AnalyticsContent(
+    insights: WorkoutInsights,
+    volumes: List<Float>,
+    intensities: List<Float>,
+    sessionStats: SessionStats,
+    gemmaInsights: GemmaLiveInsights?, // NUOVO
+    gemmaState: GemmaInsightsState,    // NUOVO
+    currentEngine: GemmaEngineType,    // NUOVO
+    onRefreshGemma: () -> Unit,        // NUOVO
+    onEngineClick: () -> Unit,         // NUOVO
+    modifier: Modifier = Modifier
+) {
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        item {
+            Text("Dashboard Analytics", color = TextPrimary, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(4.dp))
+            Text("Analisi intelligente dei tuoi allenamenti", color = TextSecondary, fontSize = 14.sp)
+        }
+
+        // ========== NUOVE CARDS GEMMA ==========
+
+        // 1. Card motivazionale settimanale
+        item {
+            GemmaWeeklyMotivationCard(
+                insights = gemmaInsights,
+                isLoading = gemmaState is GemmaInsightsState.Loading,
+                engineType = currentEngine,
+                onRefresh = onRefreshGemma,
+                onEngineClick = onEngineClick
+            )
+        }
+
+        // 2. Stats settimanali veloci
+        gemmaInsights?.weeklyStats?.let { stats ->
+            item {
+                WeeklyStatsQuickCard(stats)
+            }
+        }
+
+        // 3. Prossimo allenamento focus
+        gemmaInsights?.nextWorkoutFocus?.let { focus ->
+            item {
+                NextWorkoutFocusCard(focus)
+            }
+        }
+
+        // 4. Suggerimenti live
+        gemmaInsights?.suggestions?.let { suggestions ->
+            if (suggestions.isNotEmpty()) {
+                item {
+                    GemmaLiveSuggestionsCard(suggestions)
+                }
+            }
+        }
+
+        // 5. Raccomandazione carichi
+        item {
+            LoadRecommendationCard(gemmaInsights?.loadRecommendation)
+        }
+
+        // 6. Raccomandazione riposo
+        item {
+            RestRecommendationCard(gemmaInsights?.restRecommendation)
+        }
+
+        // 7. Deload warning se necessario
+        item {
+            DeloadWarningCard(
+                deloadNeeded = gemmaInsights?.deloadNeeded ?: false,
+                deloadReason = gemmaInsights?.deloadReason
+            )
+        }
+
+        // ========== CARDS ESISTENTI ==========
+
+        item { PerformanceScoreCard(insights.performanceScore, insights.weeklyProgress, insights.monthlyProgress) }
+        item { SessionStatsCard(sessionStats) }
+        item { DigitalTwinCard(insights.digitalTwin) }
+        item { RecoveryCard(insights.recoveryStatus, insights.overtrainingRisk, insights.fatigueScore, insights.optimalRestDays) }
+        item { OptimalLoadsCard(insights.optimalLoads) }
+        item { VolumeIntensityCard(volumes, intensities) }
+        item { MuscleBalanceCard(insights.muscleBalance) }
+        item { SuggestionsCard(insights.suggestions) }
+        item { Spacer(Modifier.height(80.dp)) }
+    }
+}

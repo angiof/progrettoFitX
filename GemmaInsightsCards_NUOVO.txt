@@ -1,0 +1,713 @@
+// File: app/src/main/java/com/app/fityo/analytics/ui/GemmaInsightsCards.kt
+// AGGIUNGI queste cards in AnalyticsCards.kt o crea un nuovo file
+
+package com.app.fityo.analytics.ui
+
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.app.fityo.analytics.*
+import com.app.fityo.import_scheda.GemmaEngineType
+
+// Colori
+private val DarkCard = Color(0xFF1A1A1A)
+private val DarkCardElevated = Color(0xFF252525)
+private val AccentBlue = Color(0xFF00B4D8)
+private val AccentGreen = Color(0xFF00F5A0)
+private val AccentRed = Color(0xFFFF6B6B)
+private val AccentOrange = Color(0xFFFF9800)
+private val AccentYellow = Color(0xFFFFD93D)
+private val AccentPurple = Color(0xFFBB86FC)
+private val AccentCyan = Color(0xFF00E5FF)
+private val GemmaGradientStart = Color(0xFF667EEA)
+private val GemmaGradientEnd = Color(0xFF764BA2)
+private val TextPrimary = Color(0xFFE8E8E8)
+private val TextSecondary = Color(0xFFA0A0A0)
+
+/**
+ * Card principale con messaggio motivazionale settimanale da Gemma
+ */
+@Composable
+fun GemmaWeeklyMotivationCard(
+    insights: GemmaLiveInsights?,
+    isLoading: Boolean,
+    engineType: GemmaEngineType,
+    onRefresh: () -> Unit,
+    onEngineClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = DarkCard),
+        shape = RoundedCornerShape(20.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(GemmaGradientStart.copy(alpha = 0.3f), GemmaGradientEnd.copy(alpha = 0.3f))
+                    )
+                )
+        ) {
+            Column(modifier = Modifier.padding(20.dp)) {
+                // Header con engine chip
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.AutoAwesome,
+                            contentDescription = null,
+                            tint = AccentPurple,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            "Coach AI",
+                            color = TextPrimary,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        // Engine chip
+                        EngineChip(
+                            engineType = engineType,
+                            onClick = onEngineClick
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        // Refresh button
+                        IconButton(
+                            onClick = onRefresh,
+                            enabled = !isLoading
+                        ) {
+                            if (isLoading) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(20.dp),
+                                    color = AccentPurple,
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
+                                Icon(
+                                    Icons.Default.Refresh,
+                                    contentDescription = "Aggiorna",
+                                    tint = TextSecondary
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(Modifier.height(16.dp))
+
+                if (isLoading && insights == null) {
+                    // Loading state
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        CircularProgressIndicator(color = AccentPurple)
+                        Spacer(Modifier.height(12.dp))
+                        Text(
+                            "Analizzando i tuoi allenamenti...",
+                            color = TextSecondary,
+                            fontSize = 14.sp
+                        )
+                    }
+                } else if (insights != null) {
+                    // Messaggio motivazionale
+                    Text(
+                        text = insights.weeklyMotivation,
+                        color = TextPrimary,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        lineHeight = 24.sp
+                    )
+
+                    if (insights.performanceSummary.isNotBlank()) {
+                        Spacer(Modifier.height(12.dp))
+                        Text(
+                            text = insights.performanceSummary,
+                            color = TextSecondary,
+                            fontSize = 14.sp
+                        )
+                    }
+
+                    Spacer(Modifier.height(12.dp))
+
+                    // Data aggiornamento
+                    Text(
+                        text = "Aggiornato: ${insights.generatedDate}",
+                        color = TextSecondary.copy(alpha = 0.6f),
+                        fontSize = 11.sp
+                    )
+                } else {
+                    // No data
+                    Text(
+                        text = "Allena per ricevere consigli personalizzati",
+                        color = TextSecondary,
+                        fontSize = 14.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Chip per mostrare e cambiare engine Gemma
+ */
+@Composable
+fun EngineChip(
+    engineType: GemmaEngineType,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val chipColor = if (engineType == GemmaEngineType.GPU) AccentOrange else AccentBlue
+
+    Surface(
+        modifier = modifier.clickable(onClick = onClick),
+        shape = RoundedCornerShape(16.dp),
+        color = chipColor.copy(alpha = 0.15f)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = if (engineType == GemmaEngineType.GPU) Icons.Default.Speed else Icons.Default.Memory,
+                contentDescription = null,
+                tint = chipColor,
+                modifier = Modifier.size(14.dp)
+            )
+            Spacer(Modifier.width(4.dp))
+            Text(
+                text = if (engineType == GemmaEngineType.GPU) "GPU" else "CPU",
+                color = chipColor,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+    }
+}
+
+/**
+ * Card con suggerimenti live da Gemma
+ */
+@Composable
+fun GemmaLiveSuggestionsCard(
+    suggestions: List<LiveSuggestion>,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = DarkCard),
+        shape = RoundedCornerShape(20.dp)
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Default.Lightbulb,
+                    contentDescription = null,
+                    tint = AccentYellow,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    "Suggerimenti Personalizzati",
+                    color = TextPrimary,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            if (suggestions.isEmpty()) {
+                Text(
+                    "Continua ad allenarti per ricevere suggerimenti!",
+                    color = TextSecondary,
+                    fontSize = 14.sp
+                )
+            } else {
+                suggestions.forEach { suggestion ->
+                    LiveSuggestionItem(suggestion)
+                    Spacer(Modifier.height(10.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LiveSuggestionItem(suggestion: LiveSuggestion) {
+    val (priorityColor, priorityIcon) = when (suggestion.priority) {
+        SuggestionPriority.HIGH -> AccentRed to Icons.Default.PriorityHigh
+        SuggestionPriority.CRITICAL -> AccentRed to Icons.Default.Warning
+        SuggestionPriority.MEDIUM -> AccentYellow to Icons.Default.Info
+        SuggestionPriority.LOW -> AccentGreen to Icons.Default.CheckCircle
+    }
+
+    val actionIcon = when (suggestion.actionType) {
+        ActionType.LOAD -> Icons.Default.FitnessCenter
+        ActionType.REST -> Icons.Default.Hotel
+        ActionType.MUSCLE -> Icons.Default.Accessibility
+        ActionType.DELOAD -> Icons.Default.TrendingDown
+        ActionType.FREQUENCY -> Icons.Default.DateRange
+        ActionType.GENERAL -> Icons.Default.Lightbulb
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(DarkCardElevated)
+            .padding(12.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        // Priority indicator
+        Box(
+            modifier = Modifier
+                .size(8.dp)
+                .clip(CircleShape)
+                .background(priorityColor)
+        )
+
+        Spacer(Modifier.width(12.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    actionIcon,
+                    contentDescription = null,
+                    tint = priorityColor,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    suggestion.title,
+                    color = TextPrimary,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+            Spacer(Modifier.height(4.dp))
+            Text(
+                suggestion.description,
+                color = TextSecondary,
+                fontSize = 12.sp,
+                lineHeight = 18.sp
+            )
+        }
+    }
+}
+
+/**
+ * Card con focus prossimo allenamento
+ */
+@Composable
+fun NextWorkoutFocusCard(
+    focus: NextWorkoutFocus?,
+    modifier: Modifier = Modifier
+) {
+    if (focus == null) return
+
+    val intensityColor = when (focus.suggestedIntensity.uppercase()) {
+        "ALTA" -> AccentRed
+        "MEDIA" -> AccentYellow
+        else -> AccentGreen
+    }
+
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = DarkCard),
+        shape = RoundedCornerShape(20.dp)
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Default.DirectionsRun,
+                    contentDescription = null,
+                    tint = AccentCyan,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    "Prossimo Allenamento",
+                    color = TextPrimary,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            // Focus muscolare
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(AccentCyan.copy(alpha = 0.15f))
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "FOCUS",
+                        color = TextSecondary,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        focus.muscleGroup,
+                        color = AccentCyan,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                // Intensità badge
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = intensityColor.copy(alpha = 0.2f)
+                ) {
+                    Text(
+                        text = focus.suggestedIntensity,
+                        color = intensityColor,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            Text(
+                focus.reason,
+                color = TextSecondary,
+                fontSize = 13.sp
+            )
+        }
+    }
+}
+
+/**
+ * Card con raccomandazione carichi
+ */
+@Composable
+fun LoadRecommendationCard(
+    loadRec: LoadRecommendation?,
+    modifier: Modifier = Modifier
+) {
+    if (loadRec == null) return
+
+    val (trendColor, trendIcon, trendText) = when (loadRec.trend) {
+        LoadTrend.INCREASE -> Triple(AccentGreen, Icons.Default.TrendingUp, "AUMENTA")
+        LoadTrend.DECREASE -> Triple(AccentRed, Icons.Default.TrendingDown, "RIDUCI")
+        LoadTrend.MAINTAIN -> Triple(AccentYellow, Icons.Default.TrendingFlat, "MANTIENI")
+    }
+
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = DarkCard),
+        shape = RoundedCornerShape(20.dp)
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Default.FitnessCenter,
+                    contentDescription = null,
+                    tint = trendColor,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    "Carichi",
+                    color = TextPrimary,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        trendText,
+                        color = trendColor,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    if (loadRec.percentage > 0) {
+                        Text(
+                            "${if (loadRec.trend == LoadTrend.INCREASE) "+" else "-"}${loadRec.percentage}%",
+                            color = trendColor,
+                            fontSize = 14.sp
+                        )
+                    }
+                }
+
+                Icon(
+                    trendIcon,
+                    contentDescription = null,
+                    tint = trendColor,
+                    modifier = Modifier.size(48.dp)
+                )
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            Text(
+                loadRec.reason,
+                color = TextSecondary,
+                fontSize = 13.sp
+            )
+        }
+    }
+}
+
+/**
+ * Card con raccomandazione riposo
+ */
+@Composable
+fun RestRecommendationCard(
+    restRec: RestRecommendation?,
+    modifier: Modifier = Modifier
+) {
+    if (restRec == null) return
+
+    val needsMoreRest = restRec.suggestedDays > restRec.currentAvgDays
+    val restColor = if (needsMoreRest) AccentOrange else AccentGreen
+
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = DarkCard),
+        shape = RoundedCornerShape(20.dp)
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Default.Hotel,
+                    contentDescription = null,
+                    tint = restColor,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    "Riposo",
+                    color = TextPrimary,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        String.format("%.1f", restRec.currentAvgDays),
+                        color = TextSecondary,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text("Attuale", color = TextSecondary, fontSize = 12.sp)
+                }
+
+                Icon(
+                    Icons.Default.ArrowForward,
+                    contentDescription = null,
+                    tint = TextSecondary,
+                    modifier = Modifier.size(24.dp)
+                )
+
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        "${restRec.suggestedDays}",
+                        color = restColor,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text("Consigliato", color = restColor, fontSize = 12.sp)
+                }
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            Text(
+                restRec.reason,
+                color = TextSecondary,
+                fontSize = 13.sp
+            )
+        }
+    }
+}
+
+/**
+ * Card deload warning
+ */
+@Composable
+fun DeloadWarningCard(
+    deloadNeeded: Boolean,
+    deloadReason: String?,
+    modifier: Modifier = Modifier
+) {
+    if (!deloadNeeded) return
+
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = AccentOrange.copy(alpha = 0.15f)),
+        shape = RoundedCornerShape(20.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(20.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                Icons.Default.Warning,
+                contentDescription = null,
+                tint = AccentOrange,
+                modifier = Modifier.size(32.dp)
+            )
+            Spacer(Modifier.width(16.dp))
+            Column {
+                Text(
+                    "Settimana di Scarico Consigliata",
+                    color = AccentOrange,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                if (!deloadReason.isNullOrBlank()) {
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        deloadReason,
+                        color = TextSecondary,
+                        fontSize = 13.sp
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Card statistiche settimanali veloci
+ */
+@Composable
+fun WeeklyStatsQuickCard(
+    stats: WeeklyStats,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = DarkCard),
+        shape = RoundedCornerShape(20.dp)
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Text(
+                "Questa Settimana",
+                color = TextPrimary,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                QuickStatItem(
+                    value = "${stats.workoutsThisWeek}",
+                    label = "Sessioni",
+                    color = AccentBlue
+                )
+                QuickStatItem(
+                    value = String.format("%.0f", stats.totalVolumeKg),
+                    label = "Volume (kg)",
+                    color = AccentGreen
+                )
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                stats.dominantMuscle?.let {
+                    QuickStatItem(
+                        value = it,
+                        label = "Più allenato",
+                        color = AccentPurple,
+                        isText = true
+                    )
+                }
+                stats.neglectedMuscle?.let {
+                    QuickStatItem(
+                        value = it,
+                        label = "Da allenare",
+                        color = AccentOrange,
+                        isText = true
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun QuickStatItem(
+    value: String,
+    label: String,
+    color: Color,
+    isText: Boolean = false
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            value,
+            color = color,
+            fontSize = if (isText) 14.sp else 24.sp,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            label,
+            color = TextSecondary,
+            fontSize = 11.sp
+        )
+    }
+}

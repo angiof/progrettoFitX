@@ -71,6 +71,17 @@ class DashViewModel(
             coachRepository?.let { repo ->
                 val profiles = repo.getAllProfilesSync()
                 _coachProfiles.postValue(profiles)
+
+                // Auto-seleziona il primo profilo se nessuno è selezionato
+                if (_selectedProfileId.value == null && profiles.isNotEmpty()) {
+                    val firstProfile = profiles.first()
+                    _selectedProfileId.value = firstProfile.id
+                    _selectedProfileName.postValue(firstProfile.name)
+                    // Refresh data for the selected profile
+                    viewModelScope.launch {
+                        refreshAllDataForProfile()
+                    }
+                }
             }
         }
     }

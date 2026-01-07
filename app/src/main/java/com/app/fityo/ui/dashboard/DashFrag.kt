@@ -40,7 +40,15 @@ class DashFrag : Fragment() {
                 DashboardScreen(
                     viewModel = viewModel,
                     onOpenAnalytics = {
-                        startActivity(Intent(requireContext(), AnalyticsActivity::class.java))
+                        val intent = Intent(requireContext(), AnalyticsActivity::class.java).apply {
+                            viewModel.selectedProfileId.value?.let { profileId ->
+                                putExtra(AnalyticsActivity.EXTRA_PROFILE_ID, profileId)
+                            }
+                            viewModel.selectedProfileName.value?.let { profileName ->
+                                putExtra(AnalyticsActivity.EXTRA_PROFILE_NAME, profileName)
+                            }
+                        }
+                        startActivity(intent)
                     },
                     onSelectDateRange = {
                         showDateRangePickerDialog()

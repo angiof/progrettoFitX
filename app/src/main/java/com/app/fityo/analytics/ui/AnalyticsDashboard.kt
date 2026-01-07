@@ -15,8 +15,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.app.fityo.analytics.AnalyticsUiState
 import com.app.fityo.analytics.AnalyticsViewModel
+import com.app.fityo.analytics.GemmaInsightsState
+import com.app.fityo.analytics.GemmaLiveInsights
 import com.app.fityo.analytics.WorkoutInsights
 import com.app.fityo.analytics.SessionStats
+import com.app.fityo.import_scheda.GemmaEngineType
 
 private val DarkBackground = Color(0xFF0D0D0D)
 private val AccentBlue = Color(0xFF00B4D8)
@@ -29,6 +32,7 @@ fun AnalyticsDashboard(
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val currentEngine by viewModel.currentEngineType.collectAsState()
 
     when (val state = uiState) {
         is AnalyticsUiState.Loading -> LoadingContent()
@@ -39,6 +43,11 @@ fun AnalyticsDashboard(
             volumes = state.volumes,
             intensities = state.intensities,
             sessionStats = state.sessionStats,
+            gemmaInsights = state.gemmaInsights,
+            gemmaState = state.gemmaState,
+            currentEngine = currentEngine,
+            onRefreshGemma = { viewModel.refreshGemmaInsights() },
+            onEngineClick = { /* TODO: show engine dialog */ },
             modifier = modifier
         )
     }
@@ -81,6 +90,11 @@ private fun AnalyticsContent(
     volumes: List<Float>,
     intensities: List<Float>,
     sessionStats: SessionStats,
+    gemmaInsights: GemmaLiveInsights?,
+    gemmaState: GemmaInsightsState,
+    currentEngine: GemmaEngineType,
+    onRefreshGemma: () -> Unit,
+    onEngineClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -93,6 +107,55 @@ private fun AnalyticsContent(
             Spacer(Modifier.height(4.dp))
             Text("Analisi intelligente dei tuoi allenamenti", color = TextSecondary, fontSize = 14.sp)
         }
+
+        // ========== CARDS GEMMA AI ==========
+
+        // Card motivazionale con AI
+        item {
+            when (gemmaState) {
+                is GemmaInsightsState.NotAvailable -> GemmaNotAvailableCard()
+                else -> GemmaWeeklyMotivationCard(
+                    insights = gemmaInsights,
+                    isLoading = gemmaState is GemmaInsightsState.Loading,
+                    engineType = currentEngine,
+                    onRefresh = onRefreshGemma,
+                    onEngineClick = onEngineClick
+                )
+            }
+        }
+
+        // Stats settimanali veloci
+        gemmaInsights?.weeklyStats?.let { stats ->
+            item { WeeklyStatsQuickCard(stats) }
+        }
+
+        // Prossimo allenamento consigliato
+        gemmaInsights?.nextWorkoutFocus?.let { focus ->
+            item { NextWorkoutFocusCard(focus) }
+        }
+
+        // Suggerimenti AI
+        gemmaInsights?.suggestions?.let { suggestions ->
+            if (suggestions.isNotEmpty()) {
+                item { GemmaLiveSuggestionsCard(suggestions) }
+            }
+        }
+
+        // Raccomandazione carichi
+        item { LoadRecommendationCard(gemmaInsights?.loadRecommendation) }
+
+        // Raccomandazione riposo
+        item { RestRecommendationCard(gemmaInsights?.restRecommendation) }
+
+        // Deload warning
+        item {
+            DeloadWarningCard(
+                deloadNeeded = gemmaInsights?.deloadNeeded ?: false,
+                deloadReason = gemmaInsights?.deloadReason
+            )
+        }
+
+        // ========== CARDS ESISTENTI ==========
 
         item { PerformanceScoreCard(insights.performanceScore, insights.weeklyProgress, insights.monthlyProgress) }
         item { SessionStatsCard(sessionStats) }

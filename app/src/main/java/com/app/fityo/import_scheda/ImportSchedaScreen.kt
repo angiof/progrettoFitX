@@ -1,4 +1,4 @@
-package com.app.fityo.import_scheda
+﻿package com.app.fityo.import_scheda
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -79,6 +79,7 @@ fun ImportOptionsDialog(
         },
         text = {
             Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
@@ -109,11 +110,11 @@ fun ImportOptionsDialog(
 
                 // Opzione 3: Camera OCR
                 ImportOptionCard(
-                icon = Icons.Default.CameraAlt,
-                title = stringResource(R.string.import_option_camera),
-                subtitle = stringResource(R.string.import_option_camera_desc),
-                accentColor = AccentGreen,
-                onClick = onSelectCamera
+                    icon = Icons.Default.CameraAlt,
+                    title = stringResource(R.string.import_option_camera),
+                    subtitle = stringResource(R.string.import_option_camera_desc),
+                    accentColor = AccentGreen,
+                    onClick = onSelectCamera
                 )
             }
         },
@@ -206,7 +207,23 @@ fun CameraOcrImportScreen(
     var processingStep by remember { mutableStateOf("") }
     var schedaTitle by remember { mutableStateOf("") }
 
-    val ocrHelper = remember { WorkoutOcrHelper() }
+    val ocrHelper = remember { WorkoutOcrHelper(context, useGemma = true) }
+    var showEngineDialog by remember { mutableStateOf(false) }
+
+    if (showEngineDialog) {
+        GemmaEngineSelectionDialog(
+            onDismiss = { showEngineDialog = false },
+            onEngineSelected = { engineType ->
+                GemmaLlmHelper.setEngineType(engineType)
+                showEngineDialog = false
+                scope.launch {
+                    if (ocrHelper.isGemmaAvailable()) {
+                        ocrHelper.initializeGemma()
+                    }
+                }
+            }
+        )
+    }
 
     DisposableEffect(Unit) {
         onDispose { ocrHelper.close() }
@@ -277,6 +294,12 @@ fun CameraOcrImportScreen(
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Indietro")
                     }
+                },
+                actions = {
+                    CurrentEngineChip(
+                        onClick = { showEngineDialog = true },
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = DarkBackground
@@ -416,18 +439,18 @@ private fun CaptureSelectionContent(
 
         // Camera button
         Button(
-        onClick = onCameraClick,
-        modifier = Modifier
-        .fillMaxWidth()
-        .height(56.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = AccentBlue),
-        shape = RoundedCornerShape(16.dp)
+            onClick = onCameraClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = AccentBlue),
+            shape = RoundedCornerShape(16.dp)
         ) {
-        Icon(Icons.Default.CameraAlt, contentDescription = null)
-        Spacer(modifier = Modifier.width(12.dp))
-        Text(stringResource(R.string.import_camera_take_photo), fontWeight = FontWeight.Bold)
+            Icon(Icons.Default.CameraAlt, contentDescription = null)
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(stringResource(R.string.import_camera_take_photo), fontWeight = FontWeight.Bold)
         }
-        
+
         Spacer(modifier = Modifier.height(16.dp))
 
         // Gallery button
@@ -969,10 +992,14 @@ private suspend fun processImage(
     Log.d("ImportSchedaScreen", "=== Starting image processing ===")
     Log.d("ImportSchedaScreen", "Bitmap size: ${bitmap.width}x${bitmap.height}")
 
-    // Initialize Gemma if available but not ready
-    if (ocrHelper.isGemmaAvailable() && !ocrHelper.isGemmaReady()) {
+    val mainScope = kotlinx.coroutines.CoroutineScope(Dispatchers.Main.immediate)
+
+    val gemmaAvailable = ocrHelper.isGemmaAvailable()
+    val step1Label = if (gemmaAvailable) "1/3 Caricamento Gemma..." else "1/3 Preparazione OCR..."
+    onProgress(null, step1Label, true)
+
+    if (gemmaAvailable && !ocrHelper.isGemmaReady()) {
         Log.d("ImportSchedaScreen", "Gemma available but not ready, initializing...")
-        onProgress(null, "Caricamento AI Gemma...", true)
         val gemmaResult = ocrHelper.initializeGemma()
         Log.d("ImportSchedaScreen", "Gemma init result: success=${gemmaResult.isSuccess}")
         if (gemmaResult.isFailure) {
@@ -982,10 +1009,19 @@ private suspend fun processImage(
         Log.d("ImportSchedaScreen", "Gemma available: ${ocrHelper.isGemmaAvailable()}, ready: ${ocrHelper.isGemmaReady()}")
     }
 
-    onProgress(null, "Elaborazione immagine...", true)
+    onProgress(null, "2/3 OCR + parsing...", true)
     Log.d("ImportSchedaScreen", "Starting OCR processing...")
 
-    val result = ocrHelper.processImage(bitmap)
+    val result = ocrHelper.processImage(bitmap) { message ->
+        val trimmed = message.trim()
+        if (trimmed.isNotEmpty()) {
+            mainScope.launch {
+                onProgress(null, "2/3 $trimmed", true)
+            }
+        }
+    }
+
+    onProgress(null, "3/3 Finalizzazione risultati...", true)
 
     Log.d("ImportSchedaScreen", "=== OCR Results ===")
     Log.d("ImportSchedaScreen", "Exercises found: ${result.parsedRows.size}")
@@ -1037,6 +1073,7 @@ fun ProfileAssignmentDialog(
         },
         text = {
             Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
@@ -1054,7 +1091,7 @@ fun ProfileAssignmentDialog(
                     title = stringResource(R.string.import_assign_personal),
                     subtitle = stringResource(R.string.import_assign_personal_desc),
                     accentColor = AccentBlue,
-                    onClick = onSelectPersonal // Salva prima, poi finish() verrà chiamato in saveScheda
+                    onClick = onSelectPersonal // Salva prima, poi finish() verrÃ  chiamato in saveScheda
                 )
 
                 // Lista profili coach
@@ -1073,7 +1110,7 @@ fun ProfileAssignmentDialog(
                             title = profile.name,
                             subtitle = profile.notes ?: "",
                             accentColor = Color(profile.avatarColor),
-                            onClick = { onSelectProfile(profile.id) } // NON chiamare onDismiss, saveScheda chiamerà finish()
+                            onClick = { onSelectProfile(profile.id) } // NON chiamare onDismiss, saveScheda chiamerÃ  finish()
                         )
                     }
                 }
@@ -1356,4 +1393,7 @@ fun PdfReviewScreen(
         }
     }
 }
+
+
+
 

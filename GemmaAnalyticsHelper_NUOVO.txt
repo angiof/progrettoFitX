@@ -1,0 +1,737 @@
+// File: app/src/main/java/com/app/fityo/analytics/GemmaAnalyticsHelper.kt
+
+package com.app.fityo.analytics
+
+import android.content.Context
+import android.content.SharedPreferences
+import android.util.Log
+import com.app.fityo.data_layer.db.EsserciziEntity
+import com.app.fityo.data_layer.db.SchedeEntity
+import com.app.fityo.dominio.GruppoMuscolarePercentuale
+import com.app.fityo.import_scheda.GemmaEngineType
+import com.app.fityo.import_scheda.GemmaLlmHelper
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.json.JSONArray
+import org.json.JSONObject
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
+import java.util.Locale
+
+/**
+ * Helper per generare insights personalizzati usando Gemma LLM.
+ * I risultati vengono cachati settimanalmente per performance.
+ */
+class GemmaAnalyticsHelper(private val context: Context) {
+
+    private val gemma = GemmaLlmHelper.getInstance(context)
+    private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+    companion object {
+        private const val TAG = "GemmaAnalyticsHelper"
+        private const val PREFS_NAME = "gemma_analytics_cache"
+        private const val KEY_LAST_UPDATE = "last_update_epoch_day"
+        private const val KEY_CACHED_INSIGHTS = "cached_insights_json"
+        private const val KEY_ENGINE_USED = "engine_used"
+        private const val CACHE_VALIDITY_DAYS = 7L
+    }
+
+    /**
+     * Verifica se Gemma è disponibile
+     */
+    fun isGemmaAvailable(): Boolean = GemmaLlmHelper.isLibraryAvailable() && gemma.isModelAvailable()
+
+    /**
+     * Verifica se Gemma è pronto
+     */
+    fun isGemmaReady(): Boolean = gemma.isReady()
+
+    /**
+     * Inizializza Gemma con fallback automatico
+     */
+    suspend fun initializeGemma(): Result<Unit> = gemma.initializeModel()
+
+    /**
+     * Restituisce l'engine corrente
+     */
+    fun getCurrentEngine(): GemmaEngineType = GemmaLlmHelper.getEngineType()
+
+    /**
+     * Genera insights personalizzati basati sui dati di allenamento.
+     * Usa cache se valida (< 7 giorni), altrimenti rigenera.
+     */
+    suspend fun generateInsights(
+        schede: List<SchedeEntity>,
+        esercizi: List<EsserciziEntity>,
+        muscleDistribution: List<GruppoMuscolarePercentuale>,
+        forceRefresh: Boolean = false
+    ): Result<GemmaLiveInsights> = withContext(Dispatchers.IO) {
+
+        // Check cache
+        if (!forceRefresh && isCacheValid()) {
+            val cached = loadCachedInsights()
+            if (cached != null) {
+                Log.d(TAG, "Using cached insights from ${cached.generatedDate}")
+                return@withContext Result.success(cached)
+            }
+        }
+
+        // Verifica disponibilità Gemma
+        if (!isGemmaAvailable()) {
+            return@withContext Result.failure(Exception("Modello Gemma non disponibile"))
+        }
+
+        // Inizializza se necessario
+        if (!isGemmaReady()) {
+            val initResult = initializeGemma()
+            if (initResult.isFailure) {
+                return@withContext Result.failure(initResult.exceptionOrNull() ?: Exception("Inizializzazione fallita"))
+            }
+        }
+
+        // Analizza i dati
+        val analysis = analyzeWorkoutData(schede, esercizi, muscleDistribution)
+
+        // Genera prompt
+        val prompt = buildSmartPrompt(analysis)
+        Log.d(TAG, "Generated prompt length: ${prompt.length}")
+
+        // Chiama Gemma
+        val responseResult = gemma.generateResponse(prompt)
+        if (responseResult.isFailure) {
+            return@withContext Result.failure(responseResult.exceptionOrNull() ?: Exception("Gemma non ha risposto"))
+        }
+
+        val response = responseResult.getOrThrow()
+        Log.d(TAG, "Gemma response: ${response.take(500)}...")
+
+        // Parse response
+        val insights = parseGemmaResponse(response, analysis)
+
+        // Cache results
+        cacheInsights(insights)
+
+        Result.success(insights)
+    }
+
+    /**
+     * Analizza i dati di allenamento per costruire statistiche dettagliate
+     */
+    private fun analyzeWorkoutData(
+        schede: List<SchedeEntity>,
+        esercizi: List<EsserciziEntity>,
+        muscleDistribution: List<GruppoMuscolarePercentuale>
+    ): WorkoutDataAnalysis {
+        val today = LocalDate.now()
+        val oneWeekAgo = today.minusDays(7)
+        val twoWeeksAgo = today.minusDays(14)
+        val oneMonthAgo = today.minusDays(30)
+
+        // Parse dates
+        val schedeWithDates = schede.mapNotNull { scheda ->
+            parseDate(scheda.data)?.let { date -> scheda to date }
+        }
+
+        // Schede per periodo
+        val schedeLastWeek = schedeWithDates.filter { it.second.isAfter(oneWeekAgo) }
+        val schedePreviousWeek = schedeWithDates.filter { it.second.isAfter(twoWeeksAgo) && !it.second.isAfter(oneWeekAgo) }
+        val schedeLastMonth = schedeWithDates.filter { it.second.isAfter(oneMonthAgo) }
+
+        // Calcola volume per gruppo muscolare (ultima settimana)
+        val volumePerMuscle = mutableMapOf<String, Float>()
+        val volumePerMusclePrevWeek = mutableMapOf<String, Float>()
+
+        schedeLastWeek.forEach { (scheda, _) ->
+            val gruppo = scheda.gruppoMuscolare
+            val schedaExercises = esercizi.filter { it.schedaId == scheda.id }
+            val volume = schedaExercises.sumOf {
+                (it.nSerie * it.nRipetizione * (it.peso ?: 0f)).toDouble()
+            }.toFloat()
+            volumePerMuscle[gruppo] = (volumePerMuscle[gruppo] ?: 0f) + volume
+        }
+
+        schedePreviousWeek.forEach { (scheda, _) ->
+            val gruppo = scheda.gruppoMuscolare
+            val schedaExercises = esercizi.filter { it.schedaId == scheda.id }
+            val volume = schedaExercises.sumOf {
+                (it.nSerie * it.nRipetizione * (it.peso ?: 0f)).toDouble()
+            }.toFloat()
+            volumePerMusclePrevWeek[gruppo] = (volumePerMusclePrevWeek[gruppo] ?: 0f) + volume
+        }
+
+        // Calcola giorni di riposo medi
+        val sortedDates = schedeWithDates.map { it.second }.sorted()
+        val restDays = if (sortedDates.size >= 2) {
+            sortedDates.zipWithNext { a, b -> ChronoUnit.DAYS.between(a, b).toInt() }
+        } else emptyList()
+        val avgRestDays = if (restDays.isNotEmpty()) restDays.average().toFloat() else 0f
+
+        // Ultimo allenamento
+        val lastWorkoutDate = sortedDates.lastOrNull()
+        val daysSinceLastWorkout = lastWorkoutDate?.let { ChronoUnit.DAYS.between(it, today).toInt() } ?: 0
+
+        // Intensità media ultimo mese
+        val avgIntensity = schedeLastMonth.map { (scheda, _) ->
+            when (scheda.intesita.lowercase()) {
+                "alta" -> 3
+                "media" -> 2
+                else -> 1
+            }
+        }.average().let { if (it.isNaN()) 0.0 else it }
+
+        // Frequenza settimanale
+        val weeklyFrequency = schedeLastWeek.size
+
+        // Trend carichi (confronto settimana corrente vs precedente)
+        val loadTrend = mutableMapOf<String, Float>()
+        volumePerMuscle.forEach { (muscle, currentVolume) ->
+            val prevVolume = volumePerMusclePrevWeek[muscle] ?: 0f
+            if (prevVolume > 0) {
+                loadTrend[muscle] = ((currentVolume - prevVolume) / prevVolume) * 100
+            }
+        }
+
+        // Esercizi più frequenti con pesi
+        val exerciseFrequency = esercizi
+            .filter { ex -> schedeLastMonth.any { it.first.id == ex.schedaId } }
+            .groupBy { it.nome.lowercase() }
+            .mapValues { (_, exercises) ->
+                ExerciseStats(
+                    count = exercises.size,
+                    avgWeight = exercises.mapNotNull { it.peso }.average().toFloat().takeIf { !it.isNaN() },
+                    maxWeight = exercises.mapNotNull { it.peso }.maxOrNull(),
+                    avgSets = exercises.map { it.nSerie }.average().toFloat(),
+                    avgReps = exercises.map { it.nRipetizione }.average().toFloat()
+                )
+            }
+            .toList()
+            .sortedByDescending { it.second.count }
+            .take(10)
+            .toMap()
+
+        // Muscoli trascurati (bassa percentuale)
+        val neglectedMuscles = muscleDistribution
+            .filter { it.percentuale < 10f }
+            .map { it.gruppoMuscolare }
+
+        // Muscoli dominanti
+        val dominantMuscles = muscleDistribution
+            .filter { it.percentuale > 25f }
+            .map { it.gruppoMuscolare }
+
+        return WorkoutDataAnalysis(
+            totalWorkoutsLastMonth = schedeLastMonth.size,
+            totalWorkoutsLastWeek = schedeLastWeek.size,
+            weeklyFrequency = weeklyFrequency,
+            avgRestDays = avgRestDays,
+            daysSinceLastWorkout = daysSinceLastWorkout,
+            avgIntensity = avgIntensity.toFloat(),
+            volumePerMuscleThisWeek = volumePerMuscle,
+            volumePerMusclePrevWeek = volumePerMusclePrevWeek,
+            loadTrend = loadTrend,
+            exerciseStats = exerciseFrequency,
+            muscleDistribution = muscleDistribution,
+            neglectedMuscles = neglectedMuscles,
+            dominantMuscles = dominantMuscles,
+            lastWorkoutDate = lastWorkoutDate
+        )
+    }
+
+    /**
+     * Costruisce un prompt intelligente per Gemma basato sull'analisi
+     */
+    private fun buildSmartPrompt(analysis: WorkoutDataAnalysis): String {
+        val volumeThisWeek = analysis.volumePerMuscleThisWeek.entries
+            .sortedByDescending { it.value }
+            .take(5)
+            .joinToString("\n") { "  - ${it.key}: ${String.format("%.0f", it.value)}kg" }
+
+        val loadTrends = analysis.loadTrend.entries
+            .take(5)
+            .joinToString("\n") { "  - ${it.key}: ${if (it.value >= 0) "+" else ""}${String.format("%.1f", it.value)}%" }
+
+        val topExercises = analysis.exerciseStats.entries
+            .take(5)
+            .joinToString("\n") { (name, stats) ->
+                "  - ${name}: ${stats.count}x, peso medio ${stats.avgWeight?.let { String.format("%.1f", it) + "kg" } ?: "N/D"}"
+            }
+
+        val muscleBalance = analysis.muscleDistribution
+            .sortedByDescending { it.percentuale }
+            .joinToString("\n") { "  - ${it.gruppoMuscolare}: ${String.format("%.1f", it.percentuale)}%" }
+
+        return """<start_of_turn>user
+Sei un coach fitness esperto e personalizzato. Analizza questi dati REALI dell'utente e genera consigli SPECIFICI e ACTIONABLE.
+
+=== DATI UTENTE (ultimi 30 giorni) ===
+
+FREQUENZA ALLENAMENTI:
+- Ultimo mese: ${analysis.totalWorkoutsLastMonth} sessioni
+- Ultima settimana: ${analysis.totalWorkoutsLastWeek} sessioni
+- Giorni dall'ultimo allenamento: ${analysis.daysSinceLastWorkout}
+- Riposo medio tra sessioni: ${String.format("%.1f", analysis.avgRestDays)} giorni
+- Intensità media: ${when { analysis.avgIntensity > 2.5 -> "ALTA" analysis.avgIntensity > 1.5 -> "MEDIA" else -> "BASSA" }}
+
+VOLUME SETTIMANA CORRENTE (per gruppo muscolare):
+${if (volumeThisWeek.isNotBlank()) volumeThisWeek else "  - Nessun dato"}
+
+TREND CARICHI (vs settimana precedente):
+${if (loadTrends.isNotBlank()) loadTrends else "  - Nessun confronto disponibile"}
+
+ESERCIZI PIÙ FREQUENTI:
+${if (topExercises.isNotBlank()) topExercises else "  - Nessun dato"}
+
+DISTRIBUZIONE MUSCOLARE:
+$muscleBalance
+
+MUSCOLI TRASCURATI: ${analysis.neglectedMuscles.ifEmpty { listOf("Nessuno") }.joinToString(", ")}
+MUSCOLI DOMINANTI: ${analysis.dominantMuscles.ifEmpty { listOf("Equilibrato") }.joinToString(", ")}
+
+=== RICHIESTA ===
+
+Genera un'analisi PERSONALIZZATA in JSON con:
+1. Un messaggio motivazionale breve basato sui dati
+2. 4-5 suggerimenti SPECIFICI con priorità (usa i numeri reali!)
+3. Focus consigliato per il prossimo allenamento
+4. Suggerimento sul carico (aumentare/mantenere/diminuire)
+5. Consiglio sui giorni di riposo
+6. Se necessario, suggerisci una settimana di scarico
+
+RISPONDI SOLO CON JSON VALIDO:
+{
+  "weeklyMotivation": "Messaggio motivazionale personalizzato",
+  "performanceSummary": "Riassunto performance in 1-2 frasi",
+  "suggestions": [
+    {
+      "priority": "HIGH|MEDIUM|LOW",
+      "title": "Titolo breve",
+      "description": "Descrizione dettagliata con numeri specifici",
+      "actionType": "LOAD|REST|MUSCLE|DELOAD|FREQUENCY"
+    }
+  ],
+  "nextWorkoutFocus": {
+    "muscleGroup": "Gruppo muscolare consigliato",
+    "reason": "Motivo basato sui dati",
+    "suggestedIntensity": "ALTA|MEDIA|BASSA"
+  },
+  "loadRecommendation": {
+    "trend": "INCREASE|MAINTAIN|DECREASE",
+    "percentage": 5,
+    "reason": "Motivo"
+  },
+  "restRecommendation": {
+    "currentAvg": ${String.format("%.1f", analysis.avgRestDays)},
+    "suggested": 2,
+    "reason": "Motivo"
+  },
+  "deloadNeeded": false,
+  "deloadReason": "Se true, spiega perché"
+}
+<start_of_turn>model
+"""
+    }
+
+    /**
+     * Parse la risposta di Gemma in insights strutturati
+     */
+    private fun parseGemmaResponse(response: String, analysis: WorkoutDataAnalysis): GemmaLiveInsights {
+        val today = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
+
+        try {
+            // Estrai JSON dalla risposta
+            val jsonMatch = Regex("""\{[\s\S]*\}""").find(response)
+            val jsonString = jsonMatch?.value ?: throw Exception("No JSON found")
+
+            val json = JSONObject(jsonString)
+
+            // Parse suggestions
+            val suggestionsArray = json.optJSONArray("suggestions") ?: JSONArray()
+            val suggestions = mutableListOf<LiveSuggestion>()
+            for (i in 0 until suggestionsArray.length()) {
+                val s = suggestionsArray.optJSONObject(i) ?: continue
+                suggestions.add(LiveSuggestion(
+                    priority = parsePriority(s.optString("priority", "MEDIUM")),
+                    title = s.optString("title", ""),
+                    description = s.optString("description", ""),
+                    actionType = parseActionType(s.optString("actionType", ""))
+                ))
+            }
+
+            // Parse next workout focus
+            val focusJson = json.optJSONObject("nextWorkoutFocus")
+            val nextFocus = focusJson?.let {
+                NextWorkoutFocus(
+                    muscleGroup = it.optString("muscleGroup", ""),
+                    reason = it.optString("reason", ""),
+                    suggestedIntensity = it.optString("suggestedIntensity", "MEDIA")
+                )
+            }
+
+            // Parse load recommendation
+            val loadJson = json.optJSONObject("loadRecommendation")
+            val loadRec = loadJson?.let {
+                LoadRecommendation(
+                    trend = parseLoadTrend(it.optString("trend", "MAINTAIN")),
+                    percentage = it.optInt("percentage", 0),
+                    reason = it.optString("reason", "")
+                )
+            }
+
+            // Parse rest recommendation
+            val restJson = json.optJSONObject("restRecommendation")
+            val restRec = restJson?.let {
+                RestRecommendation(
+                    currentAvgDays = it.optDouble("currentAvg", analysis.avgRestDays.toDouble()).toFloat(),
+                    suggestedDays = it.optInt("suggested", 2),
+                    reason = it.optString("reason", "")
+                )
+            }
+
+            return GemmaLiveInsights(
+                generatedDate = today,
+                engineUsed = getCurrentEngine().name,
+                weeklyMotivation = json.optString("weeklyMotivation", "Continua così!"),
+                performanceSummary = json.optString("performanceSummary", ""),
+                suggestions = suggestions,
+                nextWorkoutFocus = nextFocus,
+                loadRecommendation = loadRec,
+                restRecommendation = restRec,
+                deloadNeeded = json.optBoolean("deloadNeeded", false),
+                deloadReason = json.optString("deloadReason", null),
+                weeklyStats = WeeklyStats(
+                    workoutsThisWeek = analysis.totalWorkoutsLastWeek,
+                    totalVolumeKg = analysis.volumePerMuscleThisWeek.values.sum(),
+                    dominantMuscle = analysis.dominantMuscles.firstOrNull(),
+                    neglectedMuscle = analysis.neglectedMuscles.firstOrNull()
+                )
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Error parsing Gemma response", e)
+            // Fallback con dati base
+            return createFallbackInsights(analysis)
+        }
+    }
+
+    private fun createFallbackInsights(analysis: WorkoutDataAnalysis): GemmaLiveInsights {
+        val today = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
+
+        return GemmaLiveInsights(
+            generatedDate = today,
+            engineUsed = getCurrentEngine().name,
+            weeklyMotivation = "Continua ad allenarti con costanza!",
+            performanceSummary = "Hai completato ${analysis.totalWorkoutsLastWeek} allenamenti questa settimana.",
+            suggestions = listOf(
+                LiveSuggestion(
+                    priority = SuggestionPriority.MEDIUM,
+                    title = "Mantieni la costanza",
+                    description = "Con ${analysis.totalWorkoutsLastMonth} sessioni nell'ultimo mese, stai andando bene.",
+                    actionType = ActionType.FREQUENCY
+                )
+            ),
+            nextWorkoutFocus = analysis.neglectedMuscles.firstOrNull()?.let {
+                NextWorkoutFocus(it, "Gruppo muscolare meno allenato", "MEDIA")
+            },
+            loadRecommendation = null,
+            restRecommendation = null,
+            deloadNeeded = false,
+            deloadReason = null,
+            weeklyStats = WeeklyStats(
+                workoutsThisWeek = analysis.totalWorkoutsLastWeek,
+                totalVolumeKg = analysis.volumePerMuscleThisWeek.values.sum(),
+                dominantMuscle = analysis.dominantMuscles.firstOrNull(),
+                neglectedMuscle = analysis.neglectedMuscles.firstOrNull()
+            )
+        )
+    }
+
+    // Cache methods
+    private fun isCacheValid(): Boolean {
+        val lastUpdate = prefs.getLong(KEY_LAST_UPDATE, 0L)
+        if (lastUpdate == 0L) return false
+
+        val today = LocalDate.now().toEpochDay()
+        return (today - lastUpdate) < CACHE_VALIDITY_DAYS
+    }
+
+    private fun loadCachedInsights(): GemmaLiveInsights? {
+        val json = prefs.getString(KEY_CACHED_INSIGHTS, null) ?: return null
+        return try {
+            parseInsightsFromJson(json)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error loading cached insights", e)
+            null
+        }
+    }
+
+    private fun cacheInsights(insights: GemmaLiveInsights) {
+        val json = insightsToJson(insights)
+        prefs.edit()
+            .putLong(KEY_LAST_UPDATE, LocalDate.now().toEpochDay())
+            .putString(KEY_CACHED_INSIGHTS, json)
+            .putString(KEY_ENGINE_USED, insights.engineUsed)
+            .apply()
+        Log.d(TAG, "Insights cached successfully")
+    }
+
+    /**
+     * Forza refresh degli insights (ignora cache)
+     */
+    suspend fun refreshInsights(
+        schede: List<SchedeEntity>,
+        esercizi: List<EsserciziEntity>,
+        muscleDistribution: List<GruppoMuscolarePercentuale>
+    ): Result<GemmaLiveInsights> = generateInsights(schede, esercizi, muscleDistribution, forceRefresh = true)
+
+    /**
+     * Cancella la cache
+     */
+    fun clearCache() {
+        prefs.edit().clear().apply()
+    }
+
+    // Helper parsing methods
+    private fun parseDate(value: String): LocalDate? {
+        if (value.isBlank()) return null
+        val datePart = value.trim().let { if (it.length >= 10) it.substring(0, 10) else it }
+        val formats = listOf(
+            DateTimeFormatter.ISO_LOCAL_DATE,
+            DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.getDefault())
+        )
+        for (formatter in formats) {
+            try {
+                return LocalDate.parse(datePart, formatter)
+            } catch (_: Exception) {}
+        }
+        return null
+    }
+
+    private fun parsePriority(value: String): SuggestionPriority {
+        return when (value.uppercase()) {
+            "HIGH", "CRITICAL" -> SuggestionPriority.HIGH
+            "LOW" -> SuggestionPriority.LOW
+            else -> SuggestionPriority.MEDIUM
+        }
+    }
+
+    private fun parseActionType(value: String): ActionType {
+        return when (value.uppercase()) {
+            "LOAD" -> ActionType.LOAD
+            "REST" -> ActionType.REST
+            "MUSCLE" -> ActionType.MUSCLE
+            "DELOAD" -> ActionType.DELOAD
+            "FREQUENCY" -> ActionType.FREQUENCY
+            else -> ActionType.GENERAL
+        }
+    }
+
+    private fun parseLoadTrend(value: String): LoadTrend {
+        return when (value.uppercase()) {
+            "INCREASE" -> LoadTrend.INCREASE
+            "DECREASE" -> LoadTrend.DECREASE
+            else -> LoadTrend.MAINTAIN
+        }
+    }
+
+    private fun insightsToJson(insights: GemmaLiveInsights): String {
+        val json = JSONObject().apply {
+            put("generatedDate", insights.generatedDate)
+            put("engineUsed", insights.engineUsed)
+            put("weeklyMotivation", insights.weeklyMotivation)
+            put("performanceSummary", insights.performanceSummary)
+            put("deloadNeeded", insights.deloadNeeded)
+            put("deloadReason", insights.deloadReason)
+
+            put("suggestions", JSONArray().apply {
+                insights.suggestions.forEach { s ->
+                    put(JSONObject().apply {
+                        put("priority", s.priority.name)
+                        put("title", s.title)
+                        put("description", s.description)
+                        put("actionType", s.actionType.name)
+                    })
+                }
+            })
+
+            insights.nextWorkoutFocus?.let { f ->
+                put("nextWorkoutFocus", JSONObject().apply {
+                    put("muscleGroup", f.muscleGroup)
+                    put("reason", f.reason)
+                    put("suggestedIntensity", f.suggestedIntensity)
+                })
+            }
+
+            insights.loadRecommendation?.let { l ->
+                put("loadRecommendation", JSONObject().apply {
+                    put("trend", l.trend.name)
+                    put("percentage", l.percentage)
+                    put("reason", l.reason)
+                })
+            }
+
+            insights.restRecommendation?.let { r ->
+                put("restRecommendation", JSONObject().apply {
+                    put("currentAvg", r.currentAvgDays)
+                    put("suggested", r.suggestedDays)
+                    put("reason", r.reason)
+                })
+            }
+
+            put("weeklyStats", JSONObject().apply {
+                put("workoutsThisWeek", insights.weeklyStats.workoutsThisWeek)
+                put("totalVolumeKg", insights.weeklyStats.totalVolumeKg)
+                put("dominantMuscle", insights.weeklyStats.dominantMuscle)
+                put("neglectedMuscle", insights.weeklyStats.neglectedMuscle)
+            })
+        }
+        return json.toString()
+    }
+
+    private fun parseInsightsFromJson(jsonString: String): GemmaLiveInsights {
+        val json = JSONObject(jsonString)
+
+        val suggestions = mutableListOf<LiveSuggestion>()
+        val suggestionsArray = json.optJSONArray("suggestions")
+        if (suggestionsArray != null) {
+            for (i in 0 until suggestionsArray.length()) {
+                val s = suggestionsArray.optJSONObject(i) ?: continue
+                suggestions.add(LiveSuggestion(
+                    priority = parsePriority(s.optString("priority")),
+                    title = s.optString("title"),
+                    description = s.optString("description"),
+                    actionType = parseActionType(s.optString("actionType"))
+                ))
+            }
+        }
+
+        val focusJson = json.optJSONObject("nextWorkoutFocus")
+        val nextFocus = focusJson?.let {
+            NextWorkoutFocus(
+                muscleGroup = it.optString("muscleGroup"),
+                reason = it.optString("reason"),
+                suggestedIntensity = it.optString("suggestedIntensity")
+            )
+        }
+
+        val loadJson = json.optJSONObject("loadRecommendation")
+        val loadRec = loadJson?.let {
+            LoadRecommendation(
+                trend = parseLoadTrend(it.optString("trend")),
+                percentage = it.optInt("percentage"),
+                reason = it.optString("reason")
+            )
+        }
+
+        val restJson = json.optJSONObject("restRecommendation")
+        val restRec = restJson?.let {
+            RestRecommendation(
+                currentAvgDays = it.optDouble("currentAvg").toFloat(),
+                suggestedDays = it.optInt("suggested"),
+                reason = it.optString("reason")
+            )
+        }
+
+        val statsJson = json.optJSONObject("weeklyStats")
+        val weeklyStats = WeeklyStats(
+            workoutsThisWeek = statsJson?.optInt("workoutsThisWeek") ?: 0,
+            totalVolumeKg = statsJson?.optDouble("totalVolumeKg")?.toFloat() ?: 0f,
+            dominantMuscle = statsJson?.optString("dominantMuscle"),
+            neglectedMuscle = statsJson?.optString("neglectedMuscle")
+        )
+
+        return GemmaLiveInsights(
+            generatedDate = json.optString("generatedDate"),
+            engineUsed = json.optString("engineUsed"),
+            weeklyMotivation = json.optString("weeklyMotivation"),
+            performanceSummary = json.optString("performanceSummary"),
+            suggestions = suggestions,
+            nextWorkoutFocus = nextFocus,
+            loadRecommendation = loadRec,
+            restRecommendation = restRec,
+            deloadNeeded = json.optBoolean("deloadNeeded"),
+            deloadReason = json.optString("deloadReason").takeIf { it.isNotBlank() },
+            weeklyStats = weeklyStats
+        )
+    }
+}
+
+// ============== DATA CLASSES ==============
+
+data class WorkoutDataAnalysis(
+    val totalWorkoutsLastMonth: Int,
+    val totalWorkoutsLastWeek: Int,
+    val weeklyFrequency: Int,
+    val avgRestDays: Float,
+    val daysSinceLastWorkout: Int,
+    val avgIntensity: Float,
+    val volumePerMuscleThisWeek: Map<String, Float>,
+    val volumePerMusclePrevWeek: Map<String, Float>,
+    val loadTrend: Map<String, Float>,
+    val exerciseStats: Map<String, ExerciseStats>,
+    val muscleDistribution: List<GruppoMuscolarePercentuale>,
+    val neglectedMuscles: List<String>,
+    val dominantMuscles: List<String>,
+    val lastWorkoutDate: LocalDate?
+)
+
+data class ExerciseStats(
+    val count: Int,
+    val avgWeight: Float?,
+    val maxWeight: Float?,
+    val avgSets: Float,
+    val avgReps: Float
+)
+
+data class GemmaLiveInsights(
+    val generatedDate: String,
+    val engineUsed: String,
+    val weeklyMotivation: String,
+    val performanceSummary: String,
+    val suggestions: List<LiveSuggestion>,
+    val nextWorkoutFocus: NextWorkoutFocus?,
+    val loadRecommendation: LoadRecommendation?,
+    val restRecommendation: RestRecommendation?,
+    val deloadNeeded: Boolean,
+    val deloadReason: String?,
+    val weeklyStats: WeeklyStats
+)
+
+data class LiveSuggestion(
+    val priority: SuggestionPriority,
+    val title: String,
+    val description: String,
+    val actionType: ActionType
+)
+
+data class NextWorkoutFocus(
+    val muscleGroup: String,
+    val reason: String,
+    val suggestedIntensity: String
+)
+
+data class LoadRecommendation(
+    val trend: LoadTrend,
+    val percentage: Int,
+    val reason: String
+)
+
+data class RestRecommendation(
+    val currentAvgDays: Float,
+    val suggestedDays: Int,
+    val reason: String
+)
+
+data class WeeklyStats(
+    val workoutsThisWeek: Int,
+    val totalVolumeKg: Float,
+    val dominantMuscle: String?,
+    val neglectedMuscle: String?
+)
+
+enum class ActionType {
+    LOAD, REST, MUSCLE, DELOAD, FREQUENCY, GENERAL
+}
+
+enum class LoadTrend {
+    INCREASE, MAINTAIN, DECREASE
+}

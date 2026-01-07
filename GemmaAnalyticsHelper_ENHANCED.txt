@@ -1,0 +1,309 @@
+// ============================================
+// SOSTITUISCI la funzione buildSmartPrompt() in GemmaAnalyticsHelper.kt
+// con questa versione ENHANCED che include TUTTI i dati
+// ============================================
+
+    /**
+     * Costruisce un prompt COMPLETO per Gemma con TUTTI i dati disponibili
+     */
+    private fun buildSmartPrompt(analysis: WorkoutDataAnalysis): String {
+        // Volume per muscolo questa settimana
+        val volumeThisWeek = analysis.volumePerMuscleThisWeek.entries
+            .sortedByDescending { it.value }
+            .joinToString("\n") { "  - ${it.key}: ${String.format("%.0f", it.value)}kg" }
+            .ifBlank { "  Nessun dato" }
+
+        // Trend carichi vs settimana precedente
+        val loadTrends = analysis.loadTrend.entries
+            .joinToString("\n") { "  - ${it.key}: ${if (it.value >= 0) "+" else ""}${String.format("%.1f", it.value)}%" }
+            .ifBlank { "  Nessun confronto" }
+
+        // Top esercizi con dettagli completi
+        val topExercises = analysis.exerciseStats.entries
+            .take(8)
+            .joinToString("\n") { (name, stats) ->
+                val weight = stats.avgWeight?.let { "${String.format("%.1f", it)}kg" } ?: "N/D"
+                val maxW = stats.maxWeight?.let { " (max: ${String.format("%.1f", it)}kg)" } ?: ""
+                "  - ${name}: ${stats.count}x, ${stats.avgSets.toInt()}x${stats.avgReps.toInt()}, peso $weight$maxW"
+            }
+            .ifBlank { "  Nessun dato" }
+
+        // Distribuzione muscolare
+        val muscleBalance = analysis.muscleDistribution
+            .sortedByDescending { it.percentuale }
+            .joinToString("\n") { "  - ${it.gruppoMuscolare}: ${String.format("%.1f", it.percentuale)}%" }
+            .ifBlank { "  Nessun dato" }
+
+        // Orari allenamento
+        val trainingTimes = analysis.trainingTimeDistribution.entries
+            .sortedByDescending { it.value }
+            .take(3)
+            .joinToString(", ") { "${it.key}: ${it.value}x" }
+            .ifBlank { "Non disponibile" }
+
+        // Heart rate stats
+        val heartRateInfo = if (analysis.avgHeartRate != null) {
+            "BPM medio: ${analysis.avgHeartRate}, max: ${analysis.maxHeartRate ?: "N/D"}"
+        } else {
+            "Non monitorato"
+        }
+
+        // Equipment usato
+        val equipmentUsed = analysis.equipmentUsage.entries
+            .sortedByDescending { it.value }
+            .take(5)
+            .joinToString(", ") { "${it.key} (${it.value}x)" }
+            .ifBlank { "Vario" }
+
+        // Riposo medio tra serie
+        val avgRestBetweenSets = analysis.avgRestBetweenSets?.let { "${it}s" } ?: "N/D"
+
+        // Calcola tipo di allenamento prevalente
+        val trainingStyle = when {
+            analysis.avgIntensity > 2.5 && (analysis.exerciseStats.values.firstOrNull()?.avgReps ?: 0f) < 6 -> "FORZA/POWERLIFTING"
+            analysis.avgIntensity > 2 && (analysis.exerciseStats.values.firstOrNull()?.avgReps ?: 0f) in 6f..12f -> "IPERTROFIA"
+            (analysis.exerciseStats.values.firstOrNull()?.avgReps ?: 0f) > 12 -> "RESISTENZA/ENDURANCE"
+            else -> "MISTO"
+        }
+
+        return """<start_of_turn>user
+Sei un coach fitness esperto e personalizzato. Analizza questi dati REALI dell'utente e genera consigli SPECIFICI basati sui NUMERI.
+
+=== PROFILO ALLENAMENTO ===
+Tipo prevalente: $trainingStyle
+Frequenza cardiaca: $heartRateInfo
+Orari preferiti: $trainingTimes
+Attrezzatura usata: $equipmentUsed
+Riposo medio tra serie: $avgRestBetweenSets
+
+=== FREQUENZA E CONSISTENZA (ultimi 30 giorni) ===
+- Sessioni ultimo mese: ${analysis.totalWorkoutsLastMonth}
+- Sessioni ultima settimana: ${analysis.totalWorkoutsLastWeek}
+- Giorni dall'ultimo allenamento: ${analysis.daysSinceLastWorkout}
+- Riposo medio tra sessioni: ${String.format("%.1f", analysis.avgRestDays)} giorni
+- Intensità media: ${when { analysis.avgIntensity > 2.5 -> "ALTA (${String.format("%.1f", analysis.avgIntensity)}/3)" analysis.avgIntensity > 1.5 -> "MEDIA (${String.format("%.1f", analysis.avgIntensity)}/3)" else -> "BASSA (${String.format("%.1f", analysis.avgIntensity)}/3)" }}
+- Schede completate: ${analysis.completedWorkouts}/${analysis.totalWorkoutsLastMonth}
+
+=== VOLUME SETTIMANA CORRENTE (kg totali per gruppo) ===
+$volumeThisWeek
+
+=== TREND CARICHI (% vs settimana scorsa) ===
+$loadTrends
+
+=== ESERCIZI PIÙ FREQUENTI (con pesi) ===
+$topExercises
+
+=== DISTRIBUZIONE MUSCOLARE (%) ===
+$muscleBalance
+
+=== MUSCOLI ===
+- Dominanti (>25%): ${analysis.dominantMuscles.ifEmpty { listOf("Equilibrato") }.joinToString(", ")}
+- Trascurati (<10%): ${analysis.neglectedMuscles.ifEmpty { listOf("Nessuno") }.joinToString(", ")}
+
+=== PROGRESSIONE PESO (ultimi esercizi) ===
+${analysis.weightProgression.entries.take(5).joinToString("\n") { (ex, prog) ->
+    "  - $ex: ${prog.first}kg -> ${prog.second}kg (${if (prog.second >= prog.first) "+" else ""}${String.format("%.1f", ((prog.second - prog.first) / prog.first) * 100)}%)"
+}.ifBlank { "  Dati insufficienti" }}
+
+=== RICHIESTA ===
+Basandoti su TUTTI questi dati REALI, genera un'analisi SUPER PERSONALIZZATA.
+
+RISPONDI SOLO CON JSON VALIDO (niente altro testo):
+{
+  "weeklyMotivation": "Messaggio motivazionale SPECIFICO con riferimenti ai numeri reali dell'utente (es. 'Hai sollevato 2500kg questa settimana...')",
+
+  "performanceSummary": "Riassunto performance con numeri specifici",
+
+  "trainingStyleAnalysis": {
+    "currentStyle": "FORZA|IPERTROFIA|RESISTENZA|MISTO",
+    "recommendation": "Consiglio se cambiare o mantenere",
+    "reason": "Motivo basato sui dati"
+  },
+
+  "suggestions": [
+    {
+      "priority": "HIGH|MEDIUM|LOW",
+      "title": "Titolo azione",
+      "description": "Descrizione con numeri specifici (es. 'Aumenta il peso sulla panca da 80kg a 85kg')",
+      "actionType": "LOAD|REST|MUSCLE|DELOAD|FREQUENCY|CARDIO|EQUIPMENT"
+    }
+  ],
+
+  "nextWorkoutFocus": {
+    "muscleGroup": "Gruppo da allenare",
+    "reason": "Motivo con dati (es. 'Non alleni gambe da 5 giorni')",
+    "suggestedIntensity": "ALTA|MEDIA|BASSA",
+    "suggestedExercises": ["Esercizio1", "Esercizio2", "Esercizio3"]
+  },
+
+  "loadRecommendation": {
+    "trend": "INCREASE|MAINTAIN|DECREASE",
+    "percentage": 5,
+    "reason": "Motivo con numeri",
+    "specificExercises": {
+      "esercizio1": "+5kg",
+      "esercizio2": "mantieni"
+    }
+  },
+
+  "restRecommendation": {
+    "currentAvg": ${String.format("%.1f", analysis.avgRestDays)},
+    "suggested": 2,
+    "reason": "Motivo",
+    "betweenSetsAdvice": "Consiglio sul riposo tra serie"
+  },
+
+  "heartRateInsight": {
+    "status": "OTTIMALE|TROPPO_ALTO|TROPPO_BASSO|NON_MONITORATO",
+    "advice": "Consiglio basato sul BPM se disponibile"
+  },
+
+  "weeklyGoals": [
+    "Obiettivo specifico 1 con numero",
+    "Obiettivo specifico 2 con numero"
+  ],
+
+  "deloadNeeded": false,
+  "deloadReason": "Se true, spiega perché con dati",
+
+  "equipmentSuggestion": "Consiglio su attrezzatura basato sull'uso attuale"
+}
+<start_of_turn>model
+"""
+    }
+
+// ============================================
+// AGGIUNGI questi campi a WorkoutDataAnalysis
+// ============================================
+
+data class WorkoutDataAnalysis(
+    val totalWorkoutsLastMonth: Int,
+    val totalWorkoutsLastWeek: Int,
+    val weeklyFrequency: Int,
+    val avgRestDays: Float,
+    val daysSinceLastWorkout: Int,
+    val avgIntensity: Float,
+    val volumePerMuscleThisWeek: Map<String, Float>,
+    val volumePerMusclePrevWeek: Map<String, Float>,
+    val loadTrend: Map<String, Float>,
+    val exerciseStats: Map<String, ExerciseStats>,
+    val muscleDistribution: List<GruppoMuscolarePercentuale>,
+    val neglectedMuscles: List<String>,
+    val dominantMuscles: List<String>,
+    val lastWorkoutDate: LocalDate?,
+    // NUOVI CAMPI
+    val trainingTimeDistribution: Map<String, Int>, // es. "Mattina" -> 5, "Pomeriggio" -> 3
+    val avgHeartRate: Int?,
+    val maxHeartRate: Int?,
+    val avgRestBetweenSets: Int?, // secondi
+    val equipmentUsage: Map<String, Int>, // es. "Bilanciere" -> 15
+    val completedWorkouts: Int,
+    val weightProgression: Map<String, Pair<Float, Float>> // es. "Panca" -> (80kg, 85kg)
+)
+
+// ============================================
+// AGGIUNGI questa logica in analyzeWorkoutData()
+// ============================================
+
+    // Distribuzione orari
+    val trainingTimeDistribution = schedeWithDates.mapNotNull { (scheda, _) ->
+        scheda.ora?.let { ora ->
+            val hour = ora.split(":").firstOrNull()?.toIntOrNull() ?: return@mapNotNull null
+            when {
+                hour < 12 -> "Mattina"
+                hour < 17 -> "Pomeriggio"
+                else -> "Sera"
+            }
+        }
+    }.groupingBy { it }.eachCount()
+
+    // Heart rate medio
+    val avgHeartRate = schedeLastMonth.mapNotNull { (scheda, _) -> scheda.avgHeartRate }.average().toInt().takeIf { it > 0 }
+    val maxHeartRate = schedeLastMonth.mapNotNull { (scheda, _) -> scheda.maxHeartRate }.maxOrNull()
+
+    // Riposo medio tra serie
+    val avgRestBetweenSets = esercizi
+        .filter { ex -> schedeLastMonth.any { it.first.id == ex.schedaId } }
+        .mapNotNull { it.intervallo }
+        .average()
+        .toInt()
+        .takeIf { it > 0 }
+
+    // Equipment usage
+    val equipmentUsage = esercizi
+        .filter { ex -> schedeLastMonth.any { it.first.id == ex.schedaId } }
+        .map { it.attrezzo }
+        .filter { it.isNotBlank() }
+        .groupingBy { it }
+        .eachCount()
+
+    // Completed count
+    val completedWorkouts = schedeLastMonth.count { (scheda, _) -> scheda.completed }
+
+    // Weight progression (confronta primo e ultimo peso per esercizio)
+    val weightProgression = mutableMapOf<String, Pair<Float, Float>>()
+    exerciseFrequency.keys.take(5).forEach { exerciseName ->
+        val exercisesWithWeight = esercizi
+            .filter { it.nome.lowercase() == exerciseName && it.peso != null && it.peso > 0 }
+            .sortedBy { ex -> schedeWithDates.find { it.first.id == ex.schedaId }?.second }
+
+        if (exercisesWithWeight.size >= 2) {
+            val first = exercisesWithWeight.first().peso!!
+            val last = exercisesWithWeight.last().peso!!
+            weightProgression[exerciseName] = first to last
+        }
+    }
+
+// ============================================
+// NUOVE DATA CLASSES per la risposta enhanced
+// ============================================
+
+data class GemmaLiveInsights(
+    val generatedDate: String,
+    val engineUsed: String,
+    val weeklyMotivation: String,
+    val performanceSummary: String,
+    val trainingStyleAnalysis: TrainingStyleAnalysis?,
+    val suggestions: List<LiveSuggestion>,
+    val nextWorkoutFocus: NextWorkoutFocus?,
+    val loadRecommendation: LoadRecommendation?,
+    val restRecommendation: RestRecommendation?,
+    val heartRateInsight: HeartRateInsight?,
+    val weeklyGoals: List<String>,
+    val deloadNeeded: Boolean,
+    val deloadReason: String?,
+    val equipmentSuggestion: String?,
+    val weeklyStats: WeeklyStats
+)
+
+data class TrainingStyleAnalysis(
+    val currentStyle: String,
+    val recommendation: String,
+    val reason: String
+)
+
+data class HeartRateInsight(
+    val status: String,
+    val advice: String
+)
+
+data class NextWorkoutFocus(
+    val muscleGroup: String,
+    val reason: String,
+    val suggestedIntensity: String,
+    val suggestedExercises: List<String>
+)
+
+data class LoadRecommendation(
+    val trend: LoadTrend,
+    val percentage: Int,
+    val reason: String,
+    val specificExercises: Map<String, String> // es. "Panca" -> "+5kg"
+)
+
+data class RestRecommendation(
+    val currentAvgDays: Float,
+    val suggestedDays: Int,
+    val reason: String,
+    val betweenSetsAdvice: String?
+)
