@@ -47,7 +47,8 @@ data class OcrResult(
     val parsedRows: List<ParsedExerciseRow>,
     val originalImage: Bitmap?,
     val errorMessage: String? = null,
-    val processingTimeMs: Long = 0
+    val processingTimeMs: Long = 0,
+    val usedGemma: Boolean = false
 )
 
 /**

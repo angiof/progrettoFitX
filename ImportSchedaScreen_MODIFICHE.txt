@@ -1,0 +1,151 @@
+============================================
+MODIFICHE DA APPLICARE A ImportSchedaScreen.kt
+============================================
+
+=== MODIFICA 1: Ri-abilitare opzione Camera nel Dialog (linee 110-117) ===
+
+SOSTITUISCI QUESTO CODICE (commentato):
+---
+                // DISABLED:                 // Opzione 3: Camera OCR
+                // DISABLED:                 ImportOptionCard(
+                // DISABLED:                     icon = Icons.Default.CameraAlt,
+                // DISABLED:                     title = stringResource(R.string.import_option_camera),
+                // DISABLED:                     subtitle = stringResource(R.string.import_option_camera_desc),
+                // DISABLED:                     accentColor = AccentGreen,
+                // DISABLED:                     onClick = onSelectCamera
+                // DISABLED:                 )
+---
+
+CON QUESTO (scommentato):
+---
+                // Opzione 3: Camera OCR
+                ImportOptionCard(
+                    icon = Icons.Default.CameraAlt,
+                    title = stringResource(R.string.import_option_camera),
+                    subtitle = stringResource(R.string.import_option_camera_desc),
+                    accentColor = AccentGreen,
+                    onClick = onSelectCamera
+                )
+---
+
+
+=== MODIFICA 2: Ri-abilitare pulsante Camera nella schermata cattura (linee 417-431) ===
+
+SOSTITUISCI QUESTO CODICE (commentato):
+---
+        // DISABLED:         // Camera button
+        // DISABLED:         Button(
+        // DISABLED:             onClick = onCameraClick,
+        // DISABLED:             modifier = Modifier
+        // DISABLED:                 .fillMaxWidth()
+        // DISABLED:                 .height(56.dp),
+        // DISABLED:             colors = ButtonDefaults.buttonColors(containerColor = AccentBlue),
+        // DISABLED:             shape = RoundedCornerShape(16.dp)
+        // DISABLED:         ) {
+        // DISABLED:             Icon(Icons.Default.CameraAlt, contentDescription = null)
+        // DISABLED:             Spacer(modifier = Modifier.width(12.dp))
+        // DISABLED:             Text(stringResource(R.string.import_camera_take_photo), fontWeight = FontWeight.Bold)
+        // DISABLED:         }
+        // DISABLED:
+---
+
+CON QUESTO (scommentato):
+---
+        // Camera button
+        Button(
+            onClick = onCameraClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = AccentBlue),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Icon(Icons.Default.CameraAlt, contentDescription = null)
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(stringResource(R.string.import_camera_take_photo), fontWeight = FontWeight.Bold)
+        }
+
+---
+
+
+=== MODIFICA 3: Aggiungere Engine Selection alla TopAppBar della CameraOcrImportScreen (linea 272-285) ===
+
+SOSTITUISCI QUESTA TopAppBar:
+---
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.import_camera_title)) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Indietro")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = DarkBackground
+                )
+            )
+        },
+---
+
+CON QUESTA (aggiunge Engine Chip nelle actions):
+---
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.import_camera_title)) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Indietro")
+                    }
+                },
+                actions = {
+                    // Engine selection chip
+                    CurrentEngineChip(
+                        onClick = { showEngineDialog = true },
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = DarkBackground
+                )
+            )
+        },
+---
+
+
+=== MODIFICA 4: Aggiungere variabile showEngineDialog e il Dialog (dentro CameraOcrImportScreen, dopo "val ocrHelper") ===
+
+AGGIUNGI QUESTE RIGHE DOPO "val ocrHelper = remember { WorkoutOcrHelper() }":
+---
+    var showEngineDialog by remember { mutableStateOf(false) }
+
+    // Dialog per selezione engine
+    if (showEngineDialog) {
+        GemmaEngineSelectionDialog(
+            onDismiss = { showEngineDialog = false },
+            onEngineSelected = { engineType ->
+                GemmaLlmHelper.setEngineType(engineType)
+                showEngineDialog = false
+                // Re-inizializza Gemma con il nuovo engine se necessario
+                scope.launch {
+                    if (ocrHelper.isGemmaAvailable()) {
+                        ocrHelper.initializeGemma()
+                    }
+                }
+            }
+        )
+    }
+---
+
+
+============================================
+RIEPILOGO MODIFICHE:
+============================================
+1. Ri-abilitata opzione "Camera OCR" nel dialog di selezione import
+2. Ri-abilitato pulsante camera nella schermata di cattura
+3. Aggiunto CurrentEngineChip nella TopAppBar per mostrare engine corrente (GPU/CPU)
+4. Aggiunto GemmaEngineSelectionDialog per cambiare engine
+5. Il cambio engine richiama initializeGemma() per ricaricare il modello
+
+NOTA: Assicurati che GemmaEngineSelectionDialog.kt sia stato creato nella cartella
+app/src/main/java/com/app/fityo/import_scheda/
+con il contenuto di GemmaEngineSelectionDialog_NUOVO.txt

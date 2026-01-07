@@ -109,11 +109,11 @@ fun ImportOptionsDialog(
 
                 // Opzione 3: Camera OCR
                 ImportOptionCard(
-                    icon = Icons.Default.CameraAlt,
-                    title = stringResource(R.string.import_option_camera),
-                    subtitle = stringResource(R.string.import_option_camera_desc),
-                    accentColor = AccentGreen,
-                    onClick = onSelectCamera
+                icon = Icons.Default.CameraAlt,
+                title = stringResource(R.string.import_option_camera),
+                subtitle = stringResource(R.string.import_option_camera_desc),
+                accentColor = AccentGreen,
+                onClick = onSelectCamera
                 )
             }
         },
@@ -416,27 +416,27 @@ private fun CaptureSelectionContent(
 
         // Camera button
         Button(
-            onClick = onCameraClick,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = AccentBlue),
-            shape = RoundedCornerShape(16.dp)
+        onClick = onCameraClick,
+        modifier = Modifier
+        .fillMaxWidth()
+        .height(56.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = AccentBlue),
+        shape = RoundedCornerShape(16.dp)
         ) {
-            Icon(Icons.Default.CameraAlt, contentDescription = null)
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(stringResource(R.string.import_camera_take_photo), fontWeight = FontWeight.Bold)
+        Icon(Icons.Default.CameraAlt, contentDescription = null)
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(stringResource(R.string.import_camera_take_photo), fontWeight = FontWeight.Bold)
         }
-
+        
         Spacer(modifier = Modifier.height(16.dp))
 
         // Gallery button
-        OutlinedButton(
+        Button(
             onClick = onGalleryClick,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = TextPrimary),
+            colors = ButtonDefaults.buttonColors(containerColor = AccentBlue),
             shape = RoundedCornerShape(16.dp)
         ) {
             Icon(Icons.Default.PhotoLibrary, contentDescription = null)
@@ -596,7 +596,7 @@ private fun ReviewContent(
 
             item {
                 // Aggiungi esercizio manualmente
-                OutlinedButton(
+                Button(
                     onClick = onAddRow,
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = AccentBlue)
@@ -615,7 +615,7 @@ private fun ReviewContent(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            OutlinedButton(
+            Button(
                 onClick = onRetake,
                 modifier = Modifier.weight(1f),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = TextSecondary)
@@ -966,8 +966,35 @@ private suspend fun processImage(
     ocrHelper: WorkoutOcrHelper,
     onProgress: (OcrResult?, String, Boolean) -> Unit
 ) {
+    Log.d("ImportSchedaScreen", "=== Starting image processing ===")
+    Log.d("ImportSchedaScreen", "Bitmap size: ${bitmap.width}x${bitmap.height}")
+
+    // Initialize Gemma if available but not ready
+    if (ocrHelper.isGemmaAvailable() && !ocrHelper.isGemmaReady()) {
+        Log.d("ImportSchedaScreen", "Gemma available but not ready, initializing...")
+        onProgress(null, "Caricamento AI Gemma...", true)
+        val gemmaResult = ocrHelper.initializeGemma()
+        Log.d("ImportSchedaScreen", "Gemma init result: success=${gemmaResult.isSuccess}")
+        if (gemmaResult.isFailure) {
+            Log.w("ImportSchedaScreen", "Gemma init failed: ${gemmaResult.exceptionOrNull()?.message}")
+        }
+    } else {
+        Log.d("ImportSchedaScreen", "Gemma available: ${ocrHelper.isGemmaAvailable()}, ready: ${ocrHelper.isGemmaReady()}")
+    }
+
     onProgress(null, "Elaborazione immagine...", true)
+    Log.d("ImportSchedaScreen", "Starting OCR processing...")
+
     val result = ocrHelper.processImage(bitmap)
+
+    Log.d("ImportSchedaScreen", "=== OCR Results ===")
+    Log.d("ImportSchedaScreen", "Exercises found: ${result.parsedRows.size}")
+    Log.d("ImportSchedaScreen", "Used Gemma: ${result.usedGemma}")
+    result.parsedRows.forEachIndexed { index, exercise ->
+        Log.d("ImportSchedaScreen", "  [$index] ${exercise.exerciseName}: ${exercise.sets}x${exercise.reps}, rest=${exercise.rest}")
+    }
+    Log.d("ImportSchedaScreen", "=== End OCR Results ===")
+
     onProgress(result, "", false)
 }
 
@@ -1285,7 +1312,7 @@ fun PdfReviewScreen(
                 }
 
                 item {
-                    OutlinedButton(
+                    Button(
                         onClick = onAddRow,
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = AccentOrange)
@@ -1304,7 +1331,7 @@ fun PdfReviewScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                OutlinedButton(
+                Button(
                     onClick = onBack,
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = TextSecondary)
@@ -1329,3 +1356,4 @@ fun PdfReviewScreen(
         }
     }
 }
+

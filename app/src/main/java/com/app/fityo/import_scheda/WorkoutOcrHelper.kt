@@ -118,7 +118,8 @@ class WorkoutOcrHelper(
                 parsedRows = parsedRows,
                 originalImage = bitmap,
                 errorMessage = if (parsedRows.isEmpty()) "Nessun esercizio rilevato. Prova con una foto più nitida." else null,
-                processingTimeMs = processingTime
+                processingTimeMs = processingTime,
+                usedGemma = isGemmaReady()
             )
         } catch (e: Exception) {
             Log.e(TAG, "Error processing image", e)

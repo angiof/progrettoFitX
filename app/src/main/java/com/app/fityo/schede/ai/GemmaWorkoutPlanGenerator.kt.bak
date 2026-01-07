@@ -47,9 +47,7 @@ class GemmaWorkoutPlanGenerator(
     private fun buildPrompt(request: WorkoutPlanRequest): String {
         val groups = request.muscleGroups.joinToString(", ")
         return """<start_of_turn>user
-Sei un coach fitness senior , specializzato in allenamento personalizzati non essere banale 
-- mai confondere le discipline
-. Genera una scheda di allenamento in JSON per:
+Sei un coach fitness. Genera una scheda di allenamento in JSON per:
 - Stile: ${request.style}
 - Intensita: ${request.intensity}
 - Gruppi muscolari: $groups
@@ -59,12 +57,7 @@ REGOLE:
 2. Usa numeri interi per sets e reps.
 3. Inserisci rest_seconds in secondi (numero intero).
 4. Se non sai il peso, usa null.
-5. Massimo 12 esercizi.
-6. Restitusici sempre una notes custom in cui indici a cosa bisogna stare attento e quale accessorio è consiliabile usare
-7.non dimenticare il nome del attrezzo/equipment di ogni essercizio (se applicabile) 
-8. alla fine aggiugni sempre un essercizio di addiminali mai i clasici crunchs 
-
-
+5. Massimo 10 esercizi.
 
 SCHEMA JSON:
 {

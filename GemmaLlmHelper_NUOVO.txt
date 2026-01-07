@@ -161,8 +161,8 @@ class GemmaLlmHelper private constructor(
             } catch (e: Exception) {
                 if (currentEngineType == GemmaEngineType.GPU &&
                     (e.message?.contains("OpenCL", ignoreCase = true) == true ||
-                            e.message?.contains("GPU", ignoreCase = true) == true ||
-                            e.message?.contains("delegate", ignoreCase = true) == true)) {
+                     e.message?.contains("GPU", ignoreCase = true) == true ||
+                     e.message?.contains("delegate", ignoreCase = true) == true)) {
                     val gpuError = "GPU non disponibile (${e.message}). Prova con CPU."
                     _modelState.value = ModelState.Error(gpuError)
                     Log.e(TAG, "GPU initialization failed, suggest CPU fallback", e)
@@ -433,32 +433,32 @@ $ocrText
         val name = exerciseName.lowercase()
         return when {
             name.contains("squat") || name.contains("stacco") ||
-                    name.contains("panca") || name.contains("bench") ||
-                    name.contains("military") || name.contains("overhead") ||
-                    name.contains("barbell") || name.contains("bilanciere") ||
-                    name.contains("deadlift") -> "Bilanciere, Power Rack"
+            name.contains("panca") || name.contains("bench") ||
+            name.contains("military") || name.contains("overhead") ||
+            name.contains("barbell") || name.contains("bilanciere") ||
+            name.contains("deadlift") -> "Bilanciere, Power Rack"
 
             name.contains("manubri") || name.contains("dumbbell") ||
-                    name.contains("curl") && !name.contains("machine") ||
-                    name.contains("alzate") || name.contains("fly") ||
-                    name.contains("shoulder press") || name.contains("spinte") -> "Manubri"
+            name.contains("curl") && !name.contains("machine") ||
+            name.contains("alzate") || name.contains("fly") ||
+            name.contains("shoulder press") || name.contains("spinte") -> "Manubri"
 
             name.contains("lat machine") || name.contains("lat pull") ||
-                    name.contains("pulley") || name.contains("cable") ||
-                    name.contains("cavi") || name.contains("push down") ||
-                    name.contains("machine") || name.contains("macchina") -> "Cavi/Macchina"
+            name.contains("pulley") || name.contains("cable") ||
+            name.contains("cavi") || name.contains("push down") ||
+            name.contains("machine") || name.contains("macchina") -> "Cavi/Macchina"
 
             name.contains("trazioni") || name.contains("chin") ||
-                    name.contains("pull up") || name.contains("pullup") -> "Sbarra"
+            name.contains("pull up") || name.contains("pullup") -> "Sbarra"
 
             name.contains("kettlebell") || name.contains("kb") ||
-                    name.contains("swing") -> "Kettlebell"
+            name.contains("swing") -> "Kettlebell"
 
             name.contains("dip") || name.contains("hip thrust") -> "Panca"
 
             name.contains("push up") || name.contains("pushup") ||
-                    name.contains("plank") || name.contains("crunch") ||
-                    name.contains("addominali") || name.contains("abs") -> null
+            name.contains("plank") || name.contains("crunch") ||
+            name.contains("addominali") || name.contains("abs") -> null
 
             else -> null
         }
