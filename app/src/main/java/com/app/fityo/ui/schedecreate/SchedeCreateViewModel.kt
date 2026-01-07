@@ -8,6 +8,8 @@ import com.app.fityo.data_layer.db.EsserciziEntity
 import com.app.fityo.data_layer.db.SchedeEntity
 import com.app.fityo.data_layer.db.repos.EsserciziRepository
 import com.app.fityo.data_layer.repository.SchedeRepository
+import com.app.fityo.schede.ai.GemmaWorkoutPlanGenerator
+import com.app.fityo.schede.ai.WorkoutPlanRequest
 import com.app.fityo.ui.schedecreate.compose.EsercizioFormData
 import com.app.fityo.ui.schedecreate.compose.SchedeFormData
 import kotlinx.coroutines.Dispatchers
@@ -28,7 +30,8 @@ data class SchedeCreateState(
     val formData: SchedeFormData = SchedeFormData(),
     val schedeEntity: SchedeEntity? = null,
     val isLoading: Boolean = false,
-    val isSaved: Boolean = false
+    val isSaved: Boolean = false,
+    val errorMessage: String? = null
 )
 
 class SchedeCreateViewModel(
@@ -40,6 +43,7 @@ class SchedeCreateViewModel(
 
     private val _state = MutableStateFlow(SchedeCreateState())
     val state: StateFlow<SchedeCreateState> = _state.asStateFlow()
+    private val workoutPlanGenerator = GemmaWorkoutPlanGenerator(application)
 
     // Esercizi list - LiveData from repository
     private var _esercizi: LiveData<List<EsserciziEntity>>? = null
@@ -54,33 +58,7 @@ class SchedeCreateViewModel(
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true)
 
-            val formData = _state.value.formData
-            val existingScheda = _state.value.schedeEntity
-
-            val schedeEntity = SchedeEntity(
-                id = existingScheda?.id,
-                titolo = formData.titolo,
-                data = formData.data,
-                intesita = formData.intensita,
-                gruppoMuscolare = formData.selectedMuscleGroups.firstOrNull() ?: "",
-                gruppiMuscolari = if (formData.selectedMuscleGroups.size > 1)
-                    formData.selectedMuscleGroups.toList()
-                else
-                    null,
-                notes = formData.notes.ifBlank { null },
-                coachProfileId = coachProfileId
-            )
-
-            withContext(Dispatchers.IO) {
-                if (existingScheda == null) {
-                    val newId = schedeRepository.insert(schedeEntity).toInt()
-                    schedeEntity.id = newId
-                } else {
-                    schedeRepository.update(schedeEntity)
-                }
-            }
-
-            // Osserva esercizi
+            val schedeEntity = upsertScheda(_state.value.formData)
             _esercizi = esserciziRepository.getAllById(schedeEntity.id!!)
 
             _state.value = _state.value.copy(
@@ -140,6 +118,58 @@ class SchedeCreateViewModel(
         _state.value = _state.value.copy(currentStep = SchedeCreateStep.Riepilogo)
     }
 
+    fun autoCompileScheda(options: AutoCompileOptions) {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true, errorMessage = null)
+
+            val updatedFormData = applyAutoDefaults(_state.value.formData, options)
+            _state.value = _state.value.copy(formData = updatedFormData)
+
+            val schedeEntity = upsertScheda(updatedFormData)
+
+            val request = WorkoutPlanRequest(
+                style = options.style,
+                intensity = updatedFormData.intensita,
+                muscleGroups = updatedFormData.selectedMuscleGroups.toList()
+            )
+
+            val planResult = workoutPlanGenerator.generate(request)
+            if (planResult.isFailure) {
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    errorMessage = planResult.exceptionOrNull()?.message ?: "Errore generazione scheda"
+                )
+                return@launch
+            }
+
+            val exercises = planResult.getOrThrow().exercises
+            withContext(Dispatchers.IO) {
+                esserciziRepository.deleteBySchedaId(schedeEntity.id!!)
+                exercises.forEach { plan ->
+                    val esercizio = EsserciziEntity(
+                        nome = plan.name,
+                        attrezzo = plan.equipment.orEmpty(),
+                        nSerie = plan.sets.coerceAtLeast(1),
+                        nRipetizione = plan.reps.coerceAtLeast(1),
+                        insometria = null,
+                        intervallo = plan.restSeconds,
+                        peso = plan.weightKg,
+                        notes = plan.notes,
+                        schedaId = schedeEntity.id!!
+                    )
+                    esserciziRepository.insert(esercizio)
+                }
+            }
+
+            _esercizi = esserciziRepository.getAllById(schedeEntity.id!!)
+            _state.value = _state.value.copy(
+                currentStep = SchedeCreateStep.Esercizi,
+                schedeEntity = schedeEntity,
+                isLoading = false
+            )
+        }
+    }
+
     fun navigateBack(): Boolean {
         return when (_state.value.currentStep) {
             SchedeCreateStep.Form -> false
@@ -166,5 +196,59 @@ class SchedeCreateViewModel(
                 _state.value = _state.value.copy(isSaved = true)
             }
         }
+    }
+
+    fun clearError() {
+        _state.value = _state.value.copy(errorMessage = null)
+    }
+
+    private suspend fun upsertScheda(formData: SchedeFormData): SchedeEntity {
+        val existingScheda = _state.value.schedeEntity
+        val schedeEntity = SchedeEntity(
+            id = existingScheda?.id,
+            titolo = formData.titolo,
+            data = formData.data,
+            intesita = formData.intensita,
+            gruppoMuscolare = formData.selectedMuscleGroups.firstOrNull() ?: "",
+            gruppiMuscolari = if (formData.selectedMuscleGroups.size > 1)
+                formData.selectedMuscleGroups.toList()
+            else
+                null,
+            notes = formData.notes.ifBlank { null },
+            coachProfileId = coachProfileId
+        )
+
+        withContext(Dispatchers.IO) {
+            if (existingScheda == null) {
+                val newId = schedeRepository.insert(schedeEntity).toInt()
+                schedeEntity.id = newId
+            } else {
+                schedeRepository.update(schedeEntity)
+            }
+        }
+
+        return schedeEntity
+    }
+
+    private fun applyAutoDefaults(formData: SchedeFormData, options: AutoCompileOptions): SchedeFormData {
+        val title = if (formData.titolo.isNotBlank()) {
+            formData.titolo
+        } else {
+            val groupLabel = options.muscleGroups.firstOrNull() ?: "Full Body"
+            "${options.style} - $groupLabel"
+        }
+
+        val date = if (formData.data.isNotBlank()) {
+            formData.data
+        } else {
+            java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)
+        }
+
+        return formData.copy(
+            titolo = title,
+            data = date,
+            intensita = options.intensity,
+            selectedMuscleGroups = options.muscleGroups
+        )
     }
 }

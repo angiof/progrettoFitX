@@ -116,11 +116,28 @@
     <string name="delete_scheda_action">Elimina scheda</string>
     <string name="filter_removed">Filtro rimosso</string>
     <string name="filter_range_feedback">Da %1$s a %2$s</string>
+    <string name="auto_compile_button">Auto compilazione IA</string>
+    <string name="auto_compile_title">Auto compilazione scheda</string>
+    <string name="auto_compile_subtitle">Scegli stile, intensita e gruppi muscolari</string>
+    <string name="auto_compile_style_label">Stile di allenamento</string>
+    <string name="auto_compile_style_placeholder">Seleziona stile</string>
+    <string name="auto_compile_generate">Genera scheda</string>
+    <string name="auto_compile_loading">Generazione scheda in corso...</string>
+    <string name="auto_compile_error_title">Errore generazione</string>
+    <string name="auto_compile_error_dismiss">Chiudi</string>
     <string-array name="intensity_options">
         <item>Alta - Molto intensa</item>
         <item>Media - Allenamento standard</item>
         <item>Bassa - Leggera o recupero</item>
         <item>Cardio - Resistenza o attivita aerobica</item>
+    </string-array>
+    <string-array name="training_style_options">
+        <item>Powerlifting</item>
+        <item>Bodybuilding</item>
+        <item>Forza</item>
+        <item>Ipertrofia</item>
+        <item>Functional</item>
+        <item>Calisthenics</item>
     </string-array>
     <string-array name="muscle_group_options">
         <item>Dorsali</item>

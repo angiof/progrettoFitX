@@ -1,6 +1,7 @@
 package com.app.fityo.ui.schedecreate.compose
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -25,12 +26,15 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
@@ -41,6 +45,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -55,11 +60,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.app.fityo.ui.schedecreate.AutoCompileOptions
+import com.app.fityo.R
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -79,13 +87,19 @@ fun SchedeFormScreen(
     formData: SchedeFormData,
     intensityOptions: List<String>,
     muscleGroupOptions: List<String>,
+    trainingStyleOptions: List<String>,
+    isLoading: Boolean,
+    errorMessage: String?,
     onFormDataChanged: (SchedeFormData) -> Unit,
     onNext: () -> Unit,
+    onAutoCompile: (AutoCompileOptions) -> Unit,
+    onDismissError: () -> Unit,
     onBack: () -> Unit
 ) {
     var showDatePicker by remember { mutableStateOf(false) }
     var showIntensityDropdown by remember { mutableStateOf(false) }
     var showMuscleGroupsSelector by remember { mutableStateOf(false) }
+    var showAutoCompileDialog by remember { mutableStateOf(false) }
 
     val isoFormatter = DateTimeFormatter.ISO_LOCAL_DATE
 
@@ -458,6 +472,32 @@ fun SchedeFormScreen(
                 )
             }
 
+            Spacer(modifier = Modifier.height(12.dp))
+
+            OutlinedButton(
+                onClick = { showAutoCompileDialog = true },
+                enabled = !isLoading,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = AccentBlue
+                ),
+                border = BorderStroke(1.dp, AccentBlue),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Icon(
+                    Icons.Default.AutoAwesome,
+                    contentDescription = null
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.auto_compile_button),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
         }
 
@@ -505,6 +545,356 @@ fun SchedeFormScreen(
             }
         }
     }
+
+    if (showAutoCompileDialog) {
+        AutoCompileDialog(
+            formData = formData,
+            intensityOptions = intensityOptions,
+            muscleGroupOptions = muscleGroupOptions,
+            trainingStyleOptions = trainingStyleOptions,
+            onDismiss = { showAutoCompileDialog = false },
+            onConfirm = { options ->
+                showAutoCompileDialog = false
+                onAutoCompile(options)
+            }
+        )
+    }
+
+    if (isLoading) {
+        AlertDialog(
+            onDismissRequest = {},
+            confirmButton = {},
+            containerColor = DarkCard,
+            title = {
+                Text(
+                    text = stringResource(R.string.auto_compile_title),
+                    color = TextPrimary,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    CircularProgressIndicator(color = AccentBlue)
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text(
+                        text = stringResource(R.string.auto_compile_loading),
+                        color = TextSecondary,
+                        fontSize = 14.sp
+                    )
+                }
+            }
+        )
+    }
+
+    if (errorMessage != null) {
+        AlertDialog(
+            onDismissRequest = onDismissError,
+            confirmButton = {
+                TextButton(onClick = onDismissError) {
+                    Text(stringResource(R.string.auto_compile_error_dismiss), color = AccentBlue)
+                }
+            },
+            containerColor = DarkCard,
+            title = {
+                Text(
+                    text = stringResource(R.string.auto_compile_error_title),
+                    color = TextPrimary,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(
+                    text = errorMessage,
+                    color = TextSecondary,
+                    fontSize = 14.sp
+                )
+            }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
+private fun AutoCompileDialog(
+    formData: SchedeFormData,
+    intensityOptions: List<String>,
+    muscleGroupOptions: List<String>,
+    trainingStyleOptions: List<String>,
+    onDismiss: () -> Unit,
+    onConfirm: (AutoCompileOptions) -> Unit
+) {
+    var selectedStyle by remember { mutableStateOf("") }
+    var selectedIntensity by remember { mutableStateOf(formData.intensita) }
+    var selectedGroups by remember { mutableStateOf(formData.selectedMuscleGroups) }
+    var showStyleDropdown by remember { mutableStateOf(false) }
+    var showIntensityDropdown by remember { mutableStateOf(false) }
+    var showMuscleGroupsSelector by remember { mutableStateOf(false) }
+
+    val canGenerate = selectedStyle.isNotBlank() &&
+        selectedIntensity.isNotBlank() &&
+        selectedGroups.isNotEmpty()
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = DarkCard,
+        title = {
+            Text(
+                text = stringResource(R.string.auto_compile_title),
+                color = TextPrimary,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    text = stringResource(R.string.auto_compile_subtitle),
+                    color = TextSecondary,
+                    fontSize = 12.sp
+                )
+
+                Text(
+                    text = stringResource(R.string.auto_compile_style_label),
+                    color = TextSecondary,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium
+                )
+                ExposedDropdownMenuBox(
+                    expanded = showStyleDropdown,
+                    onExpandedChange = { showStyleDropdown = it }
+                ) {
+                    OutlinedTextField(
+                        value = selectedStyle,
+                        onValueChange = {},
+                        readOnly = true,
+                        placeholder = { Text(stringResource(R.string.auto_compile_style_placeholder)) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = AccentBlue,
+                            unfocusedBorderColor = DarkSurface,
+                            focusedTextColor = TextPrimary,
+                            unfocusedTextColor = TextPrimary
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    ExposedDropdownMenu(
+                        expanded = showStyleDropdown,
+                        onDismissRequest = { showStyleDropdown = false },
+                        modifier = Modifier.background(DarkSurface)
+                    ) {
+                        trainingStyleOptions.forEach { option ->
+                            DropdownMenuItem(
+                                text = { Text(option, color = TextPrimary) },
+                                onClick = {
+                                    selectedStyle = option
+                                    showStyleDropdown = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                Text(
+                    text = stringResource(R.string.intensita),
+                    color = TextSecondary,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium
+                )
+                ExposedDropdownMenuBox(
+                    expanded = showIntensityDropdown,
+                    onExpandedChange = { showIntensityDropdown = it }
+                ) {
+                    OutlinedTextField(
+                        value = selectedIntensity,
+                        onValueChange = {},
+                        readOnly = true,
+                        placeholder = { Text("Seleziona intensita") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = AccentBlue,
+                            unfocusedBorderColor = DarkSurface,
+                            focusedTextColor = TextPrimary,
+                            unfocusedTextColor = TextPrimary
+                        ),
+                        trailingIcon = {
+                            Icon(
+                                Icons.Default.Speed,
+                                contentDescription = null,
+                                tint = if (selectedIntensity.isNotBlank())
+                                    getIntensityColor(selectedIntensity)
+                                else TextSecondary
+                            )
+                        },
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    ExposedDropdownMenu(
+                        expanded = showIntensityDropdown,
+                        onDismissRequest = { showIntensityDropdown = false },
+                        modifier = Modifier.background(DarkSurface)
+                    ) {
+                        intensityOptions.forEach { option ->
+                            DropdownMenuItem(
+                                text = {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(8.dp)
+                                                .clip(CircleShape)
+                                                .background(getIntensityColor(option))
+                                        )
+                                        Spacer(modifier = Modifier.width(12.dp))
+                                        Text(option, color = TextPrimary)
+                                    }
+                                },
+                                onClick = {
+                                    selectedIntensity = option
+                                    showIntensityDropdown = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                Text(
+                    text = stringResource(R.string.select_muscle_groups_title),
+                    color = TextSecondary,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium
+                )
+
+                if (selectedGroups.isNotEmpty()) {
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        selectedGroups.forEach { group ->
+                            FilterChip(
+                                selected = true,
+                                onClick = {
+                                    selectedGroups = selectedGroups - group
+                                },
+                                label = { Text(group, fontSize = 12.sp) },
+                                leadingIcon = {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(8.dp)
+                                            .clip(CircleShape)
+                                            .background(getMuscleGroupColor(group))
+                                    )
+                                },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = getMuscleGroupColor(group).copy(alpha = 0.2f),
+                                    selectedLabelColor = TextPrimary
+                                )
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
+                OutlinedTextField(
+                    value = if (selectedGroups.isEmpty()) "" else "${selectedGroups.size} selezionati",
+                    onValueChange = {},
+                    readOnly = true,
+                    placeholder = { Text("Seleziona gruppi muscolari") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showMuscleGroupsSelector = !showMuscleGroupsSelector },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = AccentBlue,
+                        unfocusedBorderColor = DarkSurface,
+                        focusedTextColor = TextPrimary,
+                        unfocusedTextColor = TextPrimary,
+                        disabledTextColor = TextPrimary,
+                        disabledBorderColor = DarkSurface
+                    ),
+                    trailingIcon = {
+                        Icon(
+                            Icons.Default.FitnessCenter,
+                            contentDescription = null,
+                            tint = if (selectedGroups.isNotEmpty()) AccentGreen else TextSecondary
+                        )
+                    },
+                    enabled = false,
+                    shape = RoundedCornerShape(12.dp)
+                )
+
+                AnimatedVisibility(visible = showMuscleGroupsSelector) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 12.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(DarkSurface)
+                            .padding(12.dp)
+                    ) {
+                        FlowRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            muscleGroupOptions.forEach { group ->
+                                val isSelected = selectedGroups.contains(group)
+                                FilterChip(
+                                    selected = isSelected,
+                                    onClick = {
+                                        selectedGroups = if (isSelected) {
+                                            selectedGroups - group
+                                        } else {
+                                            selectedGroups + group
+                                        }
+                                    },
+                                    label = { Text(group, fontSize = 12.sp) },
+                                    leadingIcon = if (isSelected) {
+                                        {
+                                            Icon(
+                                                Icons.Default.Check,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        }
+                                    } else null,
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        containerColor = DarkCard,
+                                        labelColor = TextSecondary,
+                                        selectedContainerColor = getMuscleGroupColor(group).copy(alpha = 0.3f),
+                                        selectedLabelColor = TextPrimary,
+                                        selectedLeadingIconColor = AccentGreen
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    onConfirm(
+                        AutoCompileOptions(
+                            style = selectedStyle,
+                            intensity = selectedIntensity,
+                            muscleGroups = selectedGroups
+                        )
+                    )
+                },
+                enabled = canGenerate,
+                colors = ButtonDefaults.buttonColors(containerColor = AccentBlue)
+            ) {
+                Text(stringResource(R.string.auto_compile_generate))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.button_cancel), color = TextSecondary)
+            }
+        }
+    )
 }
 
 @Composable

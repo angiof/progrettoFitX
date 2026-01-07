@@ -56,6 +56,10 @@ class SchedeCreateActivity : ComponentActivity() {
         resources.getStringArray(R.array.equipment_options).toList()
     }
 
+    private val trainingStyleOptions by lazy {
+        resources.getStringArray(R.array.training_style_options).toList()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -70,6 +74,7 @@ class SchedeCreateActivity : ComponentActivity() {
                         intensityOptions = intensityOptions,
                         muscleGroupOptions = muscleGroupOptions,
                         equipmentOptions = equipmentOptions,
+                        trainingStyleOptions = trainingStyleOptions,
                         onFinish = { finish() }
                     )
                 }
@@ -92,6 +97,7 @@ private fun SchedeCreateNavHost(
     intensityOptions: List<String>,
     muscleGroupOptions: List<String>,
     equipmentOptions: List<String>,
+    trainingStyleOptions: List<String>,
     onFinish: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
@@ -107,40 +113,47 @@ private fun SchedeCreateNavHost(
         }
     }
 
-    when (state.currentStep) {
-        SchedeCreateStep.Form -> {
-            SchedeFormScreen(
-                formData = state.formData,
-                intensityOptions = intensityOptions,
-                muscleGroupOptions = muscleGroupOptions,
-                onFormDataChanged = { viewModel.updateFormData(it) },
-                onNext = { viewModel.navigateToEsercizi() },
-                onBack = { onFinish() }
-            )
-        }
+    androidx.compose.foundation.layout.Box(modifier = Modifier.fillMaxSize()) {
+        when (state.currentStep) {
+            SchedeCreateStep.Form -> {
+                SchedeFormScreen(
+                    formData = state.formData,
+                    intensityOptions = intensityOptions,
+                    muscleGroupOptions = muscleGroupOptions,
+                    trainingStyleOptions = trainingStyleOptions,
+                    isLoading = state.isLoading,
+                    errorMessage = state.errorMessage,
+                    onFormDataChanged = { viewModel.updateFormData(it) },
+                    onNext = { viewModel.navigateToEsercizi() },
+                    onAutoCompile = { viewModel.autoCompileScheda(it) },
+                    onDismissError = { viewModel.clearError() },
+                    onBack = { onFinish() }
+                )
+            }
 
-        SchedeCreateStep.Esercizi -> {
-            EsercissiListScreen(
-                esercizi = esercizi,
-                equipmentOptions = equipmentOptions,
-                onAddEsercizio = { viewModel.addEsercizio(it) },
-                onEditEsercizio = { viewModel.updateEsercizio(it) },
-                onDeleteEsercizio = { viewModel.deleteEsercizio(it) },
-                onNext = { viewModel.navigateToRiepilogo() },
-                onBack = { viewModel.navigateBack() }
-            )
-        }
-
-        SchedeCreateStep.Riepilogo -> {
-            state.schedeEntity?.let { scheda ->
-                RiepilogoScreen(
-                    scheda = scheda,
+            SchedeCreateStep.Esercizi -> {
+                EsercissiListScreen(
                     esercizi = esercizi,
-                    onSaveAndExit = { reminderTime ->
-                        viewModel.saveAndExit(reminderTime)
-                    },
+                    equipmentOptions = equipmentOptions,
+                    onAddEsercizio = { viewModel.addEsercizio(it) },
+                    onEditEsercizio = { viewModel.updateEsercizio(it) },
+                    onDeleteEsercizio = { viewModel.deleteEsercizio(it) },
+                    onNext = { viewModel.navigateToRiepilogo() },
                     onBack = { viewModel.navigateBack() }
                 )
+            }
+
+            SchedeCreateStep.Riepilogo -> {
+                state.schedeEntity?.let { scheda ->
+                    RiepilogoScreen(
+                        scheda = scheda,
+                        esercizi = esercizi,
+                        onSaveAndExit = { reminderTime ->
+                            viewModel.saveAndExit(reminderTime)
+                        },
+                        onBack = { viewModel.navigateBack() }
+                    )
+                }
             }
         }
     }

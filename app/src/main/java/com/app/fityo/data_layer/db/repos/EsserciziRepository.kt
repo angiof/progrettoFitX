@@ -15,6 +15,8 @@ class EsserciziRepository(private val daoEssercissi: DaoEssercissi) {
     //delate from id
     suspend fun delateFromId(id: Int) = daoEssercissi.deleteFromId(id = id)
 
+    suspend fun deleteBySchedaId(schedaId: Int) = daoEssercissi.deleteBySchedaId(schedaId)
+
     // Function to insert EsserciziEntit into the database
     fun getAllById(id: Int): LiveData<List<EsserciziEntity>> =
         daoEssercissi.getEssercissiBySchedaId(id)

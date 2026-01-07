@@ -256,6 +256,24 @@ class GemmaLlmHelper private constructor(
     }
 
     /**
+     * Genera una risposta testuale generica da un prompt.
+     * Utile per altri flussi IA che non usano OCR.
+     */
+    suspend fun generateResponse(prompt: String): Result<String> = withContext(Dispatchers.IO) {
+        if (_modelState.value != ModelState.Ready) {
+            return@withContext Result.failure(Exception("Modello non inizializzato"))
+        }
+
+        return@withContext try {
+            val response = llmInference?.generateResponse(prompt)
+                ?: return@withContext Result.failure(Exception("Nessuna risposta dal modello"))
+            Result.success(response)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
      * Costruisce il prompt ottimizzato per l'estrazione di esercizi.
      * Usa tecniche di prompt engineering per risultati consistenti.
      */

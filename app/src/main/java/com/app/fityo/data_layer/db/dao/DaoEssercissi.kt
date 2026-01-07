@@ -23,6 +23,8 @@ interface DaoEssercissi {
     @Query("DELETE FROM essercissi WHERE id = :id")
     suspend fun deleteFromId(id: Int)
 
+    @Query("DELETE FROM essercissi WHERE schedaId = :schedaId")
+    suspend fun deleteBySchedaId(schedaId: Int)
 
     @Query("SELECT COUNT(*) FROM essercissi WHERE schedaId = :id")
     suspend fun countEsserciziById(id: Int): Int
