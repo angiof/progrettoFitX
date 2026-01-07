@@ -28,3 +28,11 @@ local.properties
 
 # Room schemas
 app/schemas/
+
+# Large ML Model Files (Gemma LLM ~1.35GB)
+*.bin
+app/src/main/assets/gemma-2b-it-gpu-int4.bin
+app/src/main/assets/*.bin
+
+# Large TensorFlow/MediaPipe models
+app/src/main/assets/models/*.tflite

@@ -30,7 +30,8 @@ data class FitxFormat(
         val attrezzo: String,
         val peso: Float?,
         val recupero: Int?,
-        val isometria: Int?
+        val isometria: Int?,
+        val notes: String? = null // Note specifiche per esercizio
     )
 
     companion object {
@@ -55,7 +56,8 @@ data class FitxFormat(
                             attrezzo = esercizio.attrezzo,
                             peso = esercizio.peso,
                             recupero = esercizio.intervallo,
-                            isometria = esercizio.insometria
+                            isometria = esercizio.insometria,
+                            notes = esercizio.notes
                         )
                     }
                 )
@@ -92,6 +94,7 @@ data class FitxFormat(
                 esercizioJson.put("peso", esercizio.peso ?: JSONObject.NULL)
                 esercizioJson.put("recupero", esercizio.recupero ?: JSONObject.NULL)
                 esercizioJson.put("isometria", esercizio.isometria ?: JSONObject.NULL)
+                esercizioJson.put("notes", esercizio.notes ?: JSONObject.NULL)
                 eserciziArray.put(esercizioJson)
             }
             schedaJson.put("esercizi", eserciziArray)
@@ -131,7 +134,10 @@ data class FitxFormat(
                             recupero = if (esercizioJson.isNull("recupero")) null
                                        else esercizioJson.getInt("recupero"),
                             isometria = if (esercizioJson.isNull("isometria")) null
-                                        else esercizioJson.getInt("isometria")
+                                        else esercizioJson.getInt("isometria"),
+                            notes = if (esercizioJson.has("notes") && !esercizioJson.isNull("notes"))
+                                    esercizioJson.getString("notes")
+                                    else null
                         )
                     )
                 }

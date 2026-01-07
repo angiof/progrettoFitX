@@ -71,22 +71,45 @@ class ImageSegmenterHelper(
     /**
      * Crea una maschera bitmap dalla category mask.
      * La maschera ha pixel bianchi dove c'è la persona e trasparenti altrove.
+     * NOTA: Il modello SelfieSegmenter produce una maschera 256x256, quindi
+     * dobbiamo scalare i valori alle dimensioni dell'immagine originale.
      */
     fun createMaskBitmap(result: ImageSegmenterResult, width: Int, height: Int): Bitmap? {
         val categoryMask = result.categoryMask().orElse(null) ?: return null
 
         val byteBuffer = ByteBufferExtractor.extract(categoryMask)
-        val maskBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
 
+        // Dimensioni della maschera del modello (256x256 per SelfieSegmenter)
+        val maskWidth = categoryMask.width
+        val maskHeight = categoryMask.height
+
+        val maskBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val pixels = IntArray(width * height)
 
-        for (i in 0 until width * height) {
-            val category = byteBuffer.get(i).toInt() and 0xFF
-            // Category 1 = persona (foreground)
-            pixels[i] = if (category == PERSON_CATEGORY) {
-                Color.WHITE
-            } else {
-                Color.TRANSPARENT
+        // Scala dalla dimensione della maschera alle dimensioni dell'immagine
+        val scaleX = maskWidth.toFloat() / width.toFloat()
+        val scaleY = maskHeight.toFloat() / height.toFloat()
+
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+                // Mappa le coordinate dell'immagine alle coordinate della maschera
+                val maskX = (x * scaleX).toInt().coerceIn(0, maskWidth - 1)
+                val maskY = (y * scaleY).toInt().coerceIn(0, maskHeight - 1)
+                val maskIndex = maskY * maskWidth + maskX
+
+                val category = if (maskIndex < byteBuffer.capacity()) {
+                    byteBuffer.get(maskIndex).toInt() and 0xFF
+                } else {
+                    0
+                }
+
+                val pixelIndex = y * width + x
+                // Category 1 = persona (foreground)
+                pixels[pixelIndex] = if (category == PERSON_CATEGORY) {
+                    Color.WHITE
+                } else {
+                    Color.TRANSPARENT
+                }
             }
         }
 
@@ -108,25 +131,43 @@ class ImageSegmenterHelper(
         val height = originalBitmap.height
         val byteBuffer = ByteBufferExtractor.extract(categoryMask)
 
+        // Dimensioni della maschera del modello
+        val maskWidth = categoryMask.width
+        val maskHeight = categoryMask.height
+        val scaleX = maskWidth.toFloat() / width.toFloat()
+        val scaleY = maskHeight.toFloat() / height.toFloat()
+
         val ghostBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val originalPixels = IntArray(width * height)
         val ghostPixels = IntArray(width * height)
 
         originalBitmap.getPixels(originalPixels, 0, width, 0, 0, width, height)
 
-        for (i in 0 until width * height) {
-            val category = byteBuffer.get(i).toInt() and 0xFF
-            if (category == PERSON_CATEGORY) {
-                val originalColor = originalPixels[i]
-                // Applica alpha per semi-trasparenza
-                ghostPixels[i] = Color.argb(
-                    alpha,
-                    Color.red(originalColor),
-                    Color.green(originalColor),
-                    Color.blue(originalColor)
-                )
-            } else {
-                ghostPixels[i] = Color.TRANSPARENT
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+                val maskX = (x * scaleX).toInt().coerceIn(0, maskWidth - 1)
+                val maskY = (y * scaleY).toInt().coerceIn(0, maskHeight - 1)
+                val maskIndex = maskY * maskWidth + maskX
+
+                val category = if (maskIndex < byteBuffer.capacity()) {
+                    byteBuffer.get(maskIndex).toInt() and 0xFF
+                } else {
+                    0
+                }
+
+                val pixelIndex = y * width + x
+                if (category == PERSON_CATEGORY) {
+                    val originalColor = originalPixels[pixelIndex]
+                    // Applica alpha per semi-trasparenza
+                    ghostPixels[pixelIndex] = Color.argb(
+                        alpha,
+                        Color.red(originalColor),
+                        Color.green(originalColor),
+                        Color.blue(originalColor)
+                    )
+                } else {
+                    ghostPixels[pixelIndex] = Color.TRANSPARENT
+                }
             }
         }
 
@@ -144,18 +185,36 @@ class ImageSegmenterHelper(
         val height = bitmap.height
         val byteBuffer = ByteBufferExtractor.extract(categoryMask)
 
+        // Dimensioni della maschera del modello
+        val maskWidth = categoryMask.width
+        val maskHeight = categoryMask.height
+        val scaleX = maskWidth.toFloat() / width.toFloat()
+        val scaleY = maskHeight.toFloat() / height.toFloat()
+
         val maskedBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val originalPixels = IntArray(width * height)
         val maskedPixels = IntArray(width * height)
 
         bitmap.getPixels(originalPixels, 0, width, 0, 0, width, height)
 
-        for (i in 0 until width * height) {
-            val category = byteBuffer.get(i).toInt() and 0xFF
-            maskedPixels[i] = if (category == PERSON_CATEGORY) {
-                originalPixels[i]
-            } else {
-                Color.TRANSPARENT
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+                val maskX = (x * scaleX).toInt().coerceIn(0, maskWidth - 1)
+                val maskY = (y * scaleY).toInt().coerceIn(0, maskHeight - 1)
+                val maskIndex = maskY * maskWidth + maskX
+
+                val category = if (maskIndex < byteBuffer.capacity()) {
+                    byteBuffer.get(maskIndex).toInt() and 0xFF
+                } else {
+                    0
+                }
+
+                val pixelIndex = y * width + x
+                maskedPixels[pixelIndex] = if (category == PERSON_CATEGORY) {
+                    originalPixels[pixelIndex]
+                } else {
+                    Color.TRANSPARENT
+                }
             }
         }
 

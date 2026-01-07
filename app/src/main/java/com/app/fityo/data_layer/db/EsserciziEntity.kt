@@ -33,6 +33,8 @@ data class EsserciziEntity(
 
     @ColumnInfo(name = "completed") val completed: Boolean = false, // Stato completamento esercizio
 
+    @ColumnInfo(name = "notes") val notes: String? = null, // Note specifiche per esercizio
+
     @ColumnInfo(name = "schedaId") val schedaId: Int // Foreign Key
 ) : Serializable
 

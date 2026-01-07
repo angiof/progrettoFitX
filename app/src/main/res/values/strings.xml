@@ -379,4 +379,58 @@
     <string name="all_profiles">Tutti i profili</string>
     <string name="select_profile_title">Seleziona Profilo</string>
     <string name="no_profiles_available">Nessun profilo disponibile. Crea profili dal Coach Mode.</string>
+
+    <!-- Import Scheda Feature -->
+    <string name="import_options_title">Importa Scheda</string>
+    <string name="import_options_subtitle">Scegli come importare la tua scheda di allenamento</string>
+    <string name="import_option_fityo">Formato FitYo (.fitx)</string>
+    <string name="import_option_fityo_desc">Importa una scheda esportata da FitYo</string>
+    <string name="import_option_pdf">Documento PDF</string>
+    <string name="import_option_pdf_desc">Estrai esercizi da un PDF</string>
+    <string name="import_option_camera">Scansione Camera (OCR)</string>
+    <string name="import_option_camera_desc">Fotografa una scheda cartacea</string>
+    <string name="button_cancel">Annulla</string>
+
+    <!-- Camera OCR Import -->
+    <string name="import_camera_title">Importa da Foto</string>
+    <string name="import_camera_hint_title">Scansiona la tua scheda</string>
+    <string name="import_camera_hint_subtitle">Fotografa o seleziona un\'immagine di una scheda di allenamento per estrarre automaticamente gli esercizi</string>
+    <string name="import_camera_take_photo">Scatta Foto</string>
+    <string name="import_camera_from_gallery">Scegli dalla Galleria</string>
+    <string name="import_camera_tips_title">Consigli per migliori risultati</string>
+    <string name="import_camera_tip_1">Assicurati che il testo sia ben illuminato</string>
+    <string name="import_camera_tip_2">Mantieni la fotocamera ferma e parallela</string>
+    <string name="import_camera_tip_3">Formato tabellare: nome, serie x ripetizioni</string>
+
+    <!-- OCR Review Screen -->
+    <string name="import_review_title">Verifica i dati estratti</string>
+    <string name="import_review_valid">validi</string>
+    <string name="import_review_errors">da verificare</string>
+    <string name="import_review_scheda_title">Nome della scheda</string>
+    <string name="import_review_add_exercise">Aggiungi esercizio manualmente</string>
+    <string name="import_review_retake">Riprova</string>
+    <string name="exercise_name">Nome esercizio</string>
+    <string name="series">Serie</string>
+    <string name="repetitions">Ripetizioni</string>
+    <string name="weight_kg">Peso (kg)</string>
+    <string name="rest_time">Recupero (s)</string>
+    <string name="notes">Note</string>
+
+    <!-- Import Errors -->
+    <string name="import_error_title">Errore durante l\'importazione</string>
+    <string name="import_no_results_title">Nessun esercizio trovato</string>
+    <string name="import_no_results_subtitle">Prova con un\'immagine più chiara o con un formato diverso</string>
+
+    <!-- Profile Assignment Dialog -->
+    <string name="import_assign_profile_title">Assegna Scheda</string>
+    <string name="import_assign_profile_subtitle">A chi vuoi assegnare questa scheda?</string>
+    <string name="import_assign_personal">Scheda Personale</string>
+    <string name="import_assign_personal_desc">Aggiungi alle tue schede personali</string>
+    <string name="import_assign_coach_profiles">Atleti</string>
+
+    <!-- PDF Import -->
+    <string name="import_pdf_coming_soon">Importazione PDF sarà disponibile presto</string>
+    <string name="import_pdf_processing_hint">Estrazione testo da ogni pagina del PDF...</string>
+    <string name="import_pdf_review_title">Revisione PDF</string>
+    <string name="import_pdf_pages_found">%d pagine elaborate</string>
 </resources>

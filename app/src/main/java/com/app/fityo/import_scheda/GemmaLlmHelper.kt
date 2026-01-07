@@ -1,0 +1,470 @@
+package com.app.fityo.import_scheda
+
+import android.content.Context
+import android.util.Log
+import com.google.mediapipe.tasks.genai.llminference.LlmInference
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
+import org.json.JSONArray
+import org.json.JSONObject
+import java.io.File
+
+/**
+ * GemmaLlmHelper - Intelligenza artificiale on-device per correzione OCR
+ *
+ * Questa classe gestisce Gemma 2B per:
+ * - Correggere errori di riconoscimento OCR
+ * - Estrarre dati strutturati da testo grezzo
+ * - Validare esercizi con conoscenza del dominio fitness
+ * - Suggerire correzioni intelligenti
+ *
+ * Il modello gira completamente on-device (privacy-first).
+ *
+ * SETUP:
+ * 1. Scarica gemma-2b-it-gpu-int4.bin da Kaggle
+ * 2. Copia via ADB: adb push gemma-2b-it-gpu-int4.bin /data/local/tmp/llm/
+ */
+class GemmaLlmHelper private constructor(
+    private val context: Context
+) {
+    private var llmInference: LlmInference? = null
+    private var isLibraryAvailable = false
+
+    private val _modelState = MutableStateFlow<ModelState>(ModelState.NotLoaded)
+    val modelState: StateFlow<ModelState> = _modelState.asStateFlow()
+
+    private val _loadingProgress = MutableStateFlow(0f)
+    val loadingProgress: StateFlow<Float> = _loadingProgress.asStateFlow()
+
+    companion object {
+        private const val TAG = "GemmaLlmHelper"
+
+        // Nome del modello Gemma
+        private const val MODEL_NAME = "gemma-2b-it-gpu-int4.bin"
+
+        // Percorso per sviluppo via ADB
+        private const val EXTERNAL_MODEL_PATH = "/data/local/tmp/llm/gemma-2b-it-gpu-int4.bin"
+
+        // Parametri di inferenza ottimizzati per estrazione dati
+        private const val TEMPERATURE = 0.1f  // Basso = risposte deterministiche
+        private const val TOP_K = 20          // Limita la variabilità
+        private const val MAX_TOKENS = 1024   // Output massimo
+
+        @Volatile
+        private var INSTANCE: GemmaLlmHelper? = null
+
+        fun getInstance(context: Context): GemmaLlmHelper {
+            return INSTANCE ?: synchronized(this) {
+                INSTANCE ?: GemmaLlmHelper(context.applicationContext).also {
+                    INSTANCE = it
+                }
+            }
+        }
+
+        /**
+         * Verifica se la libreria MediaPipe GenAI è disponibile nel classpath
+         */
+        fun isLibraryAvailable(): Boolean {
+            return try {
+                Class.forName("com.google.mediapipe.tasks.genai.llminference.LlmInference")
+                true
+            } catch (e: ClassNotFoundException) {
+                false
+            }
+        }
+    }
+
+    init {
+        isLibraryAvailable = isLibraryAvailable()
+        if (!isLibraryAvailable) {
+            Log.w(TAG, "MediaPipe GenAI library not available. Gemma disabled.")
+            _modelState.value = ModelState.Error("Libreria Gemma non disponibile")
+        }
+    }
+
+    /**
+     * Stati del modello
+     */
+    sealed class ModelState {
+        data object NotLoaded : ModelState()
+        data class Loading(val progress: Float, val step: String) : ModelState()
+        data object Ready : ModelState()
+        data class Error(val message: String) : ModelState()
+    }
+
+    /**
+     * Risultato dell'analisi Gemma
+     */
+    data class GemmaExerciseResult(
+        val exercises: List<ParsedExercise>,
+        val rawResponse: String,
+        val processingTimeMs: Long,
+        val corrections: List<Correction>
+    )
+
+    data class ParsedExercise(
+        val name: String,
+        val sets: Int,
+        val reps: Int,
+        val weight: String?,
+        val rest: String?,
+        val notes: String?,
+        val confidence: Float,
+        val originalText: String
+    )
+
+    data class Correction(
+        val original: String,
+        val corrected: String,
+        val reason: String
+    )
+
+    /**
+     * Inizializza il modello Gemma.
+     * ATTENZIONE: Questa operazione richiede ~5-10 secondi e ~1.5GB di RAM.
+     */
+    suspend fun initializeModel(): Result<Unit> = withContext(Dispatchers.IO) {
+        if (!isLibraryAvailable) {
+            val error = "Libreria MediaPipe GenAI non disponibile."
+            _modelState.value = ModelState.Error(error)
+            return@withContext Result.failure(Exception(error))
+        }
+
+        try {
+            _modelState.value = ModelState.Loading(0f, "Cercando modello Gemma...")
+
+            // Trova il percorso del modello
+            val modelPath = findModelPath()
+            if (modelPath == null) {
+                val error = "Modello Gemma non trovato. Copia via ADB: adb push gemma-2b-it-gpu-int4.bin /data/local/tmp/llm/"
+                _modelState.value = ModelState.Error(error)
+                return@withContext Result.failure(Exception(error))
+            }
+
+            _modelState.value = ModelState.Loading(0.2f, "Caricando modello in memoria...")
+            Log.d(TAG, "Loading model from: $modelPath")
+
+            val options = LlmInference.LlmInferenceOptions.builder()
+                .setModelPath(modelPath)
+                .setMaxTokens(MAX_TOKENS)
+                .build()
+
+            _modelState.value = ModelState.Loading(0.5f, "Inizializzando inferenza...")
+            llmInference = LlmInference.createFromOptions(context, options)
+
+            _modelState.value = ModelState.Loading(0.9f, "Verifica modello...")
+            val testResult = llmInference?.generateResponse("Ciao")
+            if (testResult.isNullOrBlank()) {
+                throw Exception("Il modello non risponde correttamente")
+            }
+
+            _modelState.value = ModelState.Ready
+            Log.d(TAG, "Gemma model loaded successfully!")
+            Result.success(Unit)
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to initialize Gemma", e)
+            _modelState.value = ModelState.Error("Errore caricamento: ${e.message}")
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Trova il percorso del modello (varie posizioni possibili)
+     *
+     * NOTA: Il modello Gemma è troppo grande (1.35GB) per essere incluso
+     * negli assets dell'APK. Deve essere:
+     * - Copiato manualmente in /data/local/tmp/llm/ per sviluppo
+     * - Oppure scaricato dall'app nella sua directory files
+     */
+    private fun findModelPath(): String? {
+        // 1. Controlla storage ADB per sviluppo
+        val externalFile = File(EXTERNAL_MODEL_PATH)
+        if (externalFile.exists()) {
+            Log.d(TAG, "Found model in ADB path: ${externalFile.absolutePath}")
+            return externalFile.absolutePath
+        }
+
+        // 2. Controlla la directory files dell'app (per download runtime)
+        val appFilesPath = File(context.filesDir, "llm/$MODEL_NAME")
+        if (appFilesPath.exists()) {
+            Log.d(TAG, "Found model in app files: ${appFilesPath.absolutePath}")
+            return appFilesPath.absolutePath
+        }
+
+        // 3. Controlla external files dir (meno restrittivo)
+        val externalFilesPath = context.getExternalFilesDir(null)?.let {
+            File(it, "llm/$MODEL_NAME")
+        }
+        if (externalFilesPath?.exists() == true) {
+            Log.d(TAG, "Found model in external files: ${externalFilesPath.absolutePath}")
+            return externalFilesPath.absolutePath
+        }
+
+        // 4. Controlla se è negli assets (solo per modelli piccoli)
+        return try {
+            context.assets.open(MODEL_NAME).close()
+            Log.d(TAG, "Found model in assets")
+            "file:///android_asset/$MODEL_NAME"
+        } catch (e: Exception) {
+            Log.w(TAG, "Model not found. Copy to /data/local/tmp/llm/ or download to app files")
+            null
+        }
+    }
+
+    /**
+     * Analizza il testo OCR grezzo e restituisce esercizi strutturati.
+     * Questa è la funzione principale per l'integrazione con OCR.
+     */
+    suspend fun analyzeOcrText(rawOcrText: String): Result<GemmaExerciseResult> = withContext(Dispatchers.IO) {
+        if (_modelState.value != ModelState.Ready) {
+            return@withContext Result.failure(Exception("Modello non inizializzato"))
+        }
+
+        val startTime = System.currentTimeMillis()
+
+        try {
+            val prompt = buildExerciseExtractionPrompt(rawOcrText)
+            Log.d(TAG, "Sending prompt to Gemma:\n$prompt")
+
+            val response = llmInference?.generateResponse(prompt)
+                ?: return@withContext Result.failure(Exception("Nessuna risposta dal modello"))
+
+            Log.d(TAG, "Gemma response:\n$response")
+
+            val result = parseGemmaResponse(response, rawOcrText)
+            val processingTime = System.currentTimeMillis() - startTime
+
+            Result.success(
+                GemmaExerciseResult(
+                    exercises = result.first,
+                    rawResponse = response,
+                    processingTimeMs = processingTime,
+                    corrections = result.second
+                )
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Error analyzing OCR text", e)
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Costruisce il prompt ottimizzato per l'estrazione di esercizi.
+     * Usa tecniche di prompt engineering per risultati consistenti.
+     */
+    private fun buildExerciseExtractionPrompt(ocrText: String): String {
+        return """<start_of_turn>user
+Sei un esperto di fitness. Analizza questo testo OCR di una scheda di allenamento ed estrai gli esercizi in formato JSON.
+
+REGOLE IMPORTANTI:
+1. Correggi gli errori OCR comuni (es: "Squat 400kg" → probabilmente "40kg")
+2. Il formato serie è: "3x12" = 3 serie da 12 ripetizioni
+3. "5-3-2" = schema piramidale, 3 serie con 5,3,2 reps
+4. Recupero in formato "Rec.: 02.00" = 120 secondi
+5. Se un dato non è chiaro, lascialo null
+6. Restituisci SOLO il JSON, nessun altro testo
+
+SCHEMA JSON DA USARE:
+{
+  "exercises": [
+    {
+      "name": "Nome esercizio corretto",
+      "sets": numero_serie,
+      "reps": numero_ripetizioni,
+      "weight": "peso in kg o null",
+      "rest": "recupero in secondi o null",
+      "notes": "note aggiuntive o null",
+      "original": "testo originale OCR"
+    }
+  ],
+  "corrections": [
+    {
+      "original": "testo errato",
+      "corrected": "testo corretto",
+      "reason": "motivo correzione"
+    }
+  ]
+}
+
+TESTO OCR DA ANALIZZARE:
+$ocrText
+
+<start_of_turn>model
+"""
+    }
+
+    /**
+     * Parse della risposta JSON di Gemma
+     */
+    private fun parseGemmaResponse(
+        response: String,
+        originalText: String
+    ): Pair<List<ParsedExercise>, List<Correction>> {
+        val exercises = mutableListOf<ParsedExercise>()
+        val corrections = mutableListOf<Correction>()
+
+        try {
+            // Estrai il JSON dalla risposta (potrebbe avere testo extra)
+            val jsonMatch = Regex("""\{[\s\S]*\}""").find(response)
+            val jsonString = jsonMatch?.value ?: return Pair(exercises, corrections)
+
+            val json = JSONObject(jsonString)
+
+            // Parse exercises
+            val exercisesArray = json.optJSONArray("exercises") ?: JSONArray()
+            for (i in 0 until exercisesArray.length()) {
+                val ex = exercisesArray.getJSONObject(i)
+                exercises.add(
+                    ParsedExercise(
+                        name = ex.optString("name", ""),
+                        sets = ex.optInt("sets", 0),
+                        reps = ex.optInt("reps", 0),
+                        weight = ex.optString("weight").takeIf { it.isNotBlank() && it != "null" },
+                        rest = ex.optString("rest").takeIf { it.isNotBlank() && it != "null" },
+                        notes = ex.optString("notes").takeIf { it.isNotBlank() && it != "null" },
+                        confidence = 0.95f, // Alta confidenza per Gemma
+                        originalText = ex.optString("original", "")
+                    )
+                )
+            }
+
+            // Parse corrections
+            val correctionsArray = json.optJSONArray("corrections") ?: JSONArray()
+            for (i in 0 until correctionsArray.length()) {
+                val corr = correctionsArray.getJSONObject(i)
+                corrections.add(
+                    Correction(
+                        original = corr.optString("original", ""),
+                        corrected = corr.optString("corrected", ""),
+                        reason = corr.optString("reason", "")
+                    )
+                )
+            }
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error parsing Gemma JSON response", e)
+            // Fallback: prova a estrarre con regex
+            exercises.addAll(fallbackParsing(response))
+        }
+
+        return Pair(exercises, corrections)
+    }
+
+    /**
+     * Parsing di fallback se il JSON non è valido
+     */
+    private fun fallbackParsing(response: String): List<ParsedExercise> {
+        val exercises = mutableListOf<ParsedExercise>()
+
+        // Pattern per estrarre esercizi dalla risposta testuale
+        val exercisePattern = Regex(
+            """(?:name|esercizio)["\s:]+([^",\n]+)[",\s]+.*?(?:sets|serie)["\s:]+(\d+).*?(?:reps|ripetizioni)["\s:]+(\d+)""",
+            RegexOption.IGNORE_CASE
+        )
+
+        exercisePattern.findAll(response).forEach { match ->
+            val name = match.groupValues[1].trim()
+            val sets = match.groupValues[2].toIntOrNull() ?: 0
+            val reps = match.groupValues[3].toIntOrNull() ?: 0
+
+            if (name.isNotBlank() && sets > 0 && reps > 0) {
+                exercises.add(
+                    ParsedExercise(
+                        name = name,
+                        sets = sets,
+                        reps = reps,
+                        weight = null,
+                        rest = null,
+                        notes = null,
+                        confidence = 0.7f,
+                        originalText = match.value
+                    )
+                )
+            }
+        }
+
+        return exercises
+    }
+
+    /**
+     * Genera risposta in streaming (per UI più reattiva)
+     */
+    fun analyzeOcrTextStreaming(rawOcrText: String): Flow<String> = flow {
+        if (_modelState.value != ModelState.Ready) {
+            emit("Errore: Modello non inizializzato")
+            return@flow
+        }
+
+        val prompt = buildExerciseExtractionPrompt(rawOcrText)
+        val response = llmInference?.generateResponse(prompt) ?: ""
+        emit(response)
+
+    }.flowOn(Dispatchers.IO)
+
+    /**
+     * Verifica se il modello è pronto
+     */
+    fun isReady(): Boolean = _modelState.value == ModelState.Ready
+
+    /**
+     * Verifica se il modello è disponibile (file esiste in una delle posizioni)
+     */
+    fun isModelAvailable(): Boolean {
+        if (!isLibraryAvailable) return false
+
+        // Check all possible locations
+        if (File(EXTERNAL_MODEL_PATH).exists()) return true
+        if (File(context.filesDir, "llm/$MODEL_NAME").exists()) return true
+        context.getExternalFilesDir(null)?.let {
+            if (File(it, "llm/$MODEL_NAME").exists()) return true
+        }
+
+        return try {
+            context.assets.open(MODEL_NAME).close()
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    /**
+     * Restituisce il percorso consigliato per copiare il modello
+     */
+    fun getRecommendedModelPath(): String {
+        return context.getExternalFilesDir(null)?.let {
+            File(it, "llm/$MODEL_NAME").absolutePath
+        } ?: File(context.filesDir, "llm/$MODEL_NAME").absolutePath
+    }
+
+    /**
+     * Rilascia le risorse
+     */
+    fun close() {
+        llmInference?.close()
+        llmInference = null
+        _modelState.value = ModelState.NotLoaded
+        INSTANCE = null
+    }
+
+    /**
+     * Ottiene informazioni sul modello
+     */
+    fun getModelInfo(): String {
+        return """
+            |Modello: Gemma 2B IT (INT4 Quantized)
+            |Dimensione: ~1.35 GB
+            |Temperature: $TEMPERATURE
+            |TopK: $TOP_K
+            |Max Tokens: $MAX_TOKENS
+            |Stato: ${_modelState.value}
+            |Libreria disponibile: $isLibraryAvailable
+        """.trimMargin()
+    }
+}

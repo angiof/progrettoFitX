@@ -5,6 +5,17 @@ plugins {
     id 'kotlin-kapt'
     id 'androidx.navigation.safeargs.kotlin'
 }
+// Force JDK 21 for all Kotlin compilation including KAPT
+kotlin {
+    jvmToolchain(21)
+}
+
+kapt {
+    javacOptions {
+        option("-source", "21")
+        option("-target", "21")
+    }
+}
 
 android {
     namespace 'com.app.fityo'
@@ -47,12 +58,12 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
     }
 
     kotlinOptions {
-        jvmTarget = '17'
+        jvmTarget = '21'
     }
 
     buildFeatures {
@@ -66,6 +77,12 @@ android {
 
     packagingOptions {
         exclude 'META-INF/atomicfu.kotlin_module'
+    }
+
+    // IMPORTANTE: Disattiva la compressione per i modelli Gemma LLM
+    // Il file .bin da 1.35GB deve rimanere non compresso per MediaPipe
+    aaptOptions {
+        noCompress "bin", "tflite", "task"
     }
 }
 
@@ -166,5 +183,12 @@ dependencies {
 
     // Math utilities for 3D transformations
     implementation 'dev.romainguy:kotlin-math:1.5.3'
+
+    // ML Kit Text Recognition (OCR per importazione schede)
+    implementation 'com.google.mlkit:text-recognition:16.0.0'
+
+    // MediaPipe GenAI - Gemma LLM per correzione intelligente OCR
+    // NOTA: Richiede JDK 21. Installa JDK 21 e poi decommenta.
+    implementation 'com.google.mediapipe:tasks-genai:0.10.22'
 }
 

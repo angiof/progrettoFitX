@@ -119,6 +119,7 @@ import com.app.fityo.utils.PdfExporter
 import com.app.fityo.utils.ShareUtils
 import com.app.fityo.utils.FitxFormat
 import com.app.fityo.utils.FitxImportExport
+import com.app.fityo.import_scheda.ImportSchedaActivity
 import android.net.Uri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -150,32 +151,13 @@ class SchedeListActivity : ComponentActivity() {
         }
     }
 
-    private var pendingImportUri: Uri? = null
-    private var showImportPreview by mutableStateOf(false)
-    private var importedFitx: FitxFormat? = null
-
-    private val filePickerLauncher = registerForActivityResult(
-        ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let {
-            pendingImportUri = it
-            handleFileImport(it)
-        }
-    }
-
-    private fun handleFileImport(uri: Uri) {
-        lifecycleScope.launch {
-            val result = FitxImportExport.importScheda(this@SchedeListActivity, uri)
-            result.onSuccess { fitx ->
-                importedFitx = fitx
-                showImportPreview = true
-            }.onFailure { error ->
-                Toast.makeText(
-                    this@SchedeListActivity,
-                    getString(R.string.toast_import_error, error.message ?: ""),
-                    Toast.LENGTH_LONG
-                ).show()
-            }
+    // Launcher per ImportSchedaActivity
+    private val importSchedaLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            // Ricarica le schede dopo l'importazione
+            schedeViewModel.loadSchede()
         }
     }
 
@@ -217,62 +199,13 @@ class SchedeListActivity : ComponentActivity() {
                         )
                     },
                     onImportScheda = {
-                        filePickerLauncher.launch("*/*")
+                        // Apri la nuova ImportSchedaActivity con le 3 opzioni
+                        importSchedaLauncher.launch(
+                            Intent(this@SchedeListActivity, ImportSchedaActivity::class.java)
+                        )
                     }
                 )
-
-                // Dialog anteprima importazione
-                if (showImportPreview && importedFitx != null) {
-                    ImportPreviewDialog(
-                        fitxFormat = importedFitx!!,
-                        onDismiss = {
-                            showImportPreview = false
-                            importedFitx = null
-                        },
-                        onConfirm = { fitx ->
-                            lifecycleScope.launch {
-                                importSchedaToDatabase(fitx)
-                                showImportPreview = false
-                                importedFitx = null
-                            }
-                        }
-                    )
-                }
             }
-        }
-    }
-
-    private suspend fun importSchedaToDatabase(fitx: FitxFormat) {
-        val (schedaEntity, eserciziList) = FitxFormat.toEntities(fitx)
-
-        withContext(Dispatchers.IO) {
-            val schedeDao = DbFit.getDatabase(application).schedeDao()
-            val eserciziDao = DbFit.getDatabase(application).essercissiDao()
-
-            val schedaId = schedeDao.insert(schedaEntity)
-
-            eserciziList.forEach { fitxEsercizio ->
-                val esercizio = EsserciziEntity(
-                    nome = fitxEsercizio.nome,
-                    nSerie = fitxEsercizio.serie,
-                    nRipetizione = fitxEsercizio.ripetizioni,
-                    attrezzo = fitxEsercizio.attrezzo,
-                    peso = fitxEsercizio.peso,
-                    intervallo = fitxEsercizio.recupero,
-                    insometria = fitxEsercizio.isometria,
-                    schedaId = schedaId.toInt()
-                )
-                eserciziDao.insert(esercizio)
-            }
-        }
-
-        withContext(Dispatchers.Main) {
-            Toast.makeText(
-                this@SchedeListActivity,
-                getString(R.string.toast_import_success),
-                Toast.LENGTH_SHORT
-            ).show()
-            schedeViewModel.loadSchede()
         }
     }
 

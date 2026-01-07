@@ -39,7 +39,7 @@ import com.app.fityo.data_layer.db.dao.DaoCoachAppointment
         CoachProfileEntity::class,
         CoachAppointmentEntity::class
     ],
-    version = 11
+    version = 12
 )
 @TypeConverters(Converters::class)
 
@@ -248,6 +248,13 @@ abstract class DbFit : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_11_12 = object : Migration(11, 12) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Aggiungi campo notes agli esercizi per note specifiche
+                database.execSQL("ALTER TABLE essercissi ADD COLUMN notes TEXT DEFAULT NULL")
+            }
+        }
+
         fun getDatabase(context: Context): DbFit {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -255,7 +262,7 @@ abstract class DbFit : RoomDatabase() {
                     DbFit::class.java,
                     "dbFit"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12)
                     .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance
