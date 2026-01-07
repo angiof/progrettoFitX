@@ -1,0 +1,386 @@
+{
+  "version": "1.0",
+  "exercises": {
+    "SQUAT": {
+      "displayName": "Squat",
+      "description": "Esercizio fondamentale per gambe e glutei",
+      "checkpoints": {
+        "knee_angle": {
+          "joint": "knee",
+          "description": "Angolo ginocchio al punto più basso",
+          "thresholds": {
+            "perfect": { "max": 90, "message": "Profondità perfetta!", "severity": "NONE" },
+            "good": { "max": 100, "message": "Quasi al parallelo!", "severity": "SUGGESTION" },
+            "acceptable": { "max": 110, "message": "Profondità insufficiente", "severity": "WARNING" },
+            "insufficient": { "max": 120, "message": "Scendi di più!", "severity": "ERROR" },
+            "critical": { "max": 180, "message": "Profondità molto insufficiente", "severity": "CRITICAL" }
+          },
+          "correctionHints": {
+            "SUGGESTION": "Ottimo! Sei molto vicino. Solo qualche centimetro in più per la perfezione!",
+            "WARNING": "Buon inizio! Scendi ancora un po' per raggiungere il parallelo.",
+            "ERROR": "Prova a scendere di più! L'obiettivo è portare le cosce parallele al suolo.",
+            "CRITICAL": "Concentrati sulla profondità. Prova con un peso minore per migliorare il ROM."
+          }
+        },
+        "back_angle": {
+          "joint": "back",
+          "description": "Inclinazione schiena rispetto alla verticale",
+          "thresholds": {
+            "perfect": { "max": 30, "message": "Schiena perfetta!", "severity": "NONE" },
+            "good": { "max": 40, "message": "Quasi perfetto!", "severity": "SUGGESTION" },
+            "acceptable": { "max": 50, "message": "Schiena inclinata", "severity": "WARNING" },
+            "excessive": { "max": 60, "message": "Schiena troppo inclinata", "severity": "ERROR" },
+            "critical": { "max": 90, "message": "Schiena eccessivamente inclinata", "severity": "CRITICAL" }
+          },
+          "correctionHints": {
+            "SUGGESTION": "Ottimo lavoro! Prova a tenere il petto ancora più alto per migliorare.",
+            "WARNING": "Cerca di mantenere la schiena più dritta. Petto in fuori!",
+            "ERROR": "Attenzione alla schiena! Mantieni il petto alto e guarda avanti.",
+            "CRITICAL": "Stop! Rischio infortunio. Riduci il peso e concentrati sulla postura."
+          }
+        },
+        "knee_valgus": {
+          "joint": "knees",
+          "description": "Ginocchia che cedono verso l'interno",
+          "thresholds": {
+            "perfect": { "ratio": 1.0, "message": "Ginocchia allineate!", "severity": "NONE" },
+            "acceptable": { "ratio": 0.9, "message": "Leggero valgus", "severity": "SUGGESTION" },
+            "warning": { "ratio": 0.85, "message": "Ginocchia verso l'interno", "severity": "WARNING" },
+            "error": { "ratio": 0.75, "message": "Valgus pronunciato", "severity": "ERROR" }
+          },
+          "correctionHints": {
+            "SUGGESTION": "Spingi leggermente le ginocchia verso l'esterno.",
+            "WARNING": "Attiva i glutei e spingi le ginocchia fuori, in linea con le punte.",
+            "ERROR": "Fermati e correggi! Le ginocchia devono seguire la direzione dei piedi."
+          }
+        },
+        "heels": {
+          "joint": "feet",
+          "description": "Talloni a terra",
+          "thresholds": {
+            "grounded": { "lifted": false, "message": "Talloni a terra", "severity": "NONE" },
+            "raised": { "lifted": true, "message": "Talloni sollevati", "severity": "WARNING" }
+          },
+          "correctionHints": {
+            "WARNING": "Tieni i talloni ben piantati a terra. Sposta il peso sui talloni."
+          }
+        }
+      }
+    },
+    "BENCH_PRESS": {
+      "displayName": "Panca Piana",
+      "description": "Esercizio fondamentale per pettorali, spalle e tricipiti",
+      "checkpoints": {
+        "elbow_angle": {
+          "joint": "elbow",
+          "description": "Angolo gomito al punto più basso (ROM)",
+          "thresholds": {
+            "perfect": { "max": 90, "message": "ROM completo!", "severity": "NONE" },
+            "good": { "max": 100, "message": "Quasi al petto!", "severity": "SUGGESTION" },
+            "acceptable": { "max": 110, "message": "ROM limitato", "severity": "WARNING" },
+            "insufficient": { "max": 120, "message": "Scendi di più", "severity": "ERROR" }
+          },
+          "correctionHints": {
+            "SUGGESTION": "Ottimo! Prova a portare il bilanciere ancora più vicino al petto.",
+            "WARNING": "Aumenta il range of motion. Il bilanciere dovrebbe toccare il petto.",
+            "ERROR": "ROM troppo limitato. Riduci il peso e lavora sulla mobilità."
+          }
+        },
+        "elbow_flare": {
+          "joint": "elbows",
+          "description": "Angolo gomiti rispetto al busto (45-75° ideale)",
+          "thresholds": {
+            "perfect": { "min": 45, "max": 75, "message": "Angolo gomiti perfetto!", "severity": "NONE" },
+            "wide": { "min": 75, "max": 85, "message": "Gomiti leggermente larghi", "severity": "SUGGESTION" },
+            "tooWide": { "min": 85, "max": 90, "message": "Gomiti troppo larghi", "severity": "WARNING" },
+            "dangerous": { "min": 90, "max": 180, "message": "Posizione pericolosa!", "severity": "ERROR" }
+          },
+          "correctionHints": {
+            "SUGGESTION": "Prova a tenere i gomiti un po' più vicini al corpo.",
+            "WARNING": "Gomiti troppo aperti. Rischio per le spalle. Portali a 45-75°.",
+            "ERROR": "Stop! Gomiti a 90° = stress articolare. Riposizionati."
+          }
+        },
+        "wrist_alignment": {
+          "joint": "wrists",
+          "description": "Polsi dritti sopra i gomiti",
+          "thresholds": {
+            "aligned": { "deviation": 10, "message": "Polsi allineati", "severity": "NONE" },
+            "slight": { "deviation": 20, "message": "Polsi leggermente piegati", "severity": "SUGGESTION" },
+            "bent": { "deviation": 30, "message": "Polsi piegati", "severity": "WARNING" }
+          },
+          "correctionHints": {
+            "SUGGESTION": "Cerca di mantenere i polsi più dritti.",
+            "WARNING": "Polsi piegati = meno forza e rischio infortunio. Raddrizzali!"
+          }
+        },
+        "bar_path": {
+          "joint": "wrists_shoulders",
+          "description": "Traiettoria bilanciere (J-curve ideale)",
+          "thresholds": {
+            "correct": { "drift": 0.05, "message": "Traiettoria corretta", "severity": "NONE" },
+            "acceptable": { "drift": 0.1, "message": "Traiettoria OK", "severity": "SUGGESTION" },
+            "drifting": { "drift": 0.15, "message": "Bilanciere fuori traiettoria", "severity": "WARNING" }
+          },
+          "correctionHints": {
+            "SUGGESTION": "Ottima traiettoria! Piccolo margine di miglioramento.",
+            "WARNING": "Il bilanciere si sposta troppo. Mantieni una traiettoria più verticale."
+          }
+        },
+        "lockout": {
+          "joint": "elbow",
+          "description": "Estensione completa in alto",
+          "thresholds": {
+            "complete": { "min": 170, "message": "Lockout completo!", "severity": "NONE" },
+            "almost": { "min": 160, "message": "Quasi esteso", "severity": "SUGGESTION" },
+            "incomplete": { "min": 150, "message": "Lockout incompleto", "severity": "WARNING" }
+          },
+          "correctionHints": {
+            "SUGGESTION": "Spingi fino all'estensione completa delle braccia.",
+            "WARNING": "Estendi completamente le braccia per completare la rep."
+          }
+        }
+      }
+    },
+    "DEADLIFT": {
+      "displayName": "Stacco da Terra",
+      "description": "Esercizio fondamentale per schiena, glutei e femorali",
+      "checkpoints": {
+        "back_angle": {
+          "joint": "back",
+          "description": "Schiena dritta durante il movimento",
+          "thresholds": {
+            "neutral": { "curve": 10, "message": "Schiena neutra!", "severity": "NONE" },
+            "slight": { "curve": 15, "message": "Leggera curvatura", "severity": "SUGGESTION" },
+            "rounded": { "curve": 20, "message": "Schiena arrotondata", "severity": "WARNING" },
+            "dangerous": { "curve": 30, "message": "Schiena molto arrotondata!", "severity": "CRITICAL" }
+          },
+          "correctionHints": {
+            "SUGGESTION": "Quasi perfetto! Attiva ancora di più i dorsali.",
+            "WARNING": "Attenzione alla schiena! Petto in fuori, spalle indietro.",
+            "CRITICAL": "STOP! Schiena troppo curva = rischio ernia. Riduci il peso."
+          }
+        },
+        "hip_hinge": {
+          "joint": "hip",
+          "description": "Angolo anca durante hip hinge",
+          "thresholds": {
+            "perfect": { "min": 80, "max": 110, "message": "Hip hinge perfetto!", "severity": "NONE" },
+            "acceptable": { "min": 70, "max": 120, "message": "Hip hinge OK", "severity": "SUGGESTION" },
+            "incorrect": { "min": 60, "max": 130, "message": "Hip hinge errato", "severity": "WARNING" }
+          },
+          "correctionHints": {
+            "SUGGESTION": "Buon movimento! Prova a spingere ancora di più i fianchi indietro.",
+            "WARNING": "Usa di più le anche! Spingi il sedere indietro come se ti sedessi."
+          }
+        },
+        "bar_path": {
+          "joint": "bar",
+          "description": "Bilanciere vicino al corpo",
+          "thresholds": {
+            "close": { "distance": 0.05, "message": "Bilanciere vicino!", "severity": "NONE" },
+            "acceptable": { "distance": 0.1, "message": "Bilanciere OK", "severity": "SUGGESTION" },
+            "far": { "distance": 0.15, "message": "Bilanciere lontano", "severity": "WARNING" }
+          },
+          "correctionHints": {
+            "SUGGESTION": "Prova a tenere il bilanciere ancora più vicino alle gambe.",
+            "WARNING": "Il bilanciere deve quasi sfiorare le gambe. Mantienilo vicino!"
+          }
+        },
+        "lockout": {
+          "joint": "hips_knees",
+          "description": "Estensione completa in alto",
+          "thresholds": {
+            "complete": { "hipAngle": 175, "kneeAngle": 175, "message": "Lockout completo!", "severity": "NONE" },
+            "almost": { "hipAngle": 165, "kneeAngle": 165, "message": "Quasi esteso", "severity": "SUGGESTION" },
+            "incomplete": { "hipAngle": 155, "kneeAngle": 155, "message": "Lockout incompleto", "severity": "WARNING" }
+          },
+          "correctionHints": {
+            "SUGGESTION": "Spingi i fianchi in avanti per completare il lockout.",
+            "WARNING": "Estendi completamente fianchi e ginocchia in cima."
+          }
+        },
+        "knee_position": {
+          "joint": "knees",
+          "description": "Ginocchia non oltre le punte",
+          "thresholds": {
+            "correct": { "forward": false, "message": "Ginocchia OK", "severity": "NONE" },
+            "forward": { "forward": true, "message": "Ginocchia troppo avanti", "severity": "WARNING" }
+          },
+          "correctionHints": {
+            "WARNING": "Le ginocchia stanno andando troppo avanti. Spingi i fianchi indietro."
+          }
+        }
+      }
+    },
+    "LUNGES": {
+      "displayName": "Affondi",
+      "description": "Esercizio unilaterale per gambe e glutei",
+      "checkpoints": {
+        "front_knee_angle": {
+          "joint": "front_knee",
+          "description": "Angolo ginocchio anteriore (90° ideale)",
+          "thresholds": {
+            "perfect": { "min": 85, "max": 95, "message": "Angolo perfetto!", "severity": "NONE" },
+            "good": { "min": 80, "max": 100, "message": "Angolo buono", "severity": "SUGGESTION" },
+            "acceptable": { "min": 70, "max": 110, "message": "Angolo da correggere", "severity": "WARNING" },
+            "incorrect": { "min": 0, "max": 180, "message": "Angolo errato", "severity": "ERROR" }
+          },
+          "correctionHints": {
+            "SUGGESTION": "Ottimo! Cerca di mantenere il ginocchio esattamente a 90°.",
+            "WARNING": "Il ginocchio anteriore dovrebbe formare un angolo di 90°.",
+            "ERROR": "Correggi la posizione! Il ginocchio deve essere sopra la caviglia."
+          }
+        },
+        "back_knee_height": {
+          "joint": "back_knee",
+          "description": "Ginocchio posteriore vicino al suolo",
+          "thresholds": {
+            "low": { "height": 0.1, "message": "Profondità ottima!", "severity": "NONE" },
+            "medium": { "height": 0.15, "message": "Scendi un po' di più", "severity": "SUGGESTION" },
+            "high": { "height": 0.2, "message": "Ginocchio troppo alto", "severity": "WARNING" }
+          },
+          "correctionHints": {
+            "SUGGESTION": "Quasi perfetto! Il ginocchio posteriore dovrebbe quasi toccare terra.",
+            "WARNING": "Scendi di più! Il ginocchio posteriore deve avvicinarsi al suolo."
+          }
+        },
+        "torso_vertical": {
+          "joint": "torso",
+          "description": "Busto verticale durante l'affondo",
+          "thresholds": {
+            "vertical": { "angle": 10, "message": "Busto perfetto!", "severity": "NONE" },
+            "slight": { "angle": 20, "message": "Leggera inclinazione", "severity": "SUGGESTION" },
+            "tilted": { "angle": 30, "message": "Busto inclinato", "severity": "WARNING" }
+          },
+          "correctionHints": {
+            "SUGGESTION": "Prova a mantenere il busto ancora più dritto.",
+            "WARNING": "Mantieni il busto verticale! Non inclinarlo in avanti."
+          }
+        },
+        "hip_symmetry": {
+          "joint": "hips",
+          "description": "Anche allineate (no rotazione)",
+          "thresholds": {
+            "aligned": { "difference": 5, "message": "Anche allineate!", "severity": "NONE" },
+            "slight": { "difference": 10, "message": "Leggera asimmetria", "severity": "SUGGESTION" },
+            "asymmetric": { "difference": 15, "message": "Anche asimmetriche", "severity": "WARNING" }
+          },
+          "correctionHints": {
+            "SUGGESTION": "Cerca di mantenere le anche più squadrate.",
+            "WARNING": "Le anche devono rimanere allineate. Non ruotare il bacino."
+          }
+        }
+      }
+    },
+    "BICEP_CURL": {
+      "displayName": "Curl Bicipiti",
+      "description": "Esercizio di isolamento per i bicipiti",
+      "checkpoints": {
+        "elbow_position": {
+          "joint": "elbow",
+          "description": "Gomito fermo vicino al fianco",
+          "thresholds": {
+            "fixed": { "movement": 0.03, "message": "Gomito fermo!", "severity": "NONE" },
+            "slight": { "movement": 0.06, "message": "Leggero movimento", "severity": "SUGGESTION" },
+            "moving": { "movement": 0.1, "message": "Gomito che si muove", "severity": "WARNING" }
+          },
+          "correctionHints": {
+            "SUGGESTION": "Cerca di tenere il gomito ancora più fermo.",
+            "WARNING": "Il gomito non deve muoversi! Tienilo attaccato al fianco."
+          }
+        },
+        "full_extension": {
+          "joint": "elbow",
+          "description": "Estensione completa in basso",
+          "thresholds": {
+            "complete": { "min": 160, "message": "Estensione completa!", "severity": "NONE" },
+            "partial": { "min": 140, "message": "Estensione parziale", "severity": "SUGGESTION" },
+            "incomplete": { "min": 120, "message": "Non estendi abbastanza", "severity": "WARNING" }
+          },
+          "correctionHints": {
+            "SUGGESTION": "Distendi completamente il braccio per il massimo ROM.",
+            "WARNING": "Distendi completamente le braccia prima di ogni ripetizione!"
+          }
+        },
+        "full_contraction": {
+          "joint": "elbow",
+          "description": "Contrazione completa in alto",
+          "thresholds": {
+            "complete": { "max": 40, "message": "Contrazione completa!", "severity": "NONE" },
+            "partial": { "max": 50, "message": "Quasi al top", "severity": "SUGGESTION" },
+            "incomplete": { "max": 60, "message": "Contrai di più", "severity": "WARNING" }
+          },
+          "correctionHints": {
+            "SUGGESTION": "Stringi ancora di più in cima al movimento.",
+            "WARNING": "Porta il peso più in alto per una contrazione completa!"
+          }
+        },
+        "body_swing": {
+          "joint": "torso",
+          "description": "Corpo fermo (no slancio)",
+          "thresholds": {
+            "stable": { "swing": 5, "message": "Corpo stabile!", "severity": "NONE" },
+            "slight": { "swing": 10, "message": "Leggero movimento", "severity": "SUGGESTION" },
+            "swinging": { "swing": 20, "message": "Troppo slancio!", "severity": "WARNING" }
+          },
+          "correctionHints": {
+            "SUGGESTION": "Cerca di usare meno slancio del corpo.",
+            "WARNING": "Non usare lo slancio! Il lavoro deve essere solo dei bicipiti."
+          }
+        }
+      }
+    },
+    "SHOULDER_PRESS": {
+      "displayName": "Shoulder Press",
+      "description": "Esercizio fondamentale per le spalle",
+      "checkpoints": {
+        "elbow_angle_bottom": {
+          "joint": "elbow",
+          "description": "Angolo gomito in basso (90° ideale)",
+          "thresholds": {
+            "perfect": { "min": 85, "max": 95, "message": "Posizione partenza perfetta!", "severity": "NONE" },
+            "good": { "min": 80, "max": 100, "message": "Buona posizione", "severity": "SUGGESTION" },
+            "wide": { "min": 70, "max": 110, "message": "Gomiti fuori posizione", "severity": "WARNING" }
+          },
+          "correctionHints": {
+            "SUGGESTION": "Cerca di partire con i gomiti esattamente a 90°.",
+            "WARNING": "I gomiti devono essere a 90° nella posizione di partenza."
+          }
+        },
+        "lockout": {
+          "joint": "elbow",
+          "description": "Estensione completa sopra la testa",
+          "thresholds": {
+            "complete": { "min": 170, "message": "Lockout completo!", "severity": "NONE" },
+            "almost": { "min": 160, "message": "Quasi esteso", "severity": "SUGGESTION" },
+            "incomplete": { "min": 150, "message": "Non estendi abbastanza", "severity": "WARNING" }
+          },
+          "correctionHints": {
+            "SUGGESTION": "Spingi fino all'estensione completa.",
+            "WARNING": "Estendi completamente le braccia sopra la testa!"
+          }
+        },
+        "back_arch": {
+          "joint": "spine",
+          "description": "Schiena non iperestesa",
+          "thresholds": {
+            "neutral": { "arch": 10, "message": "Schiena neutra!", "severity": "NONE" },
+            "slight": { "arch": 20, "message": "Leggera curva", "severity": "SUGGESTION" },
+            "arched": { "arch": 30, "message": "Schiena troppo arcuata", "severity": "WARNING" }
+          },
+          "correctionHints": {
+            "SUGGESTION": "Attiva il core per mantenere la schiena più neutra.",
+            "WARNING": "Non inarcare la schiena! Attiva gli addominali."
+          }
+        }
+      }
+    }
+  },
+  "globalSettings": {
+    "consecutiveFramesThreshold": 3,
+    "visibilityThreshold": 0.5,
+    "confidenceThreshold": 0.6,
+    "feedbackDelay": 500
+  }
+}
