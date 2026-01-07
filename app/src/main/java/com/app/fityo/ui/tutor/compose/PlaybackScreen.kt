@@ -167,6 +167,10 @@ fun PlaybackScreen(
                         PlayerView(ctx).apply {
                             player = exoPlayer
                             useController = true
+                            controllerAutoShow = false  // Non mostrare controlli automaticamente
+                            controllerHideOnTouch = true  // Nascondi al tap
+                            controllerShowTimeoutMs = 3000  // Nascondi dopo 3 secondi
+                            setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING)
                             layoutParams = FrameLayout.LayoutParams(
                                 ViewGroup.LayoutParams.MATCH_PARENT,
                                 ViewGroup.LayoutParams.MATCH_PARENT
@@ -176,22 +180,35 @@ fun PlaybackScreen(
                     modifier = Modifier.fillMaxSize()
                 )
 
-                // Error indicator overlay
+                // Real-time feedback overlay - discreto in basso a sinistra
                 currentError?.let { error ->
+                    val isEncouraging = error.severity == ErrorSeverity.SUGGESTION
+                    val overlayColor = getSeverityColor(error.severity)
+
+                    // Badge compatto in basso a sinistra
                     Box(
                         modifier = Modifier
-                            .align(Alignment.TopEnd)
+                            .align(Alignment.BottomStart)
                             .padding(8.dp)
                             .clip(RoundedCornerShape(8.dp))
-                            .background(getSeverityColor(error.severity).copy(alpha = 0.9f))
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                            .background(overlayColor.copy(alpha = 0.85f))
+                            .padding(horizontal = 10.dp, vertical = 6.dp)
                     ) {
-                        Text(
-                            text = error.errorType.displayName,
-                            color = Color.White,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                if (isEncouraging) Icons.Default.Check else Icons.Default.Warning,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = error.errorType.displayName,
+                                color = Color.White,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
             }
@@ -610,6 +627,7 @@ private fun PerfectExecutionCard() {
 
 private fun getSeverityColor(severity: ErrorSeverity): Color {
     return when (severity) {
+        ErrorSeverity.SUGGESTION -> AccentBlue  // Blu per feedback incoraggiante
         ErrorSeverity.WARNING -> AccentYellow
         ErrorSeverity.ERROR -> AccentOrange
         ErrorSeverity.CRITICAL -> AccentRed

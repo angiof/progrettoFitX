@@ -294,6 +294,7 @@ class BenchPressAnalyzer(
 
         errors.forEach { error ->
             val penalty = when (error.severity) {
+                ErrorSeverity.SUGGESTION -> 2f
                 ErrorSeverity.WARNING -> 8f
                 ErrorSeverity.ERROR -> 18f
                 ErrorSeverity.CRITICAL -> 35f

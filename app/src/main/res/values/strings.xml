@@ -87,6 +87,8 @@
     <string name="dashboard_avg_format">%.1f schede/sett</string>
     <string name="notifications_history_title">Cronologia notifiche</string>
     <string name="notifications_empty">Nessuna notifica presente</string>
+    <string name="notifications_no_appointments_today">Nessun appuntamento oggi</string>
+    <string name="notifications_no_appointments_hint">I tuoi appuntamenti del giorno appariranno qui</string>
     <string name="no_data_chart">Nessun dato disponibile</string>
     <string name="bar_label_intensity">Media intensita per gruppo</string>
     <string name="bar_label_week">Frequenza allenamenti per giorno</string>
@@ -98,6 +100,7 @@
     <string name="exercise_weight_label">Peso (kg)</string>
     <string name="exercise_weight_hint">Opzionale</string>
     <string name="home_card_subtitle_default">Allenamento personalizzato</string>
+    <string name="home_greeting">Inizia il tuo allenamento</string>
     <string name="home_card_subtitle_create">Configura la tua prossima sessione</string>
     <string name="home_card_subtitle_open">Riapri e modifica le tue schede</string>
     <string name="home_card_subtitle_dashboard">Statistiche e focus muscolare</string>
@@ -320,6 +323,31 @@
     <!-- Coach Mode -->
     <string name="coach_mode">Coach Mode</string>
     <string name="home_card_subtitle_coach">Gestisci atleti e profili</string>
+    <string name="coach_calendar">Calendario</string>
+    <string name="coach_recent_schede">Schede Recenti</string>
+    <string name="coach_view_all">Vedi tutte</string>
+    <string name="coach_last_workout">Ultimo</string>
+    <string name="coach_no_schede">Nessuna scheda</string>
+    <string name="coach_create_first_scheda">Crea la prima scheda per %s</string>
+    <string name="coach_add_appointment">Aggiungi</string>
+    <string name="coach_upcoming_appointments">Prossimi Appuntamenti</string>
+    <string name="coach_today">Oggi</string>
+    <string name="coach_no_appointments_day">Nessun appuntamento per questo giorno</string>
+    <string name="coach_no_upcoming">Nessun appuntamento</string>
+    <string name="coach_no_upcoming_desc">Aggiungi appuntamenti dal calendario per organizzare gli allenamenti</string>
+    <string name="coach_appointment_title">Titolo appuntamento</string>
+    <string name="coach_appointment_notes">Note (opzionale)</string>
+    <string name="coach_appointment_time">Orario</string>
+    <string name="coach_appointment_date">Data</string>
+    <string name="coach_new_appointment">Nuovo Appuntamento</string>
+    <string name="coach_edit_appointment">Modifica Appuntamento</string>
+    <string name="coach_tab_profiles">Profili</string>
+    <string name="coach_select_profile_hint">Seleziona un profilo per gestire le schede dell\'atleta</string>
+    <string name="coach_no_athletes">Nessun atleta</string>
+    <string name="coach_add_first_athlete">Aggiungi il tuo primo atleta per iniziare a gestire le sue schede di allenamento</string>
+    <string name="coach_add_athlete">Aggiungi Atleta</string>
+    <string name="coach_today_appointments">Appuntamenti di oggi</string>
+    <string name="coach_appointments_for_date">Appuntamenti del %s</string>
 
     <!-- Avatar 3D -->
     <string name="avatar_3d_title">Avatar 3D</string>
@@ -345,4 +373,10 @@
     <string name="dashboard_select_profile">Seleziona profilo</string>
     <string name="dashboard_personal_data">Dati personali</string>
     <string name="dashboard_showing_profile">Profilo: %s</string>
+
+    <!-- Schede Profile Filter -->
+    <string name="profile_filter_label">Filtra per profilo:</string>
+    <string name="all_profiles">Tutti i profili</string>
+    <string name="select_profile_title">Seleziona Profilo</string>
+    <string name="no_profiles_available">Nessun profilo disponibile. Crea profili dal Coach Mode.</string>
 </resources>

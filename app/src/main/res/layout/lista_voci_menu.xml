@@ -3,15 +3,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/card_menu"
     android:layout_width="match_parent"
-    android:layout_height="220dp"
-    android:layout_marginHorizontal="16dp"
-    android:layout_marginVertical="8dp"
-    app:cardCornerRadius="18dp"
+    android:layout_height="140dp"
+    android:layout_margin="4dp"
+    app:cardCornerRadius="16dp"
     app:cardElevation="4dp"
     app:rippleColor="@color/second"
     app:cardBackgroundColor="@color/card_surface"
-    app:strokeColor="@color/second"
-    app:strokeWidth="2dp">
+    app:strokeColor="@android:color/transparent"
+    app:strokeWidth="0dp">
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -34,7 +33,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
             android:orientation="vertical"
-            android:padding="20dp">
+            android:padding="12dp">
 
             <TextView
                 android:id="@+id/tv_titolo"
@@ -42,17 +41,23 @@
                 android:layout_height="wrap_content"
                 android:text="@string/crea_scheda"
                 android:textColor="@android:color/white"
-                android:textSize="22sp"
-                android:fontFamily="@font/montserratbold" />
+                android:textSize="15sp"
+                android:fontFamily="@font/montserratbold"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:shadowColor="#80000000"
+                android:shadowDx="1"
+                android:shadowDy="1"
+                android:shadowRadius="3" />
 
             <TextView
                 android:id="@+id/tv_subtitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:textColor="@android:color/white"
-                android:textSize="14sp"
-                android:maxLines="2"
+                android:layout_marginTop="2dp"
+                android:textColor="#D0FFFFFF"
+                android:textSize="11sp"
+                android:maxLines="1"
                 android:ellipsize="end"
                 android:text="@string/home_card_subtitle_default" />
         </LinearLayout>

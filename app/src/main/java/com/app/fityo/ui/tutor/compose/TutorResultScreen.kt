@@ -267,9 +267,17 @@ fun ErrorCard(
     onClick: () -> Unit
 ) {
     val severityColor = when (error.severity) {
+        ErrorSeverity.SUGGESTION -> AccentBlue  // Blu per feedback incoraggiante
         ErrorSeverity.WARNING -> AccentYellow
         ErrorSeverity.ERROR -> AccentOrange
         ErrorSeverity.CRITICAL -> AccentRed
+    }
+
+    // Icona diversa per SUGGESTION (più positiva)
+    val severityIcon = if (error.severity == ErrorSeverity.SUGGESTION) {
+        Icons.Default.Star  // Stella per suggerimenti
+    } else {
+        Icons.Default.Warning
     }
 
     Card(
@@ -293,7 +301,7 @@ fun ErrorCard(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    Icons.Default.Warning,
+                    severityIcon,
                     contentDescription = null,
                     tint = severityColor,
                     modifier = Modifier.size(20.dp)
@@ -362,20 +370,22 @@ private fun formatTimestamp(ms: Long): String {
 
 private fun getScoreLabel(score: Float): String {
     return when {
-        score >= 90f -> "Eccellente"
-        score >= 75f -> "Buono"
-        score >= 60f -> "Discreto"
-        score >= 40f -> "Da migliorare"
-        else -> "Insufficiente"
+        score >= 95f -> "Perfetto!"
+        score >= 85f -> "Eccellente"
+        score >= 75f -> "Molto Buono"
+        score >= 65f -> "Buono"
+        score >= 50f -> "In Progresso"
+        else -> "Continua a Praticare"
     }
 }
 
 private fun getScoreMessage(score: Float): String {
     return when {
-        score >= 90f -> "La tua forma e impeccabile! Continua cosi."
-        score >= 75f -> "Buona esecuzione con piccoli margini di miglioramento."
-        score >= 60f -> "Forma accettabile. Concentrati sui punti evidenziati."
-        score >= 40f -> "Ci sono diversi aspetti da correggere. Rivedi i suggerimenti."
-        else -> "E necessario rivedere la tecnica di base dell'esercizio."
+        score >= 95f -> "Esecuzione impeccabile! Sei un esempio da seguire."
+        score >= 85f -> "Ottimo lavoro! Piccoli dettagli da perfezionare."
+        score >= 75f -> "Molto bene! Stai migliorando. Guarda i suggerimenti blu."
+        score >= 65f -> "Buona base! Concentrati sui punti evidenziati per crescere."
+        score >= 50f -> "Stai facendo progressi! Ogni allenamento ti rende migliore."
+        else -> "Non mollare! Rivedi i suggerimenti e riprova. Ce la puoi fare!"
     }
 }

@@ -134,7 +134,8 @@ class TutorActivity : ComponentActivity() {
                     progress = state.progress,
                     currentFrame = state.currentFrame,
                     totalFrames = state.totalFrames,
-                    statusText = "Analisi frame ${state.currentFrame} di ${state.totalFrames}"
+                    statusText = "Analisi frame ${state.currentFrame} di ${state.totalFrames}",
+                    videoPath = state.videoPath
                 )
             }
 

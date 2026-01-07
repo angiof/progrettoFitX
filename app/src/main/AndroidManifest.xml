@@ -108,6 +108,13 @@
             android:screenOrientation="portrait"
             android:theme="@style/Theme.Fityo" />
 
+        <activity
+            android:name=".ui.schedecreate.SchedeCreateActivity"
+            android:exported="false"
+            android:label="@string/crea_scheda"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Fityo" />
+
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />

@@ -205,6 +205,7 @@ class LungesAnalyzer : ExerciseAnalyzer {
 
         errors.forEach { error ->
             val penalty = when (error.severity) {
+                ErrorSeverity.SUGGESTION -> 2f
                 ErrorSeverity.WARNING -> 5f
                 ErrorSeverity.ERROR -> 15f
                 ErrorSeverity.CRITICAL -> 25f

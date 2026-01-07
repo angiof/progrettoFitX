@@ -8,13 +8,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.GridLayoutManager
 import com.app.fityo.R
 import com.app.fityo.databinding.FragmentHomeBinding
 import com.app.fityo.dominio.HomeMenuAction
 import com.app.fityo.dominio.ModelHomemenu
 import com.app.fityo.ui.compose.SchedeListActivity
-import com.app.fityo.ui.forms.AcitivySheda
+import com.app.fityo.ui.schedecreate.SchedeCreateActivity
 import com.app.fityo.ui.musclecompare.MuscleCompareActivity
 import com.app.fityo.ui.tutor.TutorActivity
 import com.app.fityo.ui.coach.CoachActivity
@@ -40,7 +40,7 @@ class HomeFragment : Fragment() {
         adapters = AdapterHome(::handleMenuClick)
 
         binding.listaMenuHome.apply {
-            layoutManager = LinearLayoutManager(context)
+            layoutManager = GridLayoutManager(context, 2)
             adapter = adapters
             setHasFixedSize(true)
         }
@@ -83,7 +83,7 @@ class HomeFragment : Fragment() {
     private fun handleMenuClick(item: ModelHomemenu) {
         when (item.action) {
             HomeMenuAction.CREATE_SCHEDE -> {
-                startActivity(Intent(requireContext(), AcitivySheda::class.java))
+                startActivity(Intent(requireContext(), SchedeCreateActivity::class.java))
             }
 
             HomeMenuAction.OPEN_SCHEDE -> {

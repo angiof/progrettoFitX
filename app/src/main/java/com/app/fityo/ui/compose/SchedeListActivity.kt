@@ -103,6 +103,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.contentValuesOf
 import com.app.fityo.R
+import com.app.fityo.data_layer.db.CoachProfileEntity
 import com.app.fityo.data_layer.db.DB.DbFit
 import com.app.fityo.data_layer.db.EsserciziEntity
 import com.app.fityo.data_layer.db.SchedeEntity
@@ -180,6 +181,22 @@ class SchedeListActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Gestisci il profilo passato dal Coach Mode
+        intent.getIntExtra(EXTRA_COACH_PROFILE_ID, -1).takeIf { it != -1 }?.let { profileId ->
+            // Carica il profilo e impostalo come selezionato
+            val db = DbFit.getDatabase(application)
+            lifecycleScope.launch {
+                val profile = withContext(Dispatchers.IO) {
+                    db.coachProfileDao().getById(profileId)
+                }
+                profile?.let {
+                    // setSelectedProfile must be called on main thread
+                    schedeViewModel.setSelectedProfile(it.id, it.name)
+                }
+            }
+        }
+
         setContent {
             MaterialTheme {
                 SchedeListRoute(
@@ -263,6 +280,10 @@ class SchedeListActivity : ComponentActivity() {
         super.onResume()
         schedeViewModel.loadSchede()
     }
+
+    companion object {
+        const val EXTRA_COACH_PROFILE_ID = "extra_coach_profile_id"
+    }
 }
 
 @Composable
@@ -275,12 +296,17 @@ private fun SchedeListRoute(
     onImportScheda: () -> Unit
 ) {
     val schede by viewModel.schede.observeAsState(emptyList())
+    val coachProfiles by viewModel.coachProfiles.observeAsState(emptyList())
+    val selectedProfileName by viewModel.selectedProfileName.observeAsState(null)
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     var selectedScheda by remember { mutableStateOf<SchedeEntity?>(null) }
+    var showProfileDialog by remember { mutableStateOf(false) }
 
     SchedeListScreen(
         schede = schede,
+        selectedProfileName = selectedProfileName,
+        onSelectProfile = { showProfileDialog = true },
         onBack = onBack,
         onCreateNew = onCreateScheda,
         onItemClick = { selectedScheda = it },
@@ -289,6 +315,22 @@ private fun SchedeListRoute(
         },
         onImportScheda = onImportScheda
     )
+
+    // Profile selection dialog
+    if (showProfileDialog) {
+        ProfileSelectionDialog(
+            profiles = coachProfiles,
+            onDismiss = { showProfileDialog = false },
+            onSelectAll = {
+                viewModel.setSelectedProfile(null, null)
+                showProfileDialog = false
+            },
+            onSelectProfile = { profile ->
+                viewModel.setSelectedProfile(profile.id, profile.name)
+                showProfileDialog = false
+            }
+        )
+    }
 
     val currentScheda = selectedScheda
     if (currentScheda != null) {
@@ -446,34 +488,35 @@ private fun SchedaDetailDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(DarkSurface)
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
                 ) {
+                    // Gruppi muscolari - su una riga separata
+                    Text(
+                        text = scheda.getGruppiMuscolariDisplay(),
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = TextPrimary,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    // Info row: intensita e data
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Text(
-                            text = scheda.getGruppiMuscolariDisplay(),
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                color = TextPrimary,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        )
                         Text(
                             text = stringResource(id = R.string.intensity_value, scheda.intesita),
                             style = MaterialTheme.typography.bodySmall,
                             color = TextSecondary
                         )
+                        Text(
+                            text = stringResource(id = R.string.date_value, scheda.data),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = TextSecondary
+                        )
                     }
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = stringResource(id = R.string.date_value, scheda.data),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary
-                    )
                     scheda.notes?.takeIf { it.isNotBlank() }?.let {
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = it,
                             style = MaterialTheme.typography.bodySmall,
@@ -1398,6 +1441,8 @@ private data class ExerciseFormData(
 @Composable
 private fun SchedeListScreen(
     schede: List<SchedeEntity>,
+    selectedProfileName: String?,
+    onSelectProfile: () -> Unit,
     onBack: () -> Unit,
     onCreateNew: () -> Unit,
     onItemClick: (SchedeEntity) -> Unit,
@@ -1411,22 +1456,53 @@ private fun SchedeListScreen(
     Scaffold(
         containerColor = DarkBackground,
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text(text = stringResource(id = R.string.apri_schede)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.Filled.ArrowBack,
-                            contentDescription = stringResource(id = R.string.back_content_description)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = primary,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
+            Column {
+                CenterAlignedTopAppBar(
+                    title = { Text(text = stringResource(id = R.string.apri_schede)) },
+                    navigationIcon = {
+                        IconButton(onClick = onBack) {
+                            Icon(
+                                Icons.Filled.ArrowBack,
+                                contentDescription = stringResource(id = R.string.back_content_description)
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = primary,
+                        titleContentColor = Color.White,
+                        navigationIconContentColor = Color.White
+                    )
                 )
-            )
+                // Profile selector row
+                Surface(
+                    color = DarkSurface,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.profile_filter_label),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = TextSecondary,
+                            modifier = Modifier.weight(1f)
+                        )
+                        OutlinedButton(
+                            onClick = onSelectProfile,
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = accent),
+                            border = BorderStroke(1.dp, accent)
+                        ) {
+                            Text(
+                                text = selectedProfileName ?: stringResource(id = R.string.all_profiles),
+                                color = accent
+                            )
+                        }
+                    }
+                }
+            }
         },
         floatingActionButton = {
             Column(
@@ -1583,6 +1659,135 @@ private fun SchedaCard(
             if (!scheda.notes.isNullOrBlank()) {
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(text = scheda.notes, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProfileSelectionDialog(
+    profiles: List<CoachProfileEntity>,
+    onDismiss: () -> Unit,
+    onSelectAll: () -> Unit,
+    onSelectProfile: (CoachProfileEntity) -> Unit
+) {
+    val accent = Color(0xFF40C4FF)
+    val scrollState = rememberScrollState()
+
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            color = DarkSurface,
+            shape = RoundedCornerShape(20.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(24.dp)
+                    .verticalScroll(scrollState),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = stringResource(id = R.string.select_profile_title),
+                    style = MaterialTheme.typography.titleMedium.copy(color = TextPrimary)
+                )
+
+                // Option for all profiles
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onSelectAll() },
+                    colors = CardDefaults.cardColors(containerColor = DarkCard)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.all_profiles),
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                color = accent,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                    }
+                }
+
+                // List of profiles
+                profiles.forEach { profile ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onSelectProfile(profile) },
+                        colors = CardDefaults.cardColors(containerColor = DarkCard)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Avatar circle with initials
+                            Surface(
+                                modifier = Modifier
+                                    .width(40.dp)
+                                    .height(40.dp),
+                                shape = RoundedCornerShape(20.dp),
+                                color = Color(profile.avatarColor)
+                            ) {
+                                Text(
+                                    text = profile.name.take(2).uppercase(),
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(8.dp),
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        color = Color.White,
+                                        fontWeight = FontWeight.Bold
+                                    ),
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text(
+                                    text = profile.name,
+                                    style = MaterialTheme.typography.bodyLarge.copy(
+                                        color = TextPrimary,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                )
+                                profile.notes?.takeIf { it.isNotBlank() }?.let {
+                                    Text(
+                                        text = it,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = TextSecondary,
+                                        maxLines = 1
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (profiles.isEmpty()) {
+                    Text(
+                        text = stringResource(id = R.string.no_profiles_available),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = TextSecondary,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+                TextButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.align(Alignment.End)
+                ) {
+                    Text(text = stringResource(id = R.string.exercise_cancel), color = TextSecondary)
+                }
             }
         }
     }

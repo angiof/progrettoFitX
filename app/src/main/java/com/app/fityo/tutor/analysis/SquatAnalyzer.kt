@@ -19,12 +19,21 @@ class SquatAnalyzer : ExerciseAnalyzer {
 
     override val exerciseType = ExerciseType.SQUAT
 
-    // Configurazione soglie
+    // Configurazione soglie graduali
     companion object {
-        const val MIN_KNEE_ANGLE_FOR_DEPTH = 100f  // Angolo massimo per squat valido
-        const val MAX_BACK_ANGLE = 45f              // Massima inclinazione schiena
-        const val CONSECUTIVE_FRAMES_THRESHOLD = 3  // Frame consecutivi per confermare errore
-        const val KNEE_ANGLE_GOOD = 90f            // Angolo ideale per squat profondo
+        // Profondità squat - soglie graduali
+        const val KNEE_ANGLE_PERFECT = 90f         // Angolo ideale (parallelo)
+        const val KNEE_ANGLE_GOOD = 100f           // Buono ma migliorabile
+        const val KNEE_ANGLE_ACCEPTABLE = 110f     // Accettabile, suggerimento
+        const val KNEE_ANGLE_INSUFFICIENT = 120f   // Insufficiente, errore
+
+        // Inclinazione schiena - soglie graduali
+        const val BACK_ANGLE_PERFECT = 30f         // Ideale
+        const val BACK_ANGLE_GOOD = 40f            // Buono
+        const val BACK_ANGLE_ACCEPTABLE = 50f      // Accettabile, suggerimento
+        const val BACK_ANGLE_EXCESSIVE = 60f       // Eccessivo, errore
+
+        const val CONSECUTIVE_FRAMES_THRESHOLD = 3  // Frame consecutivi per confermare
     }
 
     // Tracking per debouncing
@@ -59,30 +68,75 @@ class SquatAnalyzer : ExerciseAnalyzer {
             }
         }
 
-        // 1. Verifica schiena curva
+        // 1. Verifica schiena - con feedback graduato
         backAngle?.let {
-            if (it > MAX_BACK_ANGLE) {
-                consecutiveBackErrors++
-                if (consecutiveBackErrors >= CONSECUTIVE_FRAMES_THRESHOLD) {
-                    errors.add(
-                        ExerciseError(
-                            timestampMs = timestampMs,
-                            endTimestampMs = timestampMs,
-                            errorType = ExerciseErrorType.SQUAT_BACK_CURVED,
-                            severity = if (it > 60f) ErrorSeverity.CRITICAL else ErrorSeverity.ERROR,
-                            message = "Schiena troppo inclinata (${it.toInt()}°)",
-                            affectedLandmarks = listOf(
-                                AngleCalculator.LandmarkIndex.LEFT_SHOULDER,
-                                AngleCalculator.LandmarkIndex.RIGHT_SHOULDER,
-                                AngleCalculator.LandmarkIndex.LEFT_HIP,
-                                AngleCalculator.LandmarkIndex.RIGHT_HIP
-                            ),
-                            correctionHint = "Mantieni il petto alto e la schiena dritta. Guarda avanti."
+            when {
+                it > BACK_ANGLE_EXCESSIVE -> {
+                    consecutiveBackErrors++
+                    if (consecutiveBackErrors >= CONSECUTIVE_FRAMES_THRESHOLD) {
+                        errors.add(
+                            ExerciseError(
+                                timestampMs = timestampMs,
+                                endTimestampMs = timestampMs,
+                                errorType = ExerciseErrorType.SQUAT_BACK_CURVED,
+                                severity = ErrorSeverity.CRITICAL,
+                                message = "Schiena troppo inclinata (${it.toInt()}°)",
+                                affectedLandmarks = listOf(
+                                    AngleCalculator.LandmarkIndex.LEFT_SHOULDER,
+                                    AngleCalculator.LandmarkIndex.RIGHT_SHOULDER,
+                                    AngleCalculator.LandmarkIndex.LEFT_HIP,
+                                    AngleCalculator.LandmarkIndex.RIGHT_HIP
+                                ),
+                                correctionHint = "Attenzione alla schiena! Mantieni il petto alto e guarda avanti."
+                            )
                         )
-                    )
+                    }
                 }
-            } else {
-                consecutiveBackErrors = 0
+                it > BACK_ANGLE_ACCEPTABLE -> {
+                    consecutiveBackErrors++
+                    if (consecutiveBackErrors >= CONSECUTIVE_FRAMES_THRESHOLD) {
+                        errors.add(
+                            ExerciseError(
+                                timestampMs = timestampMs,
+                                endTimestampMs = timestampMs,
+                                errorType = ExerciseErrorType.SQUAT_BACK_CURVED,
+                                severity = ErrorSeverity.ERROR,
+                                message = "Schiena inclinata (${it.toInt()}°)",
+                                affectedLandmarks = listOf(
+                                    AngleCalculator.LandmarkIndex.LEFT_SHOULDER,
+                                    AngleCalculator.LandmarkIndex.RIGHT_SHOULDER,
+                                    AngleCalculator.LandmarkIndex.LEFT_HIP,
+                                    AngleCalculator.LandmarkIndex.RIGHT_HIP
+                                ),
+                                correctionHint = "Cerca di mantenere la schiena piu dritta. Petto in fuori!"
+                            )
+                        )
+                    }
+                }
+                it > BACK_ANGLE_GOOD -> {
+                    consecutiveBackErrors++
+                    if (consecutiveBackErrors >= CONSECUTIVE_FRAMES_THRESHOLD) {
+                        errors.add(
+                            ExerciseError(
+                                timestampMs = timestampMs,
+                                endTimestampMs = timestampMs,
+                                errorType = ExerciseErrorType.SQUAT_BACK_CURVED,
+                                severity = ErrorSeverity.SUGGESTION,
+                                message = "Quasi perfetto! Schiena a ${it.toInt()}°",
+                                affectedLandmarks = listOf(
+                                    AngleCalculator.LandmarkIndex.LEFT_SHOULDER,
+                                    AngleCalculator.LandmarkIndex.RIGHT_SHOULDER,
+                                    AngleCalculator.LandmarkIndex.LEFT_HIP,
+                                    AngleCalculator.LandmarkIndex.RIGHT_HIP
+                                ),
+                                correctionHint = "Ottimo lavoro! Prova a tenere il petto ancora piu alto per migliorare."
+                            )
+                        )
+                    }
+                }
+                else -> {
+                    consecutiveBackErrors = 0
+                }
             }
         }
 
@@ -145,24 +199,63 @@ class SquatAnalyzer : ExerciseAnalyzer {
     override fun finalizeAnalysis(allErrors: List<ExerciseError>): List<ExerciseError> {
         val finalErrors = mutableListOf<ExerciseError>()
 
-        // Aggiungi errore di profondità se non raggiunta durante tutto il video
-        if (minKneeAngleReached > MIN_KNEE_ANGLE_FOR_DEPTH) {
-            finalErrors.add(
-                ExerciseError(
-                    timestampMs = 0,
-                    endTimestampMs = 0,
-                    errorType = ExerciseErrorType.SQUAT_DEPTH_INSUFFICIENT,
-                    severity = if (minKneeAngleReached > 120f) ErrorSeverity.CRITICAL else ErrorSeverity.ERROR,
-                    message = "Profondità squat insufficiente (angolo minimo: ${minKneeAngleReached.toInt()}°)",
-                    affectedLandmarks = listOf(
-                        AngleCalculator.LandmarkIndex.LEFT_HIP,
-                        AngleCalculator.LandmarkIndex.LEFT_KNEE,
-                        AngleCalculator.LandmarkIndex.RIGHT_HIP,
-                        AngleCalculator.LandmarkIndex.RIGHT_KNEE
-                    ),
-                    correctionHint = "Scendi fino a quando le cosce sono parallele al suolo o più in basso."
+        // Aggiungi feedback profondità con soglie graduali
+        when {
+            minKneeAngleReached > KNEE_ANGLE_INSUFFICIENT -> {
+                finalErrors.add(
+                    ExerciseError(
+                        timestampMs = 0,
+                        endTimestampMs = 0,
+                        errorType = ExerciseErrorType.SQUAT_DEPTH_INSUFFICIENT,
+                        severity = ErrorSeverity.CRITICAL,
+                        message = "Profondita da migliorare (angolo: ${minKneeAngleReached.toInt()}°)",
+                        affectedLandmarks = listOf(
+                            AngleCalculator.LandmarkIndex.LEFT_HIP,
+                            AngleCalculator.LandmarkIndex.LEFT_KNEE,
+                            AngleCalculator.LandmarkIndex.RIGHT_HIP,
+                            AngleCalculator.LandmarkIndex.RIGHT_KNEE
+                        ),
+                        correctionHint = "Prova a scendere di piu! L'obiettivo e portare le cosce parallele al suolo."
+                    )
                 )
-            )
+            }
+            minKneeAngleReached > KNEE_ANGLE_ACCEPTABLE -> {
+                finalErrors.add(
+                    ExerciseError(
+                        timestampMs = 0,
+                        endTimestampMs = 0,
+                        errorType = ExerciseErrorType.SQUAT_DEPTH_INSUFFICIENT,
+                        severity = ErrorSeverity.ERROR,
+                        message = "Profondita insufficiente (angolo: ${minKneeAngleReached.toInt()}°)",
+                        affectedLandmarks = listOf(
+                            AngleCalculator.LandmarkIndex.LEFT_HIP,
+                            AngleCalculator.LandmarkIndex.LEFT_KNEE,
+                            AngleCalculator.LandmarkIndex.RIGHT_HIP,
+                            AngleCalculator.LandmarkIndex.RIGHT_KNEE
+                        ),
+                        correctionHint = "Buon inizio! Scendi ancora un po' per raggiungere il parallelo."
+                    )
+                )
+            }
+            minKneeAngleReached > KNEE_ANGLE_GOOD -> {
+                finalErrors.add(
+                    ExerciseError(
+                        timestampMs = 0,
+                        endTimestampMs = 0,
+                        errorType = ExerciseErrorType.SQUAT_DEPTH_INSUFFICIENT,
+                        severity = ErrorSeverity.SUGGESTION,
+                        message = "Quasi al parallelo! (angolo: ${minKneeAngleReached.toInt()}°)",
+                        affectedLandmarks = listOf(
+                            AngleCalculator.LandmarkIndex.LEFT_HIP,
+                            AngleCalculator.LandmarkIndex.LEFT_KNEE,
+                            AngleCalculator.LandmarkIndex.RIGHT_HIP,
+                            AngleCalculator.LandmarkIndex.RIGHT_KNEE
+                        ),
+                        correctionHint = "Ottimo! Sei molto vicino. Solo qualche centimetro in piu per la perfezione!"
+                    )
+                )
+            }
+            // Se minKneeAngleReached <= KNEE_ANGLE_GOOD -> Profondità perfetta, nessun errore
         }
 
         // Aggrega errori dello stesso tipo (raggruppa per tipo, prendi il primo timestamp)
@@ -194,6 +287,7 @@ class SquatAnalyzer : ExerciseAnalyzer {
 
         errors.forEach { error ->
             val penalty = when (error.severity) {
+                ErrorSeverity.SUGGESTION -> 2f  // Penalità minima per suggerimenti
                 ErrorSeverity.WARNING -> 5f
                 ErrorSeverity.ERROR -> 15f
                 ErrorSeverity.CRITICAL -> 25f

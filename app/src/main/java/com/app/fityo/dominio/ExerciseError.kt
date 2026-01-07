@@ -67,8 +67,13 @@ enum class ExerciseErrorType(val displayName: String) {
 
 /**
  * Livelli di severità degli errori.
+ * SUGGESTION = blu, feedback incoraggiante per piccole deviazioni
+ * WARNING = giallo, attenzione da considerare
+ * ERROR = arancione, errore da correggere
+ * CRITICAL = rosso, errore critico
  */
-enum class ErrorSeverity(val displayName: String, val colorWeight: Float) {
+enum class ErrorSeverity(val displayName: String, val colorWeight: Float, val isEncouraging: Boolean = false) {
+    SUGGESTION("Da migliorare", 0.25f, true),  // Blu - incoraggiante
     WARNING("Attenzione", 0.5f),
     ERROR("Errore", 0.75f),
     CRITICAL("Critico", 1.0f)
