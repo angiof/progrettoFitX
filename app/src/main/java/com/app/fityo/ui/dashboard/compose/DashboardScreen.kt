@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Analytics
+import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Person
@@ -44,7 +45,8 @@ import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 fun DashboardScreen(
     viewModel: DashViewModel,
     onOpenAnalytics: () -> Unit,
-    onSelectDateRange: () -> Unit
+    onSelectDateRange: () -> Unit,
+    onOpenChat: () -> Unit = {}
 ) {
     val scrollState = rememberScrollState()
     val percentuali by viewModel.percentualiGruppiMuscolari.observeAsState(emptyList())
@@ -60,41 +62,61 @@ fun DashboardScreen(
     var startDateDisplay by remember { mutableStateOf("") }
     var endDateDisplay by remember { mutableStateOf("") }
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(DashboardBackground)
-            .verticalScroll(scrollState)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Top buttons row
-        TopButtonsRow(
-            onSelectDateRange = onSelectDateRange,
-            onOpenAnalytics = onOpenAnalytics,
-            selectedProfileName = selectedProfileName,
-            onSelectProfile = { showProfileDialog = true }
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Top buttons row
+            TopButtonsRow(
+                onSelectDateRange = onSelectDateRange,
+                onOpenAnalytics = onOpenAnalytics,
+                selectedProfileName = selectedProfileName,
+                onSelectProfile = { showProfileDialog = true }
+            )
 
-        // Date range card
-        DateRangeCard(
-            startDate = startDateDisplay,
-            endDate = endDateDisplay
-        )
+            // Date range card
+            DateRangeCard(
+                startDate = startDateDisplay,
+                endDate = endDateDisplay
+            )
 
-        // Pie Chart - Muscle group distribution
-        PieChartCard(percentuali = percentuali)
+            // Pie Chart - Muscle group distribution
+            PieChartCard(percentuali = percentuali)
 
-        // Bar Chart - Intensity by muscle group
-        IntensityBarChartCard(mediaIntensita = mediaIntensita)
+            // Bar Chart - Intensity by muscle group
+            IntensityBarChartCard(mediaIntensita = mediaIntensita)
 
-        // Weekly frequency chart
-        WeeklyChartCard(weekFrequency = weekFrequency)
+            // Weekly frequency chart
+            WeeklyChartCard(weekFrequency = weekFrequency)
 
-        // Stats card
-        StatsCard(stats = dashboardStats)
+            // Stats card
+            StatsCard(stats = dashboardStats)
 
-        Spacer(modifier = Modifier.height(80.dp))
+            Spacer(modifier = Modifier.height(80.dp))
+        }
+
+        // Chat FAB
+        FloatingActionButton(
+            onClick = onOpenChat,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp),
+            containerColor = DashboardAccentPurple,
+            contentColor = DashboardTextPrimary
+        ) {
+            Icon(
+                imageVector = Icons.Default.Chat,
+                contentDescription = "AI Chat"
+            )
+        }
     }
 
     // Profile selection dialog

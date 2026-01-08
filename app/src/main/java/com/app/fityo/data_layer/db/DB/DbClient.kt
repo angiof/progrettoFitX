@@ -8,6 +8,7 @@ import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.app.fityo.data_layer.db.Avatar3DEntity
+import com.app.fityo.data_layer.db.ChatMessageEntity
 import com.app.fityo.data_layer.db.EsserciziEntity
 import com.app.fityo.data_layer.db.SchedeEntity
 import com.app.fityo.data_layer.db.NotificationEntity
@@ -18,6 +19,7 @@ import com.app.fityo.data_layer.db.CoachProfileEntity
 import com.app.fityo.data_layer.db.CoachAppointmentEntity
 import com.app.fityo.data_layer.db.converters.Converters
 import com.app.fityo.data_layer.db.dao.DaoAvatar3D
+import com.app.fityo.data_layer.db.dao.DaoChat
 import com.app.fityo.data_layer.db.dao.DaoEssercissi
 import com.app.fityo.data_layer.db.dao.DaoSchede
 import com.app.fityo.data_layer.db.dao.DaoNotifications
@@ -37,9 +39,10 @@ import com.app.fityo.data_layer.db.dao.DaoCoachAppointment
         UserProfileEntity::class,
         Avatar3DEntity::class,
         CoachProfileEntity::class,
-        CoachAppointmentEntity::class
+        CoachAppointmentEntity::class,
+        ChatMessageEntity::class
     ],
-    version = 12
+    version = 13
 )
 @TypeConverters(Converters::class)
 
@@ -54,6 +57,7 @@ abstract class DbFit : RoomDatabase() {
     abstract fun avatar3dDao(): DaoAvatar3D
     abstract fun coachProfileDao(): DaoCoachProfile
     abstract fun coachAppointmentDao(): DaoCoachAppointment
+    abstract fun chatDao(): DaoChat
 
 
     companion object {
@@ -255,6 +259,23 @@ abstract class DbFit : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_12_13 = object : Migration(12, 13) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Crea tabella chat messages per Body Intelligence Chatbot
+                database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS chat_messages (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        text TEXT NOT NULL,
+                        isFromUser INTEGER NOT NULL,
+                        timestamp INTEGER NOT NULL,
+                        intentType TEXT,
+                        profileId INTEGER,
+                        sessionId TEXT
+                    )
+                """)
+            }
+        }
+
         fun getDatabase(context: Context): DbFit {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -262,7 +283,7 @@ abstract class DbFit : RoomDatabase() {
                     DbFit::class.java,
                     "dbFit"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13)
                     .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance

@@ -48,7 +48,8 @@ class PdfOcrHelper(
      * Inizializza Gemma AI per parsing intelligente
      */
     suspend fun initializeGemma(): Result<Unit> {
-        return gemmaHelper?.initializeModelWithFallback() ?: Result.failure(Exception("Gemma non configurato"))
+        return gemmaHelper?.initializeModelWithFallback(GemmaLlmHelper.GemmaProfile.OCR)
+            ?: Result.failure(Exception("Gemma non configurato"))
     }
 
     /**
@@ -84,7 +85,7 @@ class PdfOcrHelper(
         return withContext(Dispatchers.IO) {
             if (useGemma && !isGemmaReady() && gemmaHelper?.isModelAvailable() == true) {
                 Log.d(TAG, "Initializing Gemma for PDF parsing...")
-                val initResult = gemmaHelper?.initializeModelWithFallback()
+                val initResult = gemmaHelper?.initializeModelWithFallback(GemmaLlmHelper.GemmaProfile.OCR)
                 if (initResult?.isFailure == true) {
                     Log.w(TAG, "Gemma init failed: ${initResult.exceptionOrNull()?.message}")
                 }

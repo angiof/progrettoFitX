@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
@@ -29,8 +31,6 @@ class GemmaLlmHelper private constructor(
 
     companion object {
         private const val TAG = "GemmaLlmHelper"
-        private const val TEMPERATURE = 0.1f
-        private const val TOP_K = 20
         private const val MAX_TOKENS = 2048
 
         @Volatile
@@ -133,7 +133,60 @@ class GemmaLlmHelper private constructor(
         val reason: String
     )
 
-    suspend fun initializeModel(): Result<Unit> = withContext(Dispatchers.IO) {
+    enum class GemmaProfile { OCR, WORKOUT, ANALYTICS }
+
+    private data class GenConfig(
+        val temperature: Float,
+        val topK: Int,
+        val randomSeed: Int
+    )
+
+    private val initMutex = Mutex()
+
+    @Volatile
+    private var activeProfile: GemmaProfile? = null
+
+    private fun configFor(profile: GemmaProfile): GenConfig {
+        val epochDay = (System.currentTimeMillis() / 86_400_000L).toInt()
+        return when (profile) {
+            GemmaProfile.OCR -> GenConfig(
+                temperature = 0.1f,
+                topK = 20,
+                randomSeed = 0
+            )
+            GemmaProfile.WORKOUT -> GenConfig(
+                temperature = 0.7f,
+                topK = 40,
+                randomSeed = (System.currentTimeMillis() and 0x7fffffffL).toInt()
+            )
+            GemmaProfile.ANALYTICS -> GenConfig(
+                temperature = 0.6f,
+                topK = 40,
+                randomSeed = epochDay
+            )
+        }
+    }
+
+    private fun resetInferenceOnly() {
+        llmInference?.close()
+        llmInference = null
+        _modelState.value = ModelState.NotLoaded
+        activeProfile = null
+    }
+
+    suspend fun ensureReady(profile: GemmaProfile): Result<Unit> = initMutex.withLock {
+        if (_modelState.value == ModelState.Ready && activeProfile == profile) {
+            return Result.success(Unit)
+        }
+
+        if (llmInference != null) {
+            resetInferenceOnly()
+        }
+
+        initializeModelWithFallback(profile)
+    }
+
+    suspend fun initializeModel(profile: GemmaProfile = GemmaProfile.WORKOUT): Result<Unit> = withContext(Dispatchers.IO) {
         if (!isLibraryAvailable) {
             val error = "Libreria MediaPipe GenAI non disponibile."
             _modelState.value = ModelState.Error(error)
@@ -141,6 +194,7 @@ class GemmaLlmHelper private constructor(
         }
 
         try {
+            val cfg = configFor(profile)
             _modelState.value = ModelState.Loading(0f, "Cercando modello Gemma (${currentEngineType.displayName})...")
 
             val modelPath = findModelPath()
@@ -153,10 +207,14 @@ class GemmaLlmHelper private constructor(
             _modelState.value = ModelState.Loading(0.2f, "Caricando modello ${currentEngineType.displayName}...")
             Log.d(TAG, "Loading model from: $modelPath (Engine: ${currentEngineType.name})")
 
-            val options = LlmInference.LlmInferenceOptions.builder()
+            val optionsBuilder = LlmInference.LlmInferenceOptions.builder()
                 .setModelPath(modelPath)
                 .setMaxTokens(MAX_TOKENS)
-                .build()
+
+            applyGenConfig(optionsBuilder, cfg)
+
+            val options = optionsBuilder.build()
+
 
             _modelState.value = ModelState.Loading(0.5f, "Inizializzando inferenza...")
 
@@ -181,6 +239,7 @@ class GemmaLlmHelper private constructor(
                 throw Exception("Il modello non risponde correttamente")
             }
 
+            activeProfile = profile
             _modelState.value = ModelState.Ready
             Log.d(TAG, "Gemma model loaded successfully! (Engine: ${currentEngineType.name})")
             Result.success(Unit)
@@ -192,7 +251,9 @@ class GemmaLlmHelper private constructor(
         }
     }
 
-    suspend fun initializeModelWithFallback(): Result<Unit> = withContext(Dispatchers.IO) {
+    suspend fun initializeModelWithFallback(
+        profile: GemmaProfile = GemmaProfile.WORKOUT
+    ): Result<Unit> = withContext(Dispatchers.IO) {
         val availableEngines = getAvailableEngines(context)
         if (availableEngines.isNotEmpty()) {
             if (!availableEngines.contains(currentEngineType)) {
@@ -210,7 +271,7 @@ class GemmaLlmHelper private constructor(
             }
         }
 
-        val result = initializeModel()
+        val result = initializeModel(profile)
         if (result.isSuccess) {
             return@withContext result
         }
@@ -218,7 +279,7 @@ class GemmaLlmHelper private constructor(
         if (currentEngineType == GemmaEngineType.GPU && availableEngines.contains(GemmaEngineType.CPU)) {
             Log.w(TAG, "GPU failed, falling back to CPU")
             currentEngineType = GemmaEngineType.CPU
-            return@withContext initializeModel()
+            return@withContext initializeModel(profile)
         }
 
         return@withContext result
@@ -258,8 +319,9 @@ class GemmaLlmHelper private constructor(
     }
 
     suspend fun analyzeOcrText(rawOcrText: String): Result<GemmaExerciseResult> = withContext(Dispatchers.IO) {
-        if (_modelState.value != ModelState.Ready) {
-            return@withContext Result.failure(Exception("Modello non inizializzato"))
+        val ready = ensureReady(GemmaProfile.OCR)
+        if (ready.isFailure) {
+            return@withContext Result.failure(ready.exceptionOrNull() ?: Exception("Modello non inizializzato"))
         }
 
         val startTime = System.currentTimeMillis()
@@ -290,9 +352,13 @@ class GemmaLlmHelper private constructor(
         }
     }
 
-    suspend fun generateResponse(prompt: String): Result<String> = withContext(Dispatchers.IO) {
-        if (_modelState.value != ModelState.Ready) {
-            return@withContext Result.failure(Exception("Modello non inizializzato"))
+    suspend fun generateResponse(
+        prompt: String,
+        profile: GemmaProfile = GemmaProfile.WORKOUT
+    ): Result<String> = withContext(Dispatchers.IO) {
+        val ready = ensureReady(profile)
+        if (ready.isFailure) {
+            return@withContext Result.failure(ready.exceptionOrNull() ?: Exception("Modello non inizializzato"))
         }
 
         return@withContext try {
@@ -525,7 +591,8 @@ $ocrText
     }
 
     fun analyzeOcrTextStreaming(rawOcrText: String): Flow<String> = flow {
-        if (_modelState.value != ModelState.Ready) {
+        val ready = ensureReady(GemmaProfile.OCR)
+        if (ready.isFailure) {
             emit("Errore: Modello non inizializzato")
             return@flow
         }
@@ -558,17 +625,48 @@ $ocrText
     }
 
     fun getModelInfo(): String {
+        val profile = activeProfile ?: GemmaProfile.WORKOUT
+        val cfg = configFor(profile)
         return """
             |Modello: Gemma 2B IT (INT4 Quantized)
             |Engine: ${currentEngineType.displayName}
             |File: ${currentEngineType.modelFileName}
             |Dimensione: ~1.35 GB
-            |Temperature: $TEMPERATURE
-            |TopK: $TOP_K
+            |Profile: $profile
+            |Temperature: ${cfg.temperature}
+            |TopK: ${cfg.topK}
+            |RandomSeed: ${cfg.randomSeed}
             |Max Tokens: $MAX_TOKENS
             |Stato: ${_modelState.value}
             |Libreria disponibile: $isLibraryAvailable
         """.trimMargin()
     }
-}
 
+    private fun applyGenConfig(
+        builder: LlmInference.LlmInferenceOptions.Builder,
+        cfg: GenConfig
+    ) {
+        applyIfSupported(builder, "setTemperature", Float::class.javaPrimitiveType, cfg.temperature)
+        applyIfSupported(builder, "setTopK", Int::class.javaPrimitiveType, cfg.topK)
+        applyIfSupported(builder, "setRandomSeed", Int::class.javaPrimitiveType, cfg.randomSeed)
+    }
+
+    private fun applyIfSupported(
+        builder: LlmInference.LlmInferenceOptions.Builder,
+        methodName: String,
+        paramClass: Class<*>?,
+        value: Any
+    ) {
+        if (paramClass == null) return
+        val method = builder.javaClass.methods.firstOrNull { method ->
+            method.name == methodName &&
+                method.parameterTypes.size == 1 &&
+                method.parameterTypes[0] == paramClass
+        } ?: return
+        try {
+            method.invoke(builder, value)
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to apply $methodName on LlmInferenceOptions.Builder", e)
+        }
+    }
+}

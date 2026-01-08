@@ -95,7 +95,8 @@ class WorkoutOcrHelper(
      * Inizializza Gemma (operazione asincrona, ~5-10 secondi)
      */
     suspend fun initializeGemma(): Result<Unit> {
-        return gemmaHelper?.initializeModelWithFallback() ?: Result.failure(Exception("Gemma non configurato"))
+        return gemmaHelper?.initializeModelWithFallback(GemmaLlmHelper.GemmaProfile.OCR)
+            ?: Result.failure(Exception("Gemma non configurato"))
     }
 
     /**

@@ -254,7 +254,7 @@ fun WeeklyStatsQuickCard(
             StatItem(
                 icon = Icons.Default.Scale,
                 value = String.format("%.0f", stats.totalVolumeKg),
-                label = "Volume kg",
+                label = "Volume (sets*reps)",
                 color = AccentGreen
             )
             StatItem(

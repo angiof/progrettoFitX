@@ -13,36 +13,32 @@ class GemmaWorkoutPlanGenerator(
 
     private val gemma = GemmaLlmHelper.getInstance(context.applicationContext)
 
-    override suspend fun generate(request: WorkoutPlanRequest): Result<WorkoutPlanResult> = withContext(Dispatchers.IO) {
-        if (!GemmaLlmHelper.isLibraryAvailable()) {
-            return@withContext Result.failure(Exception("Gemma non disponibile in questa build"))
-        }
-
-        if (!gemma.isModelAvailable()) {
-            return@withContext Result.failure(Exception("Modello Gemma non trovato"))
-        }
-
-        if (!gemma.isReady()) {
-            val init = gemma.initializeModel()
-            if (init.isFailure) {
-                return@withContext Result.failure(init.exceptionOrNull() ?: Exception("Gemma non inizializzato"))
+    override suspend fun generate(request: WorkoutPlanRequest): Result<WorkoutPlanResult> =
+        withContext(Dispatchers.IO) {
+            if (!GemmaLlmHelper.isLibraryAvailable()) {
+                return@withContext Result.failure(Exception("Gemma non disponibile in questa build"))
             }
-        }
 
-        val prompt = buildPrompt(request)
-        val responseResult = gemma.generateResponse(prompt)
-        if (responseResult.isFailure) {
-            return@withContext Result.failure(responseResult.exceptionOrNull() ?: Exception("Nessuna risposta Gemma"))
-        }
+            if (!gemma.isModelAvailable()) {
+                return@withContext Result.failure(Exception("Modello Gemma non trovato"))
+            }
 
-        val response = responseResult.getOrThrow()
-        val exercises = parseExercises(response)
-        if (exercises.isEmpty()) {
-            return@withContext Result.failure(Exception("Nessun esercizio generato"))
-        }
+            val prompt = buildPrompt(request)
+            val responseResult = gemma.generateResponse(prompt, GemmaLlmHelper.GemmaProfile.WORKOUT)
+            if (responseResult.isFailure) {
+                return@withContext Result.failure(
+                    responseResult.exceptionOrNull() ?: Exception("Nessuna risposta Gemma")
+                )
+            }
 
-        Result.success(WorkoutPlanResult(exercises = exercises, rawResponse = response))
-    }
+            val response = responseResult.getOrThrow()
+            val exercises = parseExercises(response)
+            if (exercises.isEmpty()) {
+                return@withContext Result.failure(Exception("Nessun esercizio generato"))
+            }
+
+            Result.success(WorkoutPlanResult(exercises = exercises, rawResponse = response))
+        }
 
     private fun buildPrompt(request: WorkoutPlanRequest): String {
         val groups = request.muscleGroups.joinToString(", ")
@@ -52,6 +48,7 @@ class GemmaWorkoutPlanGenerator(
         } else {
             "LISTA_ESERCIZI_PREFERITI: (non disponibile) usa solo esercizi coerenti con i gruppi indicati"
         }
+        val variantId = System.nanoTime()
         return """<start_of_turn>user
 Sei un coach fitness senior, specializzato in allenamenti personalizzati. Non essere banale.
 - Non confondere le discipline
@@ -60,6 +57,7 @@ Genera una scheda di allenamento in JSON per:
 - Intensita: ${request.intensity}
 - Gruppi muscolari: $groups
 $poolSection
+VARIANT_ID: $variantId
 
 REGOLE:
 1. Restituisci SOLO JSON valido, senza testo extra.
@@ -115,9 +113,11 @@ SCHEMA JSON:
 
                 val sets = parseInt(ex.opt("sets")) ?: parseInt(ex.optString("sets")) ?: 0
                 val reps = parseInt(ex.opt("reps")) ?: parseInt(ex.optString("reps")) ?: 0
-                val rest = parseInt(ex.opt("rest_seconds")) ?: parseInt(ex.optString("rest_seconds"))
+                val rest =
+                    parseInt(ex.opt("rest_seconds")) ?: parseInt(ex.optString("rest_seconds"))
                 val equipment = ex.optString("equipment").takeIf { it.isNotBlank() && it != "null" }
-                val weight = parseFloat(ex.opt("weight_kg")) ?: parseFloat(ex.optString("weight_kg"))
+                val weight =
+                    parseFloat(ex.opt("weight_kg")) ?: parseFloat(ex.optString("weight_kg"))
                 val notes = ex.optString("notes").takeIf { it.isNotBlank() && it != "null" }
 
                 exercises.add(
@@ -157,6 +157,7 @@ SCHEMA JSON:
                         "Pallof press"
                     )
                 )
+
                 "pettorali" -> pool.addAll(
                     listOf(
                         "Panca piana",
@@ -170,6 +171,7 @@ SCHEMA JSON:
                         "Dip"
                     )
                 )
+
                 "dorsali" -> pool.addAll(
                     listOf(
                         "Trazioni",
@@ -181,6 +183,7 @@ SCHEMA JSON:
                         "Hyperextension"
                     )
                 )
+
                 "spalle" -> pool.addAll(
                     listOf(
                         "Military press",
@@ -191,6 +194,7 @@ SCHEMA JSON:
                         "Face pull"
                     )
                 )
+
                 "bicipiti" -> pool.addAll(
                     listOf(
                         "Curl bilanciere",
@@ -200,6 +204,7 @@ SCHEMA JSON:
                         "Curl ai cavi"
                     )
                 )
+
                 "tricipiti" -> pool.addAll(
                     listOf(
                         "French press",
@@ -209,6 +214,7 @@ SCHEMA JSON:
                         "Dip tricipiti"
                     )
                 )
+
                 "gambe" -> pool.addAll(
                     listOf(
                         "Squat",
@@ -220,6 +226,7 @@ SCHEMA JSON:
                         "Calf raise"
                     )
                 )
+
                 "glutei" -> pool.addAll(
                     listOf(
                         "Hip thrust",
@@ -228,6 +235,7 @@ SCHEMA JSON:
                         "Abduzioni"
                     )
                 )
+
                 "polpacci" -> pool.addAll(
                     listOf(
                         "Calf raise",
@@ -238,8 +246,10 @@ SCHEMA JSON:
             }
         }
 
-        return pool.distinct().joinToString(", ")
+        val finalPool = pool.distinct().shuffled().take(18)
+        return finalPool.joinToString(", ")
     }
+
 
     private fun normalizeGroupKey(group: String): String? {
         val g = group.lowercase().trim()
@@ -283,4 +293,3 @@ SCHEMA JSON:
         return Regex("""\d+(?:[.,]\d+)?""").find(value)?.value?.replace(",", ".")?.toFloatOrNull()
     }
 }
-

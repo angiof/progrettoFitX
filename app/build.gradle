@@ -159,7 +159,7 @@ dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.9.0'
 
     // MediaPipe Tasks Vision (Pose Landmarker + Image Segmentation)
-    implementation 'com.google.mediapipe:tasks-vision:0.10.18'
+    implementation 'com.google.mediapipe:tasks-vision:0.10.29'
     // TensorFlow Lite (MoveNet + MiDaS)
     implementation 'org.tensorflow:tensorflow-lite:2.14.0'
 
@@ -189,6 +189,5 @@ dependencies {
 
     // MediaPipe GenAI - Gemma LLM per correzione intelligente OCR
     // NOTA: Richiede JDK 21. Installa JDK 21 e poi decommenta.
-    implementation 'com.google.mediapipe:tasks-genai:0.10.22'
+    implementation 'com.google.mediapipe:tasks-genai:0.10.29'
 }
-

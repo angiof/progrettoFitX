@@ -122,6 +122,13 @@
             android:screenOrientation="portrait"
             android:theme="@style/Theme.Fityo" />
 
+        <activity
+            android:name=".chat.ChatActivity"
+            android:exported="false"
+            android:label="@string/chat_ai"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Fityo" />
+
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />

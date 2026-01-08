@@ -8,6 +8,7 @@ val DashboardSurface = Color(0xFF1A222A)
 val DashboardCard = Color(0xFF222C35)
 val DashboardAccentBlue = Color(0xFF40C4FF)
 val DashboardAccentGreen = Color(0xFF4CAF50)
+val DashboardAccentPurple = Color(0xFF9C27B0)
 val DashboardTextPrimary = Color(0xFFECF0F1)
 val DashboardTextSecondary = Color(0xFFB0BEC5)
 

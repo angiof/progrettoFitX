@@ -122,6 +122,7 @@ private fun SchedeCreateNavHost(
                     muscleGroupOptions = muscleGroupOptions,
                     trainingStyleOptions = trainingStyleOptions,
                     isLoading = state.isLoading,
+                    loadingMessage = state.autoCompileMessage,
                     errorMessage = state.errorMessage,
                     onFormDataChanged = { viewModel.updateFormData(it) },
                     onNext = { viewModel.navigateToEsercizi() },

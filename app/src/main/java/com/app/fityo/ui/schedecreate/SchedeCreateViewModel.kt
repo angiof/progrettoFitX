@@ -30,6 +30,7 @@ data class SchedeCreateState(
     val formData: SchedeFormData = SchedeFormData(),
     val schedeEntity: SchedeEntity? = null,
     val isLoading: Boolean = false,
+    val autoCompileMessage: String? = null,
     val isSaved: Boolean = false,
     val errorMessage: String? = null
 )
@@ -120,7 +121,11 @@ class SchedeCreateViewModel(
 
     fun autoCompileScheda(options: AutoCompileOptions) {
         viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true, errorMessage = null)
+            _state.value = _state.value.copy(
+                isLoading = true,
+                autoCompileMessage = "1/3 Generazione IA...",
+                errorMessage = null
+            )
 
             val updatedFormData = applyAutoDefaults(_state.value.formData, options)
             _state.value = _state.value.copy(formData = updatedFormData)
@@ -137,15 +142,26 @@ class SchedeCreateViewModel(
             if (planResult.isFailure) {
                 _state.value = _state.value.copy(
                     isLoading = false,
+                    autoCompileMessage = null,
                     errorMessage = planResult.exceptionOrNull()?.message ?: "Errore generazione scheda"
                 )
                 return@launch
             }
 
+            _state.value = _state.value.copy(autoCompileMessage = "2/3 Parsing risposta...")
             val exercises = planResult.getOrThrow().exercises
+            _state.value = _state.value.copy(autoCompileMessage = "3/3 Creazione esercizi...")
+
             withContext(Dispatchers.IO) {
                 esserciziRepository.deleteBySchedaId(schedeEntity.id!!)
-                exercises.forEach { plan ->
+            }
+
+            exercises.forEachIndexed { index, plan ->
+                val label = plan.name.take(40)
+                _state.value = _state.value.copy(
+                    autoCompileMessage = "3/3 Aggiungo: $label (${index + 1}/${exercises.size})"
+                )
+                withContext(Dispatchers.IO) {
                     val esercizio = EsserciziEntity(
                         nome = plan.name,
                         attrezzo = plan.equipment.orEmpty(),
@@ -165,7 +181,8 @@ class SchedeCreateViewModel(
             _state.value = _state.value.copy(
                 currentStep = SchedeCreateStep.Esercizi,
                 schedeEntity = schedeEntity,
-                isLoading = false
+                isLoading = false,
+                autoCompileMessage = null
             )
         }
     }

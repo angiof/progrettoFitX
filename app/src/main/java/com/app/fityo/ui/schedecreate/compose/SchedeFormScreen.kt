@@ -89,6 +89,7 @@ fun SchedeFormScreen(
     muscleGroupOptions: List<String>,
     trainingStyleOptions: List<String>,
     isLoading: Boolean,
+    loadingMessage: String?,
     errorMessage: String?,
     onFormDataChanged: (SchedeFormData) -> Unit,
     onNext: () -> Unit,
@@ -577,7 +578,7 @@ fun SchedeFormScreen(
                     CircularProgressIndicator(color = AccentBlue)
                     Spacer(modifier = Modifier.width(16.dp))
                     Text(
-                        text = stringResource(R.string.auto_compile_loading),
+                        text = loadingMessage ?: stringResource(R.string.auto_compile_loading),
                         color = TextSecondary,
                         fontSize = 14.sp
                     )

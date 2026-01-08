@@ -11,6 +11,7 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.app.fityo.analytics.AnalyticsActivity
+import com.app.fityo.chat.ChatActivity
 import com.app.fityo.R
 import com.app.fityo.data_layer.db.DB.DbFit
 import com.app.fityo.ui.dashboard.compose.DashboardScreen
@@ -52,6 +53,14 @@ class DashFrag : Fragment() {
                     },
                     onSelectDateRange = {
                         showDateRangePickerDialog()
+                    },
+                    onOpenChat = {
+                        val intent = Intent(requireContext(), ChatActivity::class.java).apply {
+                            viewModel.selectedProfileId.value?.let { profileId ->
+                                putExtra(ChatActivity.EXTRA_PROFILE_ID, profileId)
+                            }
+                        }
+                        startActivity(intent)
                     }
                 )
             }
