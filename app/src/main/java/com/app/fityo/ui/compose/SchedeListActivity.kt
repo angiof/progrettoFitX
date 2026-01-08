@@ -41,6 +41,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material.icons.rounded.Star
@@ -119,6 +120,7 @@ import com.app.fityo.utils.PdfExporter
 import com.app.fityo.utils.ShareUtils
 import com.app.fityo.utils.FitxFormat
 import com.app.fityo.utils.FitxImportExport
+import com.app.fityo.ui.wger.WgerExerciseInfoDialog
 import com.app.fityo.import_scheda.ImportSchedaActivity
 import android.net.Uri
 import kotlinx.coroutines.Dispatchers
@@ -378,6 +380,7 @@ private fun SchedaDetailDialog(
     val primary = Color(0xFF455A64)
     var showAddDialog by remember { mutableStateOf(false) }
     var editingExercise by remember { mutableStateOf<EsserciziEntity?>(null) }
+    var infoExerciseId by remember { mutableStateOf<Int?>(null) }
     var customTitle by remember(scheda.id) { mutableStateOf(scheda.titolo) }
     var coachName by remember(scheda.id) { mutableStateOf("") }
     var athleteName by remember(scheda.id) { mutableStateOf("") }
@@ -489,7 +492,8 @@ private fun SchedaDetailDialog(
                                 onDelete = { onDeleteExercise(esercizio) },
                                 onToggleComplete = { completed ->
                                     onUpdateExercise(esercizio.copy(completed = completed))
-                                }
+                                },
+                                onInfo = { id -> infoExerciseId = id }
                             )
                         }
                     }
@@ -624,6 +628,13 @@ private fun SchedaDetailDialog(
             }
         )
     }
+
+    infoExerciseId?.let { id ->
+        WgerExerciseInfoDialog(
+            exerciseId = id,
+            onDismiss = { infoExerciseId = null }
+        )
+    }
 }
 
 @Composable
@@ -631,7 +642,8 @@ private fun ExerciseRow(
     esercizio: EsserciziEntity,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
-    onToggleComplete: (Boolean) -> Unit = {}
+    onToggleComplete: (Boolean) -> Unit = {},
+    onInfo: ((Int) -> Unit)? = null
 ) {
     val accent = Color(0xFF40C4FF)
     Card(
@@ -662,6 +674,11 @@ private fun ExerciseRow(
                     ),
                     modifier = Modifier.weight(1f)
                 )
+                if (esercizio.wgerId != null && onInfo != null) {
+                    IconButton(onClick = { onInfo(esercizio.wgerId) }) {
+                        Icon(Icons.Filled.Info, contentDescription = "Info esercizio", tint = accent)
+                    }
+                }
                 IconButton(onClick = onEdit) {
                     Icon(Icons.Filled.Edit, contentDescription = stringResource(id = R.string.content_desc_edit), tint = TextSecondary)
                 }
@@ -1331,7 +1348,8 @@ private data class ExerciseFormData(
     val serie: String = "",
     val ripetizioni: String = "",
     val isometria: String = "",
-    val recupero: String = ""
+    val recupero: String = "",
+    val wgerId: Int? = null
 ) {
     fun toEntity(context: android.content.Context): EsserciziEntity? {
         val serieInt = serie.toIntOrNull()
@@ -1352,6 +1370,7 @@ private data class ExerciseFormData(
             nRipetizione = ripInt,
             insometria = isometria.toIntOrNull(),
             intervallo = recupero.toIntOrNull(),
+            wgerId = wgerId,
             schedaId = schedaId
         )
     }
@@ -1365,7 +1384,8 @@ private data class ExerciseFormData(
             serie = entity.nSerie.toString(),
             ripetizioni = entity.nRipetizione.toString(),
             isometria = entity.insometria?.toString().orEmpty(),
-            recupero = entity.intervallo?.toString().orEmpty()
+            recupero = entity.intervallo?.toString().orEmpty(),
+            wgerId = entity.wgerId
         )
     }
 }

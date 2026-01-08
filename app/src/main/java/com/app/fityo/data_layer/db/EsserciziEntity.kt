@@ -35,6 +35,8 @@ data class EsserciziEntity(
 
     @ColumnInfo(name = "notes") val notes: String? = null, // Note specifiche per esercizio
 
+
+    @ColumnInfo(name = "wgerId") val wgerId: Int? = null, // ID esercizio Wger
     @ColumnInfo(name = "schedaId") val schedaId: Int // Foreign Key
 ) : Serializable
 

@@ -86,6 +86,7 @@ class AdapterHome(
             HomeMenuAction.MUSCLE_COMPARE -> res.getString(R.string.home_card_subtitle_compare)
             HomeMenuAction.TUTOR_MODE -> res.getString(R.string.home_card_subtitle_tutor)
             HomeMenuAction.COACH_MODE -> res.getString(R.string.home_card_subtitle_coach)
+            HomeMenuAction.DIET_INTELLIGENCE -> res.getString(R.string.home_card_subtitle_diet)
         }
     }
 

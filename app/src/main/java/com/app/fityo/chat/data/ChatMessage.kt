@@ -56,7 +56,7 @@ data class ChatMessage(
          */
         fun welcomeMessage(): ChatMessage {
             return ChatMessage(
-                text = "Ciao! Sono il tuo assistente fitness AI. Chiedimi qualsiasi cosa sui tuoi allenamenti!\n\nProva a chiedere:\n- Quando ho fatto gambe?\n- Quanto peso in panca?\n- Suggeriscimi 4 esercizi",
+                text = "Ciao! Sono il tuo assistente fitness.\n\nSeleziona una categoria qui sotto e scegli una domanda per ottenere informazioni sui tuoi allenamenti!",
                 isFromUser = false
             )
         }
@@ -146,6 +146,4 @@ object QuickSuggestions {
     fun getRandom(count: Int = 4): List<String> {
         return suggestions.shuffled().take(count)
     }
-
-    fun getCategories(): List<SuggestionCategory> = categories
 }

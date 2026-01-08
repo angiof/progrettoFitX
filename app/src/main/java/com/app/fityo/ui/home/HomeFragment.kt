@@ -18,6 +18,7 @@ import com.app.fityo.ui.schedecreate.SchedeCreateActivity
 import com.app.fityo.ui.musclecompare.MuscleCompareActivity
 import com.app.fityo.ui.tutor.TutorActivity
 import com.app.fityo.ui.coach.CoachActivity
+import com.app.fityo.ui.diet.compose.DietComposeActivity
 
 class HomeFragment : Fragment() {
 
@@ -64,6 +65,11 @@ class HomeFragment : Fragment() {
             action = HomeMenuAction.VIEW_STATS
         ),
         ModelHomemenu(
+            copertina = R.drawable.faa,
+            titolo = getString(R.string.diet_intelligence_title),
+            action = HomeMenuAction.DIET_INTELLIGENCE
+        ),
+        ModelHomemenu(
             copertina = R.drawable.donna_spalle,
             titolo = getString(R.string.muscle_compare),
             action = HomeMenuAction.MUSCLE_COMPARE
@@ -104,6 +110,10 @@ class HomeFragment : Fragment() {
 
             HomeMenuAction.COACH_MODE -> {
                 startActivity(Intent(requireContext(), CoachActivity::class.java))
+            }
+
+            HomeMenuAction.DIET_INTELLIGENCE -> {
+                startActivity(Intent(requireContext(), DietComposeActivity::class.java))
             }
         }
     }

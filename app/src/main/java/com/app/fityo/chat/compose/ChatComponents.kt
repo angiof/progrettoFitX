@@ -30,6 +30,7 @@ import com.app.fityo.chat.data.ChatMessage
 
 /**
  * Top bar della chat con titolo e azioni.
+ * Mostra il nome del profilo attivo se in coach mode.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,25 +38,36 @@ fun ChatTopBar(
     onBack: () -> Unit,
     onClearHistory: () -> Unit,
     gemmaAvailable: Boolean,
+    profileName: String? = null,
     modifier: Modifier = Modifier
 ) {
     TopAppBar(
         title = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    text = "Fitness AI",
-                    style = MaterialTheme.typography.titleLarge
-                )
-                // Indicatore stato Gemma
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .clip(CircleShape)
-                        .background(if (gemmaAvailable) AccentGreen else AccentOrange)
-                )
+            Column {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "Fitness AI",
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                    // Indicatore stato Gemma
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .clip(CircleShape)
+                            .background(if (gemmaAvailable) AccentGreen else AccentOrange)
+                    )
+                }
+                // Mostra profilo attivo se presente
+                if (profileName != null) {
+                    Text(
+                        text = "Profilo: $profileName",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = UserBubbleColor
+                    )
+                }
             }
         },
         navigationIcon = {

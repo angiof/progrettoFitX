@@ -17,6 +17,8 @@ import com.app.fityo.data_layer.db.TutorSessionEntity
 import com.app.fityo.data_layer.db.UserProfileEntity
 import com.app.fityo.data_layer.db.CoachProfileEntity
 import com.app.fityo.data_layer.db.CoachAppointmentEntity
+import com.app.fityo.data_layer.db.DailyNutritionEntity
+import com.app.fityo.data_layer.db.DailyNutritionItemEntity
 import com.app.fityo.data_layer.db.converters.Converters
 import com.app.fityo.data_layer.db.dao.DaoAvatar3D
 import com.app.fityo.data_layer.db.dao.DaoChat
@@ -28,6 +30,8 @@ import com.app.fityo.data_layer.db.dao.DaoTutorSession
 import com.app.fityo.data_layer.db.dao.DaoUserProfile
 import com.app.fityo.data_layer.db.dao.DaoCoachProfile
 import com.app.fityo.data_layer.db.dao.DaoCoachAppointment
+import com.app.fityo.data_layer.db.dao.DaoDailyNutrition
+import com.app.fityo.data_layer.db.dao.DaoDailyNutritionItem
 
 @Database(
     entities = [
@@ -40,9 +44,11 @@ import com.app.fityo.data_layer.db.dao.DaoCoachAppointment
         Avatar3DEntity::class,
         CoachProfileEntity::class,
         CoachAppointmentEntity::class,
+        DailyNutritionEntity::class,
+        DailyNutritionItemEntity::class,
         ChatMessageEntity::class
     ],
-    version = 13
+    version = 17
 )
 @TypeConverters(Converters::class)
 
@@ -58,6 +64,8 @@ abstract class DbFit : RoomDatabase() {
     abstract fun coachProfileDao(): DaoCoachProfile
     abstract fun coachAppointmentDao(): DaoCoachAppointment
     abstract fun chatDao(): DaoChat
+    abstract fun dailyNutritionDao(): DaoDailyNutrition
+    abstract fun dailyNutritionItemDao(): DaoDailyNutritionItem
 
 
     companion object {
@@ -276,6 +284,72 @@ abstract class DbFit : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_13_14 = object : Migration(13, 14) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Crea tabella nutrizione giornaliera
+                database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS daily_nutrition (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        date TEXT NOT NULL,
+                        totalProteins REAL NOT NULL,
+                        totalCarbs REAL NOT NULL,
+                        totalFats REAL NOT NULL,
+                        totalKcal REAL NOT NULL,
+                        updatedAt INTEGER NOT NULL
+                    )
+                """)
+                database.execSQL("""
+                    CREATE UNIQUE INDEX IF NOT EXISTS index_daily_nutrition_date
+                    ON daily_nutrition(date)
+                """)
+            }
+        }
+
+        private val MIGRATION_14_15 = object : Migration(14, 15) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Crea tabella elementi nutrizionali giornalieri
+                database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS daily_nutrition_items (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        date TEXT NOT NULL,
+                        name TEXT NOT NULL,
+                        grams REAL NOT NULL,
+                        proteins REAL NOT NULL,
+                        carbs REAL NOT NULL,
+                        fats REAL NOT NULL,
+                        kcal REAL NOT NULL,
+                        source TEXT NOT NULL,
+                        createdAt INTEGER NOT NULL
+                    )
+                """)
+                database.execSQL("""
+                    CREATE INDEX IF NOT EXISTS index_daily_nutrition_items_date
+                    ON daily_nutrition_items(date)
+                """)
+            }
+        }
+
+        private val MIGRATION_15_16 = object : Migration(15, 16) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE daily_nutrition ADD COLUMN totalFibers REAL NOT NULL DEFAULT 0")
+                database.execSQL("ALTER TABLE daily_nutrition ADD COLUMN totalSugars REAL NOT NULL DEFAULT 0")
+                database.execSQL("ALTER TABLE daily_nutrition ADD COLUMN totalSaturatedFats REAL NOT NULL DEFAULT 0")
+                database.execSQL("ALTER TABLE daily_nutrition ADD COLUMN totalSalt REAL NOT NULL DEFAULT 0")
+
+                database.execSQL("ALTER TABLE daily_nutrition_items ADD COLUMN fibers REAL NOT NULL DEFAULT 0")
+                database.execSQL("ALTER TABLE daily_nutrition_items ADD COLUMN sugars REAL NOT NULL DEFAULT 0")
+                database.execSQL("ALTER TABLE daily_nutrition_items ADD COLUMN saturatedFats REAL NOT NULL DEFAULT 0")
+                database.execSQL("ALTER TABLE daily_nutrition_items ADD COLUMN salt REAL NOT NULL DEFAULT 0")
+            }
+        }
+
+        private val MIGRATION_16_17 = object : Migration(16, 17) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE essercissi ADD COLUMN wgerId INTEGER")
+            }
+        }
+
+
         fun getDatabase(context: Context): DbFit {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -283,7 +357,7 @@ abstract class DbFit : RoomDatabase() {
                     DbFit::class.java,
                     "dbFit"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14, MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17)
                     .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance

@@ -24,6 +24,9 @@ interface DaoSchede {
     @Query("SELECT * FROM schede WHERE id = :id")
     suspend fun getSchedeById(id: Int): SchedeEntity?
 
+    @Query("SELECT * FROM schede WHERE data = :date")
+    suspend fun getSchedeByDate(date: String): List<SchedeEntity>
+
     @Query("SELECT * FROM schede WHERE gruppoMuscolare = :gruppoMuscolare")
     suspend fun getSchedeByGruppoMuscolare(gruppoMuscolare: String): List<SchedeEntity>
 

@@ -11,9 +11,14 @@ kotlin {
 }
 
 kapt {
+    // Fix for AccessDeniedException on C:\WINDOWS\sqlite-*.dll.lck
     javacOptions {
+        option("-J-Djava.io.tmpdir=${project.buildDir}/tmp")
         option("-source", "21")
         option("-target", "21")
+    }
+    arguments {
+        arg("room.schemaLocation", "$projectDir/schemas".toString())
     }
 }
 
@@ -29,17 +34,9 @@ android {
         versionName "1.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
-
-
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments += ["room.schemaLocation": "$projectDir/schemas".toString()]
-            }
-        }
-        // Dato che usi kotlin-kapt, è fondamentale anche aggiungere questa parte
-        kapt {
-            arguments {
-                arg("room.schemaLocation", "$projectDir/schemas".toString())
             }
         }
     }
@@ -116,7 +113,6 @@ dependencies {
 
     // WorkManager
     implementation "androidx.work:work-runtime-ktx:2.10.2"
-    implementation 'com.google.android.gms:play-services-wearable:18.2.0'
 
     // Glide
     implementation 'com.github.bumptech.glide:glide:4.16.0'
@@ -129,6 +125,14 @@ dependencies {
 
     // Gson per TypeConverter
     implementation 'com.google.code.gson:gson:2.10.1'
+
+    // Retrofit (Open Food Facts)
+    implementation 'com.squareup.retrofit2:retrofit:2.11.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.11.0'
+
+    // Google Code Scanner
+    implementation 'com.google.android.gms:play-services-code-scanner:16.1.0'
+
 
     // Compose
     implementation composeBom
@@ -144,6 +148,10 @@ dependencies {
     debugImplementation 'androidx.compose.ui:ui-tooling'
     debugImplementation 'androidx.compose.ui:ui-test-manifest'
     androidTestImplementation 'androidx.compose.ui:ui-test-junit4'
+
+    // Coil per immagini in Compose
+    implementation 'io.coil-kt:coil-compose:2.5.0'
+    implementation 'io.coil-kt:coil-svg:2.5.0'
 
     // Testing
     testImplementation 'junit:junit:4.13.2'

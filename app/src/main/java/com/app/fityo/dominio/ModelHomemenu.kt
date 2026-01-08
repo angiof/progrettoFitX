@@ -14,6 +14,7 @@ enum class HomeMenuAction {
     VIEW_STATS,
     MUSCLE_COMPARE,
     TUTOR_MODE,
-    COACH_MODE
+    COACH_MODE,
+    DIET_INTELLIGENCE
 }
 

@@ -133,7 +133,7 @@ class GemmaLlmHelper private constructor(
         val reason: String
     )
 
-    enum class GemmaProfile { OCR, WORKOUT, ANALYTICS }
+    enum class GemmaProfile { OCR, WORKOUT, ANALYTICS, DIET }
 
     private data class GenConfig(
         val temperature: Float,
@@ -163,6 +163,11 @@ class GemmaLlmHelper private constructor(
                 temperature = 0.6f,
                 topK = 40,
                 randomSeed = epochDay
+            )
+            GemmaProfile.DIET -> GenConfig(
+                temperature = 0.5f,
+                topK = 40,
+                randomSeed = epochDay + 7
             )
         }
     }

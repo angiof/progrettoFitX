@@ -82,6 +82,7 @@ class SchedeCreateViewModel(
                 insometria = formData.isometria,
                 intervallo = formData.intervallo,
                 peso = formData.peso,
+                wgerId = formData.wgerId,
                 schedaId = schedaId
             )
 
@@ -102,6 +103,7 @@ class SchedeCreateViewModel(
                 insometria = formData.isometria,
                 intervallo = formData.intervallo,
                 peso = formData.peso,
+                wgerId = formData.wgerId,
                 schedaId = schedaId
             )
 

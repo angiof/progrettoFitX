@@ -33,11 +33,14 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -64,13 +67,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.app.fityo.data_layer.network.WgerClient
 import com.app.fityo.data_layer.db.EsserciziEntity
+import com.app.fityo.data_layer.repository.WgerRepository
+import com.app.fityo.dominio.WgerSuggestion
+import com.app.fityo.ui.wger.WgerExerciseInfoDialog
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
 
@@ -82,7 +93,8 @@ data class EsercizioFormData(
     val nRipetizioni: Int = 10,
     val isometria: Int? = null,
     val intervallo: Int? = null,
-    val peso: Float? = null
+    val peso: Float? = null,
+    val wgerId: Int? = null
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -278,7 +290,8 @@ fun EsercissiListScreen(
                             nRipetizioni = it.nRipetizione,
                             isometria = it.insometria,
                             intervallo = it.intervallo,
-                            peso = it.peso
+                            peso = it.peso,
+                            wgerId = it.wgerId
                         )
                     },
                     equipmentOptions = equipmentOptions,
@@ -504,8 +517,42 @@ private fun EsercizioFormSheet(
     var showEquipmentDropdown by remember { mutableStateOf(false) }
     var showIsometriaPicker by remember { mutableStateOf(false) }
     var showRecuperoPicker by remember { mutableStateOf(false) }
+    val wgerRepository = remember { WgerRepository(WgerClient.service) }
+    var wgerSuggestionsEnabled by remember { mutableStateOf(false) }
+    var wgerSuggestions by remember { mutableStateOf<List<WgerSuggestion>>(emptyList()) }
+    var wgerSearchError by remember { mutableStateOf<String?>(null) }
+    var isSearching by remember { mutableStateOf(false) }
+    var pendingSuggestion by remember { mutableStateOf<WgerSuggestion?>(null) }
+    var showWgerDialog by remember { mutableStateOf(false) }
 
     val isValid = formData.nome.isNotBlank() && formData.nSerie > 0 && formData.nRipetizioni > 0
+
+    androidx.compose.runtime.LaunchedEffect(wgerSuggestionsEnabled, formData.nome) {
+        if (!wgerSuggestionsEnabled) {
+            wgerSuggestions = emptyList()
+            wgerSearchError = null
+            isSearching = false
+            return@LaunchedEffect
+        }
+        val query = formData.nome.trim()
+        if (query.length < 2) {
+            wgerSuggestions = emptyList()
+            wgerSearchError = null
+            isSearching = false
+            return@LaunchedEffect
+        }
+        isSearching = true
+        delay(350)
+        val result = wgerRepository.searchExercises(query)
+        result.onSuccess {
+            wgerSuggestions = it
+            wgerSearchError = null
+        }.onFailure {
+            wgerSuggestions = emptyList()
+            wgerSearchError = "Errore di rete."
+        }
+        isSearching = false
+    }
 
     Column(
         modifier = Modifier
@@ -546,8 +593,40 @@ private fun EsercizioFormSheet(
             colors = textFieldColors(),
             singleLine = true,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(12.dp),
+            trailingIcon = {
+                IconButton(
+                    onClick = {
+                        val newState = !wgerSuggestionsEnabled
+                        wgerSuggestionsEnabled = newState
+                        if (!newState) {
+                            wgerSuggestions = emptyList()
+                            wgerSearchError = null
+                        }
+                    }
+                ) {
+                    Icon(
+                        imageVector = if (wgerSuggestionsEnabled) Icons.Filled.Info else Icons.Outlined.Info,
+                        contentDescription = "Suggerimenti Wger",
+                        tint = if (wgerSuggestionsEnabled) AccentBlue else TextSecondary
+                    )
+                }
+            }
         )
+
+        if (wgerSuggestionsEnabled) {
+            Spacer(modifier = Modifier.height(8.dp))
+            WgerSuggestionsDropdown(
+                query = formData.nome,
+                isSearching = isSearching,
+                errorMessage = wgerSearchError,
+                suggestions = wgerSuggestions,
+                onSuggestionClick = { suggestion ->
+                    pendingSuggestion = suggestion
+                    showWgerDialog = true
+                }
+            )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -734,6 +813,26 @@ private fun EsercizioFormSheet(
             )
         }
     }
+
+    if (showWgerDialog && pendingSuggestion != null) {
+        val suggestion = pendingSuggestion!!
+        WgerExerciseInfoDialog(
+            exerciseId = suggestion.id,
+            onDismiss = {
+                showWgerDialog = false
+                pendingSuggestion = null
+            },
+            onConfirm = {
+                formData = formData.copy(
+                    nome = suggestion.value,
+                    wgerId = suggestion.id
+                )
+                wgerSuggestions = emptyList()
+                showWgerDialog = false
+                pendingSuggestion = null
+            }
+        )
+    }
 }
 
 @Composable
@@ -852,4 +951,125 @@ private fun formatDuration(value: Int?): String {
     val minutes = value / 60
     val seconds = value % 60
     return String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
+}
+
+@Composable
+private fun WgerSuggestionsDropdown(
+    query: String,
+    isSearching: Boolean,
+    errorMessage: String?,
+    suggestions: List<WgerSuggestion>,
+    onSuggestionClick: (WgerSuggestion) -> Unit
+) {
+    val trimmedQuery = query.trim()
+    if (trimmedQuery.length < 2) {
+        return
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(180.dp),
+        colors = CardDefaults.cardColors(containerColor = DarkSurface),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        when {
+            isSearching -> {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    CircularProgressIndicator(color = AccentBlue, modifier = Modifier.size(20.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(text = "Ricerca in corso...", color = TextSecondary, fontSize = 12.sp)
+                }
+            }
+            errorMessage != null -> {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(text = errorMessage, color = TextSecondary, fontSize = 12.sp)
+                }
+            }
+            suggestions.isEmpty() -> {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(text = "Nessun risultato", color = TextSecondary, fontSize = 12.sp)
+                }
+            }
+            else -> {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                ) {
+                    itemsIndexed(suggestions) { _, suggestion ->
+                        WgerSuggestionRow(
+                            suggestion = suggestion,
+                            onClick = { onSuggestionClick(suggestion) }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun WgerSuggestionRow(
+    suggestion: WgerSuggestion,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        val imageUrl = suggestion.imageUrl
+        if (imageUrl != null) {
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(imageUrl)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = suggestion.value,
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(DarkBackground, CircleShape)
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+        }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = suggestion.value,
+                color = TextPrimary,
+                fontWeight = FontWeight.Medium,
+                fontSize = 14.sp
+            )
+            suggestion.category?.let {
+                Text(
+                    text = it,
+                    color = TextSecondary,
+                    fontSize = 12.sp
+                )
+            }
+        }
+        Icon(
+            imageVector = Icons.Filled.Info,
+            contentDescription = null,
+            tint = AccentBlue,
+            modifier = Modifier.size(18.dp)
+        )
+    }
 }

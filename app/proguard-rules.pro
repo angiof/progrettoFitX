@@ -24,6 +24,25 @@
 -keep class * extends com.google.gson.reflect.TypeToken
 -keep class com.app.fityo.data_layer.db.converters.** { *; }
 
+# Retrofit
+-dontwarn retrofit2.**
+-keep class retrofit2.** { *; }
+-keepattributes Exceptions
+-keepclasseswithmembers class * {
+    @retrofit2.http.* <methods>;
+}
+
+# OpenFoodFacts API Models (Retrofit + Gson)
+-keep class com.app.fityo.data_layer.network.OpenFoodFactsProductResponse { *; }
+-keep class com.app.fityo.data_layer.network.OpenFoodFactsSearchResponse { *; }
+-keep class com.app.fityo.data_layer.network.OpenFoodFactsProduct { *; }
+-keep class com.app.fityo.data_layer.network.OpenFoodFactsNutriments { *; }
+-keep class com.app.fityo.data_layer.network.** { *; }
+-keepclassmembers class com.app.fityo.data_layer.network.** {
+    <init>(...);
+    <fields>;
+}
+
 # Kotlinx metadata (used by Room)
 -dontwarn kotlinx.metadata.**
 

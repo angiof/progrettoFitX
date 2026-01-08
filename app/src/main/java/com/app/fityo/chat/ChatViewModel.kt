@@ -4,14 +4,12 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.app.fityo.chat.data.ChatIntent
 import com.app.fityo.chat.data.ChatMessage
-import com.app.fityo.chat.engine.IntentClassifier
+import com.app.fityo.chat.data.PredefinedQuestion
 import com.app.fityo.data_layer.db.DB.DbFit
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.util.UUID
 
@@ -26,7 +24,6 @@ class ChatViewModel(
 ) : AndroidViewModel(application) {
 
     private val chatHelper = GemmaChatHelper(application, db)
-    private val classifier = IntentClassifier()
     private val sessionId = UUID.randomUUID().toString()
 
     companion object {
@@ -47,10 +44,17 @@ class ChatViewModel(
     private val _gemmaReady = MutableStateFlow(false)
     val gemmaReady: StateFlow<Boolean> = _gemmaReady.asStateFlow()
 
+    // Profile state
+    private val _profileName = MutableStateFlow<String?>(null)
+    val profileName: StateFlow<String?> = _profileName.asStateFlow()
+
+    val isCoachMode: Boolean get() = profileId != null
+
     // ==================== INIT ====================
 
     init {
         checkGemmaAvailability()
+        loadProfileName()
         loadChatHistory()
     }
 
@@ -58,6 +62,20 @@ class ChatViewModel(
         _gemmaAvailable.value = chatHelper.isGemmaAvailable()
         _gemmaReady.value = chatHelper.isGemmaReady()
         Log.d(TAG, "Gemma available: ${_gemmaAvailable.value}, ready: ${_gemmaReady.value}")
+    }
+
+    private fun loadProfileName() {
+        if (profileId != null) {
+            viewModelScope.launch {
+                try {
+                    val profile = db.coachProfileDao().getById(profileId)
+                    _profileName.value = profile?.name
+                    Log.d(TAG, "Loaded profile: ${profile?.name}")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error loading profile name", e)
+                }
+            }
+        }
     }
 
     private fun loadChatHistory() {
@@ -93,18 +111,17 @@ class ChatViewModel(
     // ==================== ACTIONS ====================
 
     /**
-     * Invia un messaggio dell'utente e genera risposta.
+     * Invia una domanda predefinita selezionata dall'utente.
+     * Questo e il metodo principale per interagire con la chat.
      */
-    fun sendMessage(text: String) {
-        if (text.isBlank() || _isProcessing.value) return
+    fun sendPredefinedQuestion(question: PredefinedQuestion) {
+        if (_isProcessing.value) return
 
         viewModelScope.launch {
-            // 1. Aggiungi messaggio utente
-            val intent = classifier.classify(text)
+            // 1. Aggiungi messaggio utente (mostra il testo della domanda)
             val userMsg = ChatMessage(
-                text = text.trim(),
+                text = question.displayText,
                 isFromUser = true,
-                intent = intent,
                 profileId = profileId,
                 sessionId = sessionId
             )
@@ -119,12 +136,8 @@ class ChatViewModel(
             addMessage(loadingMsg)
             _isProcessing.value = true
 
-            // 3. Processa la domanda
-            val result = if (_gemmaAvailable.value) {
-                chatHelper.processQuestion(text, profileId)
-            } else {
-                Result.success(chatHelper.processQuestionWithoutGemma(text, profileId))
-            }
+            // 3. Processa la domanda predefinita (query diretta al DB)
+            val result = chatHelper.processPredefinedQuestion(question, profileId)
 
             // 4. Rimuovi indicatore di caricamento
             removeLoadingMessage()
@@ -135,7 +148,6 @@ class ChatViewModel(
                     val botMsg = ChatMessage(
                         text = response,
                         isFromUser = false,
-                        intent = intent,
                         profileId = profileId,
                         sessionId = sessionId
                     )
@@ -145,7 +157,7 @@ class ChatViewModel(
                 onFailure = { error ->
                     Log.e(TAG, "Error generating response", error)
                     val errorMsg = ChatMessage.errorMessage(
-                        "Mi dispiace, c'e stato un errore: ${error.localizedMessage}"
+                        "Mi dispiace, c'e stato un errore. Riprova!"
                     ).copy(
                         profileId = profileId,
                         sessionId = sessionId
@@ -155,17 +167,67 @@ class ChatViewModel(
             )
 
             _isProcessing.value = false
-
-            // Aggiorna stato Gemma
-            _gemmaReady.value = chatHelper.isGemmaReady()
         }
     }
 
     /**
-     * Invia una domanda suggerita.
+     * Metodo legacy per retrocompatibilita.
+     * Cerca di mappare il testo a una domanda predefinita.
      */
-    fun sendSuggestion(suggestion: String) {
-        sendMessage(suggestion)
+    fun sendMessage(text: String) {
+        if (text.isBlank() || _isProcessing.value) return
+
+        viewModelScope.launch {
+            // 1. Aggiungi messaggio utente
+            val userMsg = ChatMessage(
+                text = text.trim(),
+                isFromUser = true,
+                profileId = profileId,
+                sessionId = sessionId
+            )
+            addMessage(userMsg)
+            saveMessage(userMsg)
+
+            // 2. Mostra indicatore di caricamento
+            val loadingMsg = ChatMessage.loadingMessage().copy(
+                profileId = profileId,
+                sessionId = sessionId
+            )
+            addMessage(loadingMsg)
+            _isProcessing.value = true
+
+            // 3. Processa la domanda (cerca corrispondenza con domande predefinite)
+            val result = chatHelper.processQuestion(text, profileId)
+
+            // 4. Rimuovi indicatore di caricamento
+            removeLoadingMessage()
+
+            // 5. Aggiungi risposta
+            result.fold(
+                onSuccess = { response ->
+                    val botMsg = ChatMessage(
+                        text = response,
+                        isFromUser = false,
+                        profileId = profileId,
+                        sessionId = sessionId
+                    )
+                    addMessage(botMsg)
+                    saveMessage(botMsg)
+                },
+                onFailure = { error ->
+                    Log.e(TAG, "Error generating response", error)
+                    val errorMsg = ChatMessage.errorMessage(
+                        "Mi dispiace, c'e stato un errore. Riprova!"
+                    ).copy(
+                        profileId = profileId,
+                        sessionId = sessionId
+                    )
+                    addMessage(errorMsg)
+                }
+            )
+
+            _isProcessing.value = false
+        }
     }
 
     /**
