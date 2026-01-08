@@ -86,21 +86,66 @@ data class ChatMessage(
 }
 
 /**
- * Quick suggestions per aiutare l'utente a iniziare.
+ * Categorie di domande predefinite.
+ * L'utente puo solo selezionare queste - niente testo libero.
  */
 object QuickSuggestions {
-    val suggestions = listOf(
-        "Quando ho fatto gambe?",
-        "Quanto peso in panca?",
-        "Suggeriscimi 4 esercizi",
-        "Quanti allenamenti questa settimana?",
-        "A che ora vado in palestra?",
-        "Qual e il mio record di squat?",
-        "Confronta questo mese con il precedente",
-        "Con quale attrezzo ho fatto l'ultimo esercizio?"
+    // Categorie con emoji e domande predefinite
+    data class SuggestionCategory(
+        val emoji: String,
+        val title: String,
+        val questions: List<String>
     )
+
+    val categories = listOf(
+        SuggestionCategory(
+            emoji = "📅",
+            title = "Storico",
+            questions = listOf(
+                "Quando ho fatto gambe?",
+                "Quando ho fatto petto?",
+                "Quando ho fatto schiena?",
+                "Ultimo allenamento?"
+            )
+        ),
+        SuggestionCategory(
+            emoji = "💪",
+            title = "Performance",
+            questions = listOf(
+                "Quanto peso in panca?",
+                "Quanto peso in squat?",
+                "Quanto peso in stacco?",
+                "Il mio record?"
+            )
+        ),
+        SuggestionCategory(
+            emoji = "📊",
+            title = "Statistiche",
+            questions = listOf(
+                "Quanti allenamenti questa settimana?",
+                "Quanti allenamenti questo mese?",
+                "Muscolo piu allenato?",
+                "Confronta con mese scorso"
+            )
+        ),
+        SuggestionCategory(
+            emoji = "💡",
+            title = "Suggerimenti",
+            questions = listOf(
+                "Suggeriscimi 4 esercizi",
+                "Cosa alleno oggi?",
+                "Esercizi per gambe?",
+                "Esercizi per petto?"
+            )
+        )
+    )
+
+    // Per retrocompatibilita
+    val suggestions = categories.flatMap { it.questions }
 
     fun getRandom(count: Int = 4): List<String> {
         return suggestions.shuffled().take(count)
     }
+
+    fun getCategories(): List<SuggestionCategory> = categories
 }
