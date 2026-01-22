@@ -13,9 +13,12 @@ import androidx.lifecycle.lifecycleScope
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -42,6 +45,7 @@ import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material.icons.rounded.Star
@@ -99,6 +103,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContentProviderCompat.requireContext
@@ -122,6 +127,7 @@ import com.app.fityo.utils.FitxFormat
 import com.app.fityo.utils.FitxImportExport
 import com.app.fityo.ui.wger.WgerExerciseInfoDialog
 import com.app.fityo.import_scheda.ImportSchedaActivity
+import com.app.fityo.ui.schedecreate.SchedeCreateActivity
 import android.net.Uri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -131,6 +137,29 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.SolidColor
+import ir.ehsannarmani.compose_charts.PieChart
+import ir.ehsannarmani.compose_charts.models.Pie
+import com.app.fityo.ui.schedecreate.compose.getMuscleGroupColor
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.text.style.TextDecoration
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.Build
+import android.content.Context
+import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.delay
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.Timer
 
 private val DarkBackground = Color(0xFF10161B)
 private val DarkSurface = Color(0xFF1A222A)
@@ -237,21 +266,87 @@ private fun SchedeListRoute(
     val context = LocalContext.current
     var selectedScheda by remember { mutableStateOf<SchedeEntity?>(null) }
     var showProfileDialog by remember { mutableStateOf(false) }
+    var infoScheda by remember { mutableStateOf<SchedeEntity?>(null) }
+
+    // Stati per selezione multipla
+    var isSelectionMode by remember { mutableStateOf(false) }
+    var selectedSchede by remember { mutableStateOf(setOf<Int>()) }
+    var showAssignProfileDialog by remember { mutableStateOf(false) }
 
     SchedeListScreen(
         schede = schede,
         selectedProfileName = selectedProfileName,
         onSelectProfile = { showProfileDialog = true },
-        onBack = onBack,
+        onBack = {
+            if (isSelectionMode) {
+                isSelectionMode = false
+                selectedSchede = emptySet()
+            } else {
+                onBack()
+            }
+        },
         onCreateNew = onCreateScheda,
-        onItemClick = { selectedScheda = it },
+        onItemClick = { scheda ->
+            if (isSelectionMode) {
+                scheda.id?.let { id ->
+                    selectedSchede = if (selectedSchede.contains(id)) {
+                        selectedSchede - id
+                    } else {
+                        selectedSchede + id
+                    }
+                }
+            } else {
+                selectedScheda = scheda
+            }
+        },
         onToggleFavorite = { scheda, newValue ->
             scheda.id?.let { viewModel.toggleFavorite(it, newValue) }
         },
-        onImportScheda = onImportScheda
+        onImportScheda = onImportScheda,
+        onShowInfo = { infoScheda = it },
+        isSelectionMode = isSelectionMode,
+        selectedSchede = selectedSchede,
+        onLongClick = { scheda ->
+            if (!isSelectionMode) {
+                isSelectionMode = true
+                scheda.id?.let { selectedSchede = setOf(it) }
+            }
+        },
+        onSelectAll = {
+            selectedSchede = schede.mapNotNull { it.id }.toSet()
+        },
+        onCancelSelection = {
+            isSelectionMode = false
+            selectedSchede = emptySet()
+        },
+        onAssignToProfile = {
+            showAssignProfileDialog = true
+        }
     )
 
-    // Profile selection dialog
+    // Info dialog con Pie Chart
+    infoScheda?.let { scheda ->
+        SchedaInfoDialog(
+            scheda = scheda,
+            onDismiss = { infoScheda = null }
+        )
+    }
+
+    // Profile assignment dialog (per selezione multipla)
+    if (showAssignProfileDialog) {
+        ProfileAssignmentDialog(
+            profiles = coachProfiles,
+            onDismiss = { showAssignProfileDialog = false },
+            onAssign = { profileId ->
+                viewModel.assignSchedeToProfile(selectedSchede.toList(), profileId)
+                showAssignProfileDialog = false
+                isSelectionMode = false
+                selectedSchede = emptySet()
+            }
+        )
+    }
+
+    // Profile selection dialog (per filtro)
     if (showProfileDialog) {
         ProfileSelectionDialog(
             profiles = coachProfiles,
@@ -374,7 +469,8 @@ private fun SchedaDetailDialog(
     onUpdateExercise: (EsserciziEntity) -> Unit,
     onDeleteExercise: (EsserciziEntity) -> Unit,
     onSharePdf: (ExportMetadata) -> Unit,
-    onExportFitx: () -> Unit = {}
+    onExportFitx: () -> Unit = {},
+    onEditScheda: () -> Unit = {}
 ) {
     val accent = Color(0xFF40C4FF)
     val primary = Color(0xFF455A64)
@@ -394,184 +490,219 @@ private fun SchedaDetailDialog(
     ) {
 
         Surface(modifier = Modifier.fillMaxSize(), color = DarkBackground) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                CenterAlignedTopAppBar(
-                    title = { Text(text = scheda.titolo, color = Color.White) },
-                    navigationIcon = {
-                        IconButton(onClick = onDismiss) {
-                            Icon(Icons.Filled.Close, contentDescription = stringResource(id = R.string.content_desc_close), tint = Color.White)
-                        }
-                    },
-                    actions = {
-                        IconButton(onClick = { onToggleFavorite(!scheda.favorite) }) {
-                            Icon(
-                                imageVector = if (scheda.favorite) Icons.Rounded.Star else Icons.Outlined.Star,
-                                contentDescription = null,
-                                tint = Color.White
+            val allCompleted = esercizi.isNotEmpty() && esercizi.all { it.completed }
+            
+            Box(modifier = Modifier.fillMaxSize()) {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    CenterAlignedTopAppBar(
+                        title = { Text(text = scheda.titolo, color = Color.White) },
+                        navigationIcon = {
+                            IconButton(onClick = onDismiss) {
+                                Icon(Icons.Filled.Close, contentDescription = stringResource(id = R.string.content_desc_close), tint = Color.White)
+                            }
+                        },
+                        actions = {
+                            IconButton(onClick = { onToggleFavorite(!scheda.favorite) }) {
+                                Icon(
+                                    imageVector = if (scheda.favorite) Icons.Rounded.Star else Icons.Outlined.Star,
+                                    contentDescription = null,
+                                    tint = Color.White
+                                )
+                            }
+                        },
+                        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                            containerColor = primary,
+                            titleContentColor = Color.White,
+                            navigationIconContentColor = Color.White,
+                            actionIconContentColor = Color.White
+                        ),
+                        scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+                    )
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(DarkSurface)
+                            .padding(horizontal = 16.dp, vertical = 12.dp)
+                    ) {
+                        // Gruppi muscolari - su una riga separata
+                        Text(
+                            text = scheda.getGruppiMuscolariDisplay(),
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = TextPrimary,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        // Info row: intensita e data
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.intensity_value, scheda.intesita),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = TextSecondary
+                            )
+                            Text(
+                                text = stringResource(id = R.string.date_value, scheda.data),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = TextSecondary
                             )
                         }
-                    },
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = primary,
-                        titleContentColor = Color.White,
-                        navigationIconContentColor = Color.White,
-                        actionIconContentColor = Color.White
-                    ),
-                    scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
-                )
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(DarkSurface)
-                        .padding(horizontal = 16.dp, vertical = 12.dp)
-                ) {
-                    // Gruppi muscolari - su una riga separata
-                    Text(
-                        text = scheda.getGruppiMuscolariDisplay(),
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = TextPrimary,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    // Info row: intensita e data
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.intensity_value, scheda.intesita),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = TextSecondary
-                        )
-                        Text(
-                            text = stringResource(id = R.string.date_value, scheda.data),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = TextSecondary
-                        )
-                    }
-                    scheda.notes?.takeIf { it.isNotBlank() }?.let {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = it,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = TextPrimary,
-                            maxLines = 2
-                        )
-                    }
-                }
-
-                LazyColumn(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = PaddingValues(bottom = 80.dp)
-                ) {
-                    if (esercizi.isEmpty()) {
-                        item {
-                            Card(
+                        scheda.notes?.takeIf { it.isNotBlank() }?.let {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = it,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = TextPrimary,
+                                maxLines = 2
+                            )
+                        }
+                        
+                        // Progress Bar Section
+                        if (esercizi.isNotEmpty()) {
+                            val completedCount = esercizi.count { it.completed }
+                            val totalCount = esercizi.size
+                            val progress = completedCount.toFloat() / totalCount
+                            val animatedProgress by animateFloatAsState(
+                                targetValue = progress,
+                                animationSpec = tween(durationMillis = 500),
+                                label = "progress"
+                            )
+                            val progressColor = when {
+                                progress >= 1f -> Color(0xFF4CAF50) // Green when complete
+                                progress >= 0.5f -> Color(0xFFFF9800) // Orange halfway
+                                else -> accent
+                            }
+                            
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(containerColor = DarkSurface)
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Text(
-                                    text = stringResource(id = R.string.detail_no_exercises),
-                                    modifier = Modifier
-                                        .padding(24.dp),
-                                    style = MaterialTheme.typography.bodyMedium,
+                                    text = "Progresso allenamento",
+                                    style = MaterialTheme.typography.labelMedium,
                                     color = TextSecondary
+                                )
+                                Text(
+                                    text = "$completedCount/$totalCount",
+                                    style = MaterialTheme.typography.labelLarge.copy(
+                                        fontWeight = FontWeight.Bold
+                                    ),
+                                    color = progressColor
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(6.dp))
+                            LinearProgressIndicator(
+                                progress = { animatedProgress },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(8.dp)
+                                    .clip(RoundedCornerShape(4.dp)),
+                                color = progressColor,
+                                trackColor = DarkCard
+                            )
+                        }
+                    }
+
+                    LazyColumn(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(bottom = 100.dp)
+                    ) {
+                        if (esercizi.isEmpty()) {
+                            item {
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = CardDefaults.cardColors(containerColor = DarkSurface)
+                                ) {
+                                    Text(
+                                        text = stringResource(id = R.string.detail_no_exercises),
+                                        modifier = Modifier
+                                            .padding(24.dp),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = TextSecondary
+                                    )
+                                }
+                            }
+                        } else {
+                            items(esercizi) { esercizio ->
+                                ExerciseRow(
+                                    esercizio = esercizio,
+                                    onEdit = { editingExercise = esercizio },
+                                    onDelete = { onDeleteExercise(esercizio) },
+                                    onToggleComplete = { completed ->
+                                        onUpdateExercise(esercizio.copy(completed = completed))
+                                    },
+                                    onInfo = { id -> infoExerciseId = id }
                                 )
                             }
                         }
-                    } else {
-                        items(esercizi) { esercizio ->
-                            ExerciseRow(
-                                esercizio = esercizio,
-                                onEdit = { editingExercise = esercizio },
-                                onDelete = { onDeleteExercise(esercizio) },
-                                onToggleComplete = { completed ->
-                                    onUpdateExercise(esercizio.copy(completed = completed))
-                                },
-                                onInfo = { id -> infoExerciseId = id }
-                            )
-                        }
+                    }
+
+                    // Compact Action Bar - Modern horizontal icon row
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(DarkSurface)
+                            .padding(horizontal = 24.dp, vertical = 16.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        DetailActionIcon(
+                            icon = Icons.Filled.PictureAsPdf,
+                            label = "PDF",
+                            onClick = { metadataAction = MetadataAction.EXPORT }
+                        )
+                        DetailActionIcon(
+                            icon = Icons.Filled.Share,
+                            label = stringResource(id = R.string.share_pdf).take(8),
+                            onClick = { metadataAction = MetadataAction.SHARE }
+                        )
+                        DetailActionIcon(
+                            icon = Icons.Filled.FileDownload,
+                            label = "FitX",
+                            tint = accent,
+                            onClick = onExportFitx
+                        )
+                        DetailActionIcon(
+                            icon = Icons.Filled.Delete,
+                            label = stringResource(id = R.string.delete_scheda_action).take(7),
+                            tint = Color(0xFFE57373),
+                            onClick = onDeleteScheda
+                        )
                     }
                 }
 
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(DarkSurface)
-                        .padding(16.dp)
-                ) {
-                    val allCompleted = esercizi.isNotEmpty() && esercizi.all { it.completed }
-                    if (allCompleted && !scheda.completed) {
-                        Button(
-                            onClick = {
-                                scheda.id?.let { id ->
-                                    onCompleteScheda(
-                                        id,
-                                        true,
-                                        java.time.LocalDate.now().toString()
-                                    )
-                                }
-                                onDismiss()
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF4CAF50),
-                                contentColor = Color.White
-                            )
-                        ) {
-                            Icon(Icons.Filled.CheckCircle, contentDescription = null)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(text = stringResource(id = R.string.complete_scheda))
+                // FAB for primary action (Edit or Complete)
+                FloatingActionButton(
+                    onClick = {
+                        if (allCompleted && !scheda.completed) {
+                            scheda.id?.let { id ->
+                                onCompleteScheda(id, true, java.time.LocalDate.now().toString())
+                            }
+                            onDismiss()
+                        } else {
+                            onEditScheda()
+                            onDismiss()
                         }
-                        Spacer(modifier = Modifier.height(12.dp))
-                    }
-                    Button(
-                        onClick = { metadataAction = MetadataAction.EXPORT },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = primary, contentColor = Color.White)
-                    ) {
-                        Icon(Icons.Filled.PictureAsPdf, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = stringResource(id = R.string.export_pdf))
-                    }
-                    Spacer(modifier = Modifier.height(12.dp))
-                    ActionOutlineButton(
-                        text = stringResource(id = R.string.share_pdf),
-                        icon = Icons.Filled.Share,
-                        color = primary,
-                        onClick = { metadataAction = MetadataAction.SHARE }
+                    },
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(end = 16.dp, bottom = 88.dp),
+                    containerColor = if (allCompleted && !scheda.completed) Color(0xFF4CAF50) else accent,
+                    contentColor = Color.White
+                ) {
+                    Icon(
+                        imageVector = if (allCompleted && !scheda.completed) Icons.Filled.CheckCircle else Icons.Filled.Edit,
+                        contentDescription = if (allCompleted && !scheda.completed) 
+                            stringResource(id = R.string.complete_scheda) else "Modifica"
                     )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    ActionOutlineButton(
-                        text = stringResource(id = R.string.export_fitx),
-                        icon = Icons.Filled.FileDownload,
-                        color = accent,
-                        onClick = onExportFitx
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Button(
-                        onClick = { showAddDialog = true },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = accent, contentColor = Color.White)
-                    ) {
-                        Icon(Icons.Filled.Add, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = stringResource(id = R.string.exercise_add_title))
-                    }
-                    Spacer(modifier = Modifier.height(12.dp))
-                    TextButton(
-                        onClick = onDeleteScheda,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Icon(Icons.Filled.Delete, contentDescription = stringResource(id = R.string.content_desc_delete), tint = Color.Red)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(stringResource(id = R.string.delete_scheda_action), color = Color.Red)
-                    }
                 }
             }
         }
@@ -591,13 +722,14 @@ private fun SchedaDetailDialog(
         )
     }
 
+    val context = LocalContext.current
     editingExercise?.let { esercizio ->
         ExerciseFormDialog(
             title = stringResource(id = R.string.exercise_edit_title),
             initialData = ExerciseFormData.from(esercizio),
             onDismiss = { editingExercise = null },
             onConfirm = { data ->
-                data.toEntity(context = ShedeFragments().requireActivity().baseContext)?.let {
+                data.toEntity(context = context)?.let {
                     onUpdateExercise(it)
                     editingExercise = null
                 }
@@ -637,6 +769,39 @@ private fun SchedaDetailDialog(
     }
 }
 
+/**
+ * Modern action icon with label for the compact bottom action bar
+ */
+@Composable
+private fun DetailActionIcon(
+    icon: ImageVector,
+    label: String,
+    tint: Color = TextPrimary,
+    onClick: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = label,
+            tint = tint,
+            modifier = Modifier.size(24.dp)
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = label,
+            fontSize = 11.sp,
+            color = tint,
+            fontWeight = FontWeight.Medium
+        )
+    }
+}
+
 @Composable
 private fun ExerciseRow(
     esercizio: EsserciziEntity,
@@ -645,35 +810,98 @@ private fun ExerciseRow(
     onToggleComplete: (Boolean) -> Unit = {},
     onInfo: ((Int) -> Unit)? = null
 ) {
+    val context = LocalContext.current
     val accent = Color(0xFF40C4FF)
+    val completedColor = Color(0xFF4CAF50)
+    
+    // Rest Timer State
+    var isTimerRunning by remember { mutableStateOf(false) }
+    var remainingSeconds by remember { mutableStateOf(esercizio.intervallo ?: 60) }
+    
+    // Timer Effect
+    LaunchedEffect(isTimerRunning) {
+        if (isTimerRunning && remainingSeconds > 0) {
+            while (remainingSeconds > 0 && isTimerRunning) {
+                delay(1000L)
+                remainingSeconds--
+            }
+            if (remainingSeconds == 0) {
+                // Vibrate when timer ends
+                vibrateDevice(context, 500L)
+                isTimerRunning = false
+                remainingSeconds = esercizio.intervallo ?: 60
+            }
+        }
+    }
+    
+    // Border animation for completed exercises
+    val borderColor = if (esercizio.completed) completedColor else Color.Transparent
+    
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(
+                if (esercizio.completed) {
+                    Modifier.border(2.dp, completedColor.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                } else Modifier
+            ),
         colors = CardDefaults.cardColors(
-            containerColor = if (esercizio.completed) DarkCard else DarkSurface
+            containerColor = if (esercizio.completed) DarkCard.copy(alpha = 0.7f) else DarkSurface
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = if (esercizio.completed) 0.dp else 2.dp)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Checkbox(
-                    checked = esercizio.completed,
-                    onCheckedChange = onToggleComplete,
-                    colors = CheckboxDefaults.colors(
-                        checkedColor = accent,
-                        uncheckedColor = TextSecondary
+                // Large tap target for checkbox
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(
+                            if (esercizio.completed) completedColor.copy(alpha = 0.15f)
+                            else DarkCard
+                        )
+                        .clickable {
+                            val newState = !esercizio.completed
+                            if (newState) {
+                                // Vibrate on completion
+                                vibrateDevice(context, 100L)
+                            }
+                            onToggleComplete(newState)
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = if (esercizio.completed) Icons.Filled.CheckCircle else Icons.Outlined.CheckCircle,
+                        contentDescription = if (esercizio.completed) "Completato" else "Da fare",
+                        tint = if (esercizio.completed) completedColor else TextSecondary,
+                        modifier = Modifier.size(28.dp)
                     )
-                )
-                Text(
-                    text = esercizio.nome,
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = if (esercizio.completed) TextSecondary else TextPrimary
-                    ),
-                    modifier = Modifier.weight(1f)
-                )
+                }
+                
+                Spacer(modifier = Modifier.width(12.dp))
+                
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = esercizio.nome,
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = if (esercizio.completed) TextSecondary else TextPrimary,
+                            textDecoration = if (esercizio.completed) TextDecoration.LineThrough else TextDecoration.None
+                        )
+                    )
+                    Text(
+                        text = stringResource(id = R.string.exercise_series_reps_format, esercizio.nSerie, esercizio.nRipetizione),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextSecondary
+                    )
+                }
+                
+                // Action buttons
                 if (esercizio.wgerId != null && onInfo != null) {
                     IconButton(onClick = { onInfo(esercizio.wgerId) }) {
                         Icon(Icons.Filled.Info, contentDescription = "Info esercizio", tint = accent)
@@ -683,41 +911,99 @@ private fun ExerciseRow(
                     Icon(Icons.Filled.Edit, contentDescription = stringResource(id = R.string.content_desc_edit), tint = TextSecondary)
                 }
                 IconButton(onClick = onDelete) {
-                    Icon(Icons.Filled.Delete, contentDescription = stringResource(id = R.string.content_desc_delete), tint = Color.Red)
+                    Icon(Icons.Filled.Delete, contentDescription = stringResource(id = R.string.content_desc_delete), tint = Color.Red.copy(alpha = 0.7f))
                 }
             }
-            Text(
-                text = stringResource(id = R.string.exercise_series_reps_format, esercizio.nSerie, esercizio.nRipetizione),
-                style = MaterialTheme.typography.bodySmall,
-                color = TextSecondary,
-                modifier = Modifier.padding(start = 48.dp)
-            )
-            if (esercizio.attrezzo.isNotBlank()) {
-                Text(
-                    text = stringResource(id = R.string.exercise_attrezzo_format, esercizio.attrezzo),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary,
-                    modifier = Modifier.padding(start = 48.dp)
-                )
+            
+            // Additional info row
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 60.dp, top = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                if (esercizio.attrezzo.isNotBlank()) {
+                    Text(
+                        text = esercizio.attrezzo,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = TextSecondary.copy(alpha = 0.7f)
+                    )
+                }
+                esercizio.peso?.let { peso ->
+                    Text(
+                        text = "${peso}kg",
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
+                        color = accent
+                    )
+                }
             }
-            esercizio.insometria?.let {
-                Text(
-                    text = stringResource(id = R.string.exercise_isometria_format, it),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary,
-                    modifier = Modifier.padding(start = 48.dp)
-                )
-            }
-            esercizio.intervallo?.let {
-                Text(
-                    text = stringResource(id = R.string.exercise_recupero_format, it),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary,
-                    modifier = Modifier.padding(start = 48.dp)
-                )
+            
+            // Rest Timer Section (only show if exercise has rest interval)
+            esercizio.intervallo?.let { restSeconds ->
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(DarkCard)
+                        .clickable {
+                            if (isTimerRunning) {
+                                isTimerRunning = false
+                                remainingSeconds = restSeconds
+                            } else {
+                                remainingSeconds = restSeconds
+                                isTimerRunning = true
+                            }
+                        }
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = if (isTimerRunning) Icons.Filled.Pause else Icons.Filled.Timer,
+                            contentDescription = "Timer recupero",
+                            tint = if (isTimerRunning) Color(0xFFFF9800) else TextSecondary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = if (isTimerRunning) "Recupero..." else "Avvia recupero",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = if (isTimerRunning) Color(0xFFFF9800) else TextSecondary
+                        )
+                    }
+                    Text(
+                        text = formatSeconds(remainingSeconds),
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontWeight = FontWeight.Bold
+                        ),
+                        color = if (isTimerRunning) Color(0xFFFF9800) else TextSecondary
+                    )
+                }
             }
         }
     }
+}
+
+// Helper function for vibration
+private fun vibrateDevice(context: Context, durationMs: Long) {
+    val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+    vibrator?.let {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            it.vibrate(VibrationEffect.createOneShot(durationMs, VibrationEffect.DEFAULT_AMPLITUDE))
+        } else {
+            @Suppress("DEPRECATION")
+            it.vibrate(durationMs)
+        }
+    }
+}
+
+// Helper to format seconds as MM:SS
+private fun formatSeconds(seconds: Int): String {
+    val mins = seconds / 60
+    val secs = seconds % 60
+    return String.format("%02d:%02d", mins, secs)
 }
 
 @Composable
@@ -1390,7 +1676,7 @@ private data class ExerciseFormData(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 private fun SchedeListScreen(
     schede: List<SchedeEntity>,
@@ -1400,7 +1686,14 @@ private fun SchedeListScreen(
     onCreateNew: () -> Unit,
     onItemClick: (SchedeEntity) -> Unit,
     onToggleFavorite: (SchedeEntity, Boolean) -> Unit,
-    onImportScheda: () -> Unit = {}
+    onImportScheda: () -> Unit = {},
+    onShowInfo: (SchedeEntity) -> Unit = {},
+    isSelectionMode: Boolean = false,
+    selectedSchede: Set<Int> = emptySet(),
+    onLongClick: (SchedeEntity) -> Unit = {},
+    onSelectAll: () -> Unit = {},
+    onCancelSelection: () -> Unit = {},
+    onAssignToProfile: () -> Unit = {}
 ) {
     val primary = Color(0xFF455A64)
     val accent = Color(0xFF40C4FF)
@@ -1411,22 +1704,71 @@ private fun SchedeListScreen(
         topBar = {
             Column {
                 CenterAlignedTopAppBar(
-                    title = { Text(text = stringResource(id = R.string.apri_schede)) },
+                    title = {
+                        Text(
+                            text = if (isSelectionMode) {
+                                "${selectedSchede.size} selezionate"
+                            } else {
+                                stringResource(id = R.string.apri_schede)
+                            }
+                        )
+                    },
                     navigationIcon = {
                         IconButton(onClick = onBack) {
                             Icon(
-                                Icons.Filled.ArrowBack,
+                                if (isSelectionMode) Icons.Filled.Close else Icons.Filled.ArrowBack,
                                 contentDescription = stringResource(id = R.string.back_content_description)
                             )
                         }
                     },
+                    actions = {
+                        if (isSelectionMode) {
+                            TextButton(onClick = onSelectAll) {
+                                Text("Seleziona tutto", color = Color.White)
+                            }
+                        }
+                    },
                     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = primary,
+                        containerColor = if (isSelectionMode) accent else primary,
                         titleContentColor = Color.White,
                         navigationIconContentColor = Color.White
                     )
                 )
-                // Profile selector row
+                // Profile selector row (nascosto in selection mode)
+                if (!isSelectionMode) {
+                    Surface(
+                        color = DarkSurface,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.profile_filter_label),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = TextSecondary,
+                                modifier = Modifier.weight(1f)
+                            )
+                            OutlinedButton(
+                                onClick = onSelectProfile,
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = accent),
+                                border = BorderStroke(1.dp, accent)
+                            ) {
+                                Text(
+                                    text = selectedProfileName ?: stringResource(id = R.string.all_profiles),
+                                    color = accent
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        bottomBar = {
+            if (isSelectionMode && selectedSchede.isNotEmpty()) {
                 Surface(
                     color = DarkSurface,
                     modifier = Modifier.fillMaxWidth()
@@ -1434,108 +1776,112 @@ private fun SchedeListScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Text(
-                            text = stringResource(id = R.string.profile_filter_label),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = TextSecondary,
-                            modifier = Modifier.weight(1f)
-                        )
                         OutlinedButton(
-                            onClick = onSelectProfile,
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = accent),
-                            border = BorderStroke(1.dp, accent)
+                            onClick = onCancelSelection,
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = TextSecondary),
+                            border = BorderStroke(1.dp, TextSecondary)
                         ) {
-                            Text(
-                                text = selectedProfileName ?: stringResource(id = R.string.all_profiles),
-                                color = accent
-                            )
+                            Text("Annulla")
+                        }
+                        Button(
+                            onClick = onAssignToProfile,
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(containerColor = accent)
+                        ) {
+                            Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Assegna a profilo")
                         }
                     }
                 }
             }
         },
         floatingActionButton = {
-            Column(
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                AnimatedVisibility(
-                    visible = fabExpanded,
-                    enter = fadeIn() + expandVertically(),
-                    exit = fadeOut() + shrinkVertically()
+            // Nasconde il FAB in selection mode
+            if (!isSelectionMode) {
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.End,
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    AnimatedVisibility(
+                        visible = fabExpanded,
+                        enter = fadeIn() + expandVertically(),
+                        exit = fadeOut() + shrinkVertically()
                     ) {
-                        // FAB Importa
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        Column(
+                            horizontalAlignment = Alignment.End,
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Surface(
-                                color = DarkSurface,
-                                shape = RoundedCornerShape(8.dp)
+                            // FAB Importa
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                                Text(
-                                    text = stringResource(id = R.string.import_scheda),
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = TextPrimary
-                                )
+                                Surface(
+                                    color = DarkSurface,
+                                    shape = RoundedCornerShape(8.dp)
+                                ) {
+                                    Text(
+                                        text = stringResource(id = R.string.import_scheda),
+                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = TextPrimary
+                                    )
+                                }
+                                SmallFloatingActionButton(
+                                    onClick = {
+                                        onImportScheda()
+                                        fabExpanded = false
+                                    },
+                                    containerColor = accent
+                                ) {
+                                    Icon(Icons.Filled.FileUpload, contentDescription = stringResource(id = R.string.content_desc_import))
+                                }
                             }
-                            SmallFloatingActionButton(
-                                onClick = {
-                                    onImportScheda()
-                                    fabExpanded = false
-                                },
-                                containerColor = accent
-                            ) {
-                                Icon(Icons.Filled.FileUpload, contentDescription = stringResource(id = R.string.content_desc_import))
-                            }
-                        }
 
-                        // FAB Crea Nuova
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Surface(
-                                color = DarkSurface,
-                                shape = RoundedCornerShape(8.dp)
+                            // FAB Crea Nuova
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                                Text(
-                                    text = stringResource(id = R.string.create_new),
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = TextPrimary
-                                )
-                            }
-                            SmallFloatingActionButton(
-                                onClick = {
-                                    onCreateNew()
-                                    fabExpanded = false
-                                },
-                                containerColor = accent
-                            ) {
-                                Icon(Icons.Filled.CreateNewFolder, contentDescription = stringResource(id = R.string.content_desc_create_new))
+                                Surface(
+                                    color = DarkSurface,
+                                    shape = RoundedCornerShape(8.dp)
+                                ) {
+                                    Text(
+                                        text = stringResource(id = R.string.create_new),
+                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = TextPrimary
+                                    )
+                                }
+                                SmallFloatingActionButton(
+                                    onClick = {
+                                        onCreateNew()
+                                        fabExpanded = false
+                                    },
+                                    containerColor = accent
+                                ) {
+                                    Icon(Icons.Filled.CreateNewFolder, contentDescription = stringResource(id = R.string.content_desc_create_new))
+                                }
                             }
                         }
                     }
-                }
 
-                // FAB Principale
-                FloatingActionButton(
-                    onClick = { fabExpanded = !fabExpanded },
-                    containerColor = if (fabExpanded) primary else accent
-                ) {
-                    Icon(
-                        imageVector = if (fabExpanded) Icons.Filled.Close else Icons.Filled.Add,
-                        contentDescription = if (fabExpanded) stringResource(id = R.string.menu_close) else stringResource(id = R.string.menu_open)
-                    )
+                    // FAB Principale
+                    FloatingActionButton(
+                        onClick = { fabExpanded = !fabExpanded },
+                        containerColor = if (fabExpanded) primary else accent
+                    ) {
+                        Icon(
+                            imageVector = if (fabExpanded) Icons.Filled.Close else Icons.Filled.Add,
+                            contentDescription = if (fabExpanded) stringResource(id = R.string.menu_close) else stringResource(id = R.string.menu_open)
+                        )
+                    }
                 }
             }
         }
@@ -1564,7 +1910,11 @@ private fun SchedeListScreen(
                         onToggleFavorite = {
                             scheda.id?.let { onToggleFavorite(scheda, !scheda.favorite) }
                         },
-                        onClick = { onItemClick(scheda) }
+                        onClick = { onItemClick(scheda) },
+                        onShowInfo = { onShowInfo(scheda) },
+                        onLongClick = { onLongClick(scheda) },
+                        isSelectionMode = isSelectionMode,
+                        isSelected = scheda.id?.let { selectedSchede.contains(it) } ?: false
                     )
                 }
             }
@@ -1572,46 +1922,87 @@ private fun SchedeListScreen(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun SchedaCard(
     scheda: SchedeEntity,
     onToggleFavorite: () -> Unit,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onShowInfo: () -> Unit = {},
+    onLongClick: () -> Unit = {},
+    isSelectionMode: Boolean = false,
+    isSelected: Boolean = false
 ) {
+    val accent = Color(0xFF40C4FF)
+    val selectedBorder = if (isSelected) BorderStroke(2.dp, accent) else null
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() },
-        colors = CardDefaults.cardColors(containerColor = DarkCard),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick
+            ),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isSelected) DarkCard.copy(alpha = 0.9f) else DarkCard
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        border = selectedBorder
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = scheda.titolo,
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary
-                    ),
-                    modifier = Modifier.weight(1f)
-                )
-                IconButton(onClick = onToggleFavorite) {
-                    Icon(
-                        imageVector = if (scheda.favorite) Icons.Rounded.Star else Icons.Outlined.Star,
-                        contentDescription = null,
-                        tint = if (scheda.favorite) Color(0xFF40C4FF) else Color(0xFFBDBDBD)
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Checkbox in selection mode
+            if (isSelectionMode) {
+                Checkbox(
+                    checked = isSelected,
+                    onCheckedChange = { onClick() },
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = accent,
+                        uncheckedColor = TextSecondary
                     )
-                }
+                )
+                Spacer(modifier = Modifier.width(8.dp))
             }
-            Text(text = scheda.gruppoMuscolare, style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
-            Text(text = stringResource(id = R.string.intensity_value, scheda.intesita), style = MaterialTheme.typography.bodySmall, color = TextSecondary)
-            Text(text = stringResource(id = R.string.date_value, scheda.data), style = MaterialTheme.typography.bodySmall, color = TextSecondary)
-            if (!scheda.notes.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(text = scheda.notes, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+
+            Column(modifier = Modifier.weight(1f)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = scheda.titolo,
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        ),
+                        modifier = Modifier.weight(1f)
+                    )
+                    if (!isSelectionMode) {
+                        IconButton(onClick = onShowInfo) {
+                            Icon(
+                                imageVector = Icons.Default.Info,
+                                contentDescription = "Info muscoli",
+                                tint = TextSecondary
+                            )
+                        }
+                        IconButton(onClick = onToggleFavorite) {
+                            Icon(
+                                imageVector = if (scheda.favorite) Icons.Rounded.Star else Icons.Outlined.Star,
+                                contentDescription = null,
+                                tint = if (scheda.favorite) accent else Color(0xFFBDBDBD)
+                            )
+                        }
+                    }
+                }
+                Text(text = scheda.gruppoMuscolare, style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
+                Text(text = stringResource(id = R.string.intensity_value, scheda.intesita), style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                Text(text = stringResource(id = R.string.date_value, scheda.data), style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                if (!scheda.notes.isNullOrBlank()) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(text = scheda.notes, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                }
             }
         }
     }
@@ -1740,6 +2131,319 @@ private fun ProfileSelectionDialog(
                     modifier = Modifier.align(Alignment.End)
                 ) {
                     Text(text = stringResource(id = R.string.exercise_cancel), color = TextSecondary)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProfileAssignmentDialog(
+    profiles: List<CoachProfileEntity>,
+    onDismiss: () -> Unit,
+    onAssign: (profileId: Int?) -> Unit
+) {
+    val accent = Color(0xFF40C4FF)
+    val scrollState = rememberScrollState()
+
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            color = DarkSurface,
+            shape = RoundedCornerShape(20.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(24.dp)
+                    .verticalScroll(scrollState),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = "Assegna a profilo",
+                    style = MaterialTheme.typography.titleMedium.copy(color = TextPrimary)
+                )
+                Text(
+                    text = "Scegli il profilo a cui assegnare le schede selezionate",
+                    style = MaterialTheme.typography.bodySmall.copy(color = TextSecondary)
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Option to remove from profile (personal)
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onAssign(null) },
+                    colors = CardDefaults.cardColors(containerColor = DarkCard)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.Person,
+                            contentDescription = null,
+                            tint = accent,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = "Personale",
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    color = accent,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                            Text(
+                                text = "Rimuovi assegnazione profilo",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = TextSecondary
+                            )
+                        }
+                    }
+                }
+
+                // List of profiles
+                profiles.forEach { profile ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onAssign(profile.id) },
+                        colors = CardDefaults.cardColors(containerColor = DarkCard)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Avatar circle with initials
+                            Surface(
+                                modifier = Modifier.size(40.dp),
+                                shape = RoundedCornerShape(20.dp),
+                                color = Color(profile.avatarColor)
+                            ) {
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier.fillMaxSize()
+                                ) {
+                                    Text(
+                                        text = profile.name.take(2).uppercase(),
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            color = Color.White,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text(
+                                    text = profile.name,
+                                    style = MaterialTheme.typography.bodyLarge.copy(
+                                        color = TextPrimary,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                )
+                                profile.notes?.takeIf { it.isNotBlank() }?.let {
+                                    Text(
+                                        text = it,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = TextSecondary,
+                                        maxLines = 1
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (profiles.isEmpty()) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = DarkCard)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "Nessun profilo disponibile",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = TextSecondary
+                            )
+                            Text(
+                                text = "Crea un profilo nel Coach Mode",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = TextSecondary.copy(alpha = 0.7f)
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+                TextButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.align(Alignment.End)
+                ) {
+                    Text(text = stringResource(id = R.string.exercise_cancel), color = TextSecondary)
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun SchedaInfoDialog(
+    scheda: SchedeEntity,
+    onDismiss: () -> Unit
+) {
+    val muscleGroups = scheda.getAllGruppiMuscolari()
+    val accent = Color(0xFF40C4FF)
+
+    val pieData = remember(muscleGroups) {
+        muscleGroups.mapIndexed { index, group ->
+            Pie(
+                label = group,
+                data = 100.0 / muscleGroups.size,
+                color = getMuscleGroupColor(group),
+                selectedColor = getMuscleGroupColor(group).copy(alpha = 0.8f)
+            )
+        }
+    }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            color = DarkSurface,
+            shape = RoundedCornerShape(20.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Header
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = scheda.titolo,
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            color = TextPrimary,
+                            fontWeight = FontWeight.Bold
+                        ),
+                        modifier = Modifier.weight(1f)
+                    )
+                    IconButton(onClick = onDismiss) {
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = "Chiudi",
+                            tint = TextSecondary
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Pie Chart
+                if (muscleGroups.isNotEmpty()) {
+                    Text(
+                        text = "Gruppi Muscolari",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            color = TextSecondary,
+                            fontWeight = FontWeight.Medium
+                        ),
+                        modifier = Modifier.align(Alignment.Start)
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    PieChart(
+                        modifier = Modifier.size(180.dp),
+                        data = pieData,
+                        selectedScale = 1.1f,
+                        spaceDegree = 4f,
+                        selectedPaddingDegree = 3f,
+                        style = Pie.Style.Stroke(width = 50.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Legend
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        muscleGroups.forEach { group ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(10.dp)
+                                        .clip(CircleShape)
+                                        .background(getMuscleGroupColor(group))
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = group,
+                                    color = TextSecondary,
+                                    fontSize = 12.sp
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    Text(
+                        text = "Nessun gruppo muscolare definito",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = TextSecondary
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Info aggiuntive
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = DarkCard),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("Intensita", color = TextSecondary, fontSize = 14.sp)
+                            Text(scheda.intesita, color = accent, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("Data", color = TextSecondary, fontSize = 14.sp)
+                            Text(scheda.data, color = TextPrimary, fontSize = 14.sp)
+                        }
+                        scheda.notes?.takeIf { it.isNotBlank() }?.let { notes ->
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text("Note:", color = TextSecondary, fontSize = 14.sp)
+                            Text(notes, color = TextPrimary, fontSize = 13.sp)
+                        }
+                    }
                 }
             }
         }

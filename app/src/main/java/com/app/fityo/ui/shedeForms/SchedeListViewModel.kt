@@ -80,5 +80,10 @@ class SchedeListViewModel(application: Application) : AndroidViewModel(applicati
     suspend fun countSchede(): Int = withContext(Dispatchers.IO) {
         repository.countSchede()
     }
+
+    fun assignSchedeToProfile(schedeIds: List<Int>, profileId: Int?) = viewModelScope.launch(Dispatchers.IO) {
+        repository.updateProfileForSchede(schedeIds, profileId)
+        loadSchede()
+    }
 }
 

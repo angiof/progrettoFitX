@@ -1,17 +1,28 @@
 package com.app.fityo.ui.dashboard.compose
 
-import android.graphics.Color as AndroidColor
-import android.graphics.Typeface
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.Chat
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
@@ -19,14 +30,13 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
 import com.app.fityo.R
 import com.app.fityo.data_layer.db.CoachProfileEntity
 import com.app.fityo.data_layer.db.dao.GruppoMuscolareIntensitaMedia
@@ -34,12 +44,13 @@ import com.app.fityo.dominio.GruppoMuscolarePercentuale
 import com.app.fityo.dominio.WeekdayWorkoutCount
 import com.app.fityo.ui.dashboard.DashViewModel
 import com.app.fityo.ui.dashboard.DashboardStats
-import com.github.mikephil.charting.charts.BarChart
-import com.github.mikephil.charting.charts.PieChart
-import com.github.mikephil.charting.components.Legend
-import com.github.mikephil.charting.components.XAxis
-import com.github.mikephil.charting.data.*
-import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.graphics.SolidColor
+import ir.ehsannarmani.compose_charts.ColumnChart
+import ir.ehsannarmani.compose_charts.PieChart
+import ir.ehsannarmani.compose_charts.models.BarProperties
+import ir.ehsannarmani.compose_charts.models.Bars
+import ir.ehsannarmani.compose_charts.models.Pie
 
 @Composable
 fun DashboardScreen(
@@ -246,18 +257,37 @@ private fun DateRangeCard(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun PieChartCard(
     percentuali: List<GruppoMuscolarePercentuale>
 ) {
-    val context = LocalContext.current
-    val noDataText = stringResource(R.string.no_data_chart)
-    val centerText = stringResource(R.string.title_dashboard)
+    val pieColors = listOf(
+        Color(0xFF4777C0),
+        Color(0xFFA374C6),
+        Color(0xFF4FB3E8),
+        Color(0xFF99CF43),
+        Color(0xFFFDC135),
+        Color(0xFFFD9A47),
+        Color(0xFFEB6E7A),
+        Color(0xFF6785C2)
+    )
+
+    val pieData = remember(percentuali) {
+        percentuali.mapIndexed { index, p ->
+            Pie(
+                label = p.gruppoMuscolare,
+                data = p.percentuale.toDouble(),
+                color = pieColors[index % pieColors.size],
+                selectedColor = pieColors[index % pieColors.size].copy(alpha = 0.8f)
+            )
+        }
+    }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(400.dp),
+            .height(420.dp),
         colors = CardDefaults.cardColors(containerColor = DashboardCard),
         shape = RoundedCornerShape(16.dp)
     ) {
@@ -275,71 +305,63 @@ private fun PieChartCard(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            AndroidView(
-                modifier = Modifier.fillMaxSize(),
-                factory = { ctx ->
-                    PieChart(ctx).apply {
-                        setNoDataText(noDataText)
-                        setNoDataTextColor(AndroidColor.WHITE)
-                        description.isEnabled = false
-                        setUsePercentValues(true)
-                        isDrawHoleEnabled = true
-                        holeRadius = 50f
-                        transparentCircleRadius = 55f
-                        setHoleColor(AndroidColor.TRANSPARENT)
-                        setDrawCenterText(true)
-                        setCenterTextSize(20f)
-                        setCenterTextTypeface(Typeface.DEFAULT_BOLD)
-                        setCenterTextColor(AndroidColor.WHITE)
-                        this.centerText = centerText
-                        legend.apply {
-                            textColor = AndroidColor.WHITE
-                            isWordWrapEnabled = true
-                        }
-                        setExtraOffsets(20f, 0f, 20f, 0f)
-                    }
-                },
-                update = { chart ->
-                    if (percentuali.isEmpty()) {
-                        chart.clear()
-                        chart.invalidate()
-                        return@AndroidView
-                    }
-
-                    val entries = percentuali.map { p ->
-                        PieEntry(p.percentuale, p.gruppoMuscolare)
-                    }
-
-                    val colors = listOf(
-                        AndroidColor.parseColor("#4777c0"),
-                        AndroidColor.parseColor("#a374c6"),
-                        AndroidColor.parseColor("#4fb3e8"),
-                        AndroidColor.parseColor("#99cf43"),
-                        AndroidColor.parseColor("#fdc135"),
-                        AndroidColor.parseColor("#fd9a47"),
-                        AndroidColor.parseColor("#eb6e7a"),
-                        AndroidColor.parseColor("#6785c2")
+            if (percentuali.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = stringResource(R.string.no_data_chart),
+                        color = DashboardTextSecondary,
+                        style = MaterialTheme.typography.bodyMedium
                     )
-
-                    val dataSet = PieDataSet(entries, "").apply {
-                        this.colors = colors
-                        setDrawValues(true)
-                        valueTextColor = AndroidColor.WHITE
-                        yValuePosition = PieDataSet.ValuePosition.OUTSIDE_SLICE
-                        valueTextSize = 14f
-                        valueTypeface = Typeface.DEFAULT_BOLD
-                        valueLinePart1Length = 0.6f
-                        valueLinePart2Length = 0.3f
-                        valueLineWidth = 2f
-                        valueLinePart1OffsetPercentage = 115f
-                        isUsingSliceColorAsValueLineColor = true
-                    }
-
-                    chart.data = PieData(dataSet)
-                    chart.animateY(1200)
-                    chart.invalidate()
                 }
-            )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    PieChart(
+                        modifier = Modifier.size(200.dp),
+                        data = pieData,
+                        style = Pie.Style.Stroke(width = 60.dp),
+                        scaleAnimEnterSpec = tween(durationMillis = 1200),
+                        spaceDegreeAnimEnterSpec = tween(durationMillis = 1200)
+                    )
+                }
+
+                // Legenda
+                Spacer(modifier = Modifier.height(16.dp))
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    pieData.forEach { pie ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 8.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(12.dp)
+                                    .clip(CircleShape)
+                                    .background(pie.color)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "${pie.label} (${pie.data.toInt()}%)",
+                                color = DashboardTextSecondary,
+                                fontSize = 11.sp
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -348,13 +370,34 @@ private fun PieChartCard(
 private fun IntensityBarChartCard(
     mediaIntensita: List<GruppoMuscolareIntensitaMedia>
 ) {
-    val noDataText = stringResource(R.string.no_data_chart)
     val chartLabel = stringResource(R.string.bar_label_intensity)
+
+    val barColors = listOf(
+        Color(0xFFFF6F61),
+        Color(0xFF4DD0E1),
+        Color(0xFF9575CD),
+        Color(0xFF81C784),
+        Color(0xFFFFD54F)
+    )
+
+    val barsData = remember(mediaIntensita) {
+        mediaIntensita.mapIndexed { index, item ->
+            Bars(
+                label = item.gruppoMuscolare,
+                values = listOf(
+                    Bars.Data(
+                        value = item.mediaIntensita.toDouble(),
+                        color = SolidColor(barColors[index % barColors.size])
+                    )
+                )
+            )
+        }
+    }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(400.dp),
+            .height(350.dp),
         colors = CardDefaults.cardColors(containerColor = DashboardCard),
         shape = RoundedCornerShape(16.dp)
     ) {
@@ -370,78 +413,60 @@ private fun IntensityBarChartCard(
                     color = DashboardTextPrimary
                 )
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            AndroidView(
-                modifier = Modifier.fillMaxSize(),
-                factory = { ctx ->
-                    BarChart(ctx).apply {
-                        setNoDataText(noDataText)
-                        setNoDataTextColor(AndroidColor.WHITE)
-                        description.isEnabled = false
-                        setFitBars(true)
-                        setDrawGridBackground(false)
-                        legend.apply {
-                            verticalAlignment = Legend.LegendVerticalAlignment.BOTTOM
-                            horizontalAlignment = Legend.LegendHorizontalAlignment.LEFT
-                            orientation = Legend.LegendOrientation.HORIZONTAL
-                            setDrawInside(false)
-                            isWordWrapEnabled = true
-                            textColor = AndroidColor.WHITE
-                        }
-                        xAxis.apply {
-                            position = XAxis.XAxisPosition.BOTTOM
-                            textColor = AndroidColor.WHITE
-                            setDrawGridLines(false)
-                            granularity = 1f
-                        }
-                        axisLeft.apply {
-                            textColor = AndroidColor.WHITE
-                            axisMinimum = 0f
-                            granularity = 1f
-                            setDrawGridLines(true)
-                        }
-                        axisRight.isEnabled = false
-                    }
-                },
-                update = { chart ->
-                    if (mediaIntensita.isEmpty()) {
-                        chart.clear()
-                        chart.invalidate()
-                        return@AndroidView
-                    }
-
-                    val labels = ArrayList<String>()
-                    val entries = ArrayList<BarEntry>()
-
-                    mediaIntensita.forEachIndexed { index, item ->
-                        entries.add(BarEntry(index.toFloat(), item.mediaIntensita))
-                        labels.add(item.gruppoMuscolare)
-                    }
-
-                    val colors = listOf(
-                        AndroidColor.parseColor("#FF6F61"),
-                        AndroidColor.parseColor("#4DD0E1"),
-                        AndroidColor.parseColor("#9575CD"),
-                        AndroidColor.parseColor("#81C784"),
-                        AndroidColor.parseColor("#FFD54F")
+            if (mediaIntensita.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = stringResource(R.string.no_data_chart),
+                        color = DashboardTextSecondary,
+                        style = MaterialTheme.typography.bodyMedium
                     )
-
-                    val dataSet = BarDataSet(entries, chartLabel).apply {
-                        this.colors = colors
-                        setDrawValues(true)
-                        valueTextSize = 10f
-                        valueTextColor = AndroidColor.WHITE
-                        valueTypeface = Typeface.DEFAULT_BOLD
-                    }
-
-                    chart.data = BarData(dataSet)
-                    chart.xAxis.valueFormatter = IndexAxisValueFormatter(labels)
-                    chart.xAxis.labelCount = labels.size
-                    chart.animateY(2000)
-                    chart.invalidate()
                 }
-            )
+            } else {
+                ColumnChart(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .padding(bottom = 8.dp),
+                    data = barsData,
+                    barProperties = BarProperties(
+                        cornerRadius = Bars.Data.Radius.Rectangle(topRight = 6.dp, topLeft = 6.dp),
+                        spacing = 4.dp,
+                        thickness = 24.dp
+                    ),
+                    animationSpec = tween(durationMillis = 2000)
+                )
+
+                // Legenda etichette
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    mediaIntensita.forEachIndexed { index, item ->
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Box(
+                                modifier = Modifier
+                                    .size(12.dp)
+                                    .clip(CircleShape)
+                                    .background(barColors[index % barColors.size])
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = item.gruppoMuscolare.take(8),
+                                color = DashboardTextSecondary,
+                                fontSize = 9.sp,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -450,10 +475,6 @@ private fun IntensityBarChartCard(
 private fun WeeklyChartCard(
     weekFrequency: List<WeekdayWorkoutCount>
 ) {
-    val context = LocalContext.current
-    val noDataText = stringResource(R.string.no_data_chart)
-    val chartLabel = stringResource(R.string.bar_label_week)
-
     val dayLabels = listOf(
         stringResource(R.string.day_sun_short),
         stringResource(R.string.day_mon_short),
@@ -464,10 +485,27 @@ private fun WeeklyChartCard(
         stringResource(R.string.day_sat_short)
     )
 
+    val weekColor = Color(0xFF4DD0E1)
+
+    val barsData = remember(weekFrequency, dayLabels) {
+        val map = weekFrequency.associate { it.dayOfWeek to it.count }
+        dayLabels.mapIndexed { index, label ->
+            Bars(
+                label = label,
+                values = listOf(
+                    Bars.Data(
+                        value = (map[index] ?: 0).toDouble(),
+                        color = SolidColor(weekColor)
+                    )
+                )
+            )
+        }
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(300.dp),
+            .height(280.dp),
         colors = CardDefaults.cardColors(containerColor = DashboardCard),
         shape = RoundedCornerShape(16.dp)
     ) {
@@ -490,55 +528,51 @@ private fun WeeklyChartCard(
                     color = DashboardTextSecondary
                 )
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            AndroidView(
-                modifier = Modifier.fillMaxSize(),
-                factory = { ctx ->
-                    BarChart(ctx).apply {
-                        setNoDataText(noDataText)
-                        setNoDataTextColor(AndroidColor.WHITE)
-                        description.isEnabled = false
-                        legend.isEnabled = false
-                        axisRight.isEnabled = false
-                        axisLeft.apply {
-                            textColor = AndroidColor.WHITE
-                            axisMinimum = 0f
-                        }
-                        xAxis.apply {
-                            textColor = AndroidColor.WHITE
-                            granularity = 1f
-                            position = XAxis.XAxisPosition.BOTTOM
-                        }
-                        setDrawGridBackground(false)
-                    }
-                },
-                update = { chart ->
-                    if (weekFrequency.isEmpty()) {
-                        chart.clear()
-                        chart.invalidate()
-                        return@AndroidView
-                    }
-
-                    val map = weekFrequency.associate { it.dayOfWeek to it.count }
-                    val entries = dayLabels.indices.map { index ->
-                        val value = map[index] ?: 0
-                        BarEntry(index.toFloat(), value.toFloat())
-                    }
-
-                    val dataSet = BarDataSet(entries, chartLabel).apply {
-                        color = AndroidColor.parseColor("#4DD0E1")
-                        valueTextColor = AndroidColor.WHITE
-                        valueTypeface = Typeface.DEFAULT_BOLD
-                        valueTextSize = 10f
-                    }
-
-                    chart.data = BarData(dataSet)
-                    chart.xAxis.valueFormatter = IndexAxisValueFormatter(dayLabels)
-                    chart.animateY(1500)
-                    chart.invalidate()
+            if (weekFrequency.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = stringResource(R.string.no_data_chart),
+                        color = DashboardTextSecondary,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                 }
-            )
+            } else {
+                ColumnChart(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .padding(bottom = 8.dp),
+                    data = barsData,
+                    barProperties = BarProperties(
+                        cornerRadius = Bars.Data.Radius.Rectangle(topRight = 4.dp, topLeft = 4.dp),
+                        spacing = 2.dp,
+                        thickness = 20.dp
+                    ),
+                    animationSpec = tween(durationMillis = 1500)
+                )
+
+                // Etichette giorni
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    dayLabels.forEach { label ->
+                        Text(
+                            text = label,
+                            color = DashboardTextSecondary,
+                            fontSize = 10.sp,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+            }
         }
     }
 }

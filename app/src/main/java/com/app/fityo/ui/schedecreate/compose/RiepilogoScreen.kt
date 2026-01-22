@@ -57,6 +57,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.app.fityo.data_layer.db.EsserciziEntity
 import com.app.fityo.data_layer.db.SchedeEntity
+import ir.ehsannarmani.compose_charts.PieChart
+import ir.ehsannarmani.compose_charts.models.Pie
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -303,6 +305,12 @@ fun RiepilogoScreen(
             }
 
             Spacer(modifier = Modifier.height(20.dp))
+
+            // Muscle Balance Chart
+            if (scheda.getAllGruppiMuscolari().isNotEmpty()) {
+                MuscleBalanceCard(muscleGroups = scheda.getAllGruppiMuscolari())
+                Spacer(modifier = Modifier.height(20.dp))
+            }
 
             // Exercises Preview
             Card(
@@ -551,6 +559,82 @@ private fun SummaryRow(
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Medium
             )
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun MuscleBalanceCard(muscleGroups: List<String>) {
+    val pieData = remember(muscleGroups) {
+        muscleGroups.mapIndexed { index, group ->
+            Pie(
+                label = group,
+                data = 100.0 / muscleGroups.size,
+                color = getMuscleGroupColor(group),
+                selectedColor = getMuscleGroupColor(group).copy(alpha = 0.8f)
+            )
+        }
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = DarkCard),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Bilanciamento Muscolare",
+                color = TextPrimary,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.align(Alignment.Start)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Pie Chart
+            PieChart(
+                modifier = Modifier.size(180.dp),
+                data = pieData,
+                selectedScale = 1.1f,
+                spaceDegree = 4f,
+                selectedPaddingDegree = 3f,
+                style = Pie.Style.Stroke(width = 50.dp)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Legend
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                muscleGroups.forEach { group ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(10.dp)
+                                .clip(CircleShape)
+                                .background(getMuscleGroupColor(group))
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = group,
+                            color = TextSecondary,
+                            fontSize = 12.sp
+                        )
+                    }
+                }
+            }
         }
     }
 }

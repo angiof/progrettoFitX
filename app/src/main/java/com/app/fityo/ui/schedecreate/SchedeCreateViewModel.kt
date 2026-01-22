@@ -4,9 +4,11 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.viewModelScope
+import com.app.fityo.data_layer.db.CoachProfileEntity
 import com.app.fityo.data_layer.db.EsserciziEntity
 import com.app.fityo.data_layer.db.SchedeEntity
 import com.app.fityo.data_layer.db.repos.EsserciziRepository
+import com.app.fityo.data_layer.repository.CoachProfileRepository
 import com.app.fityo.data_layer.repository.SchedeRepository
 import com.app.fityo.schede.ai.GemmaWorkoutPlanGenerator
 import com.app.fityo.schede.ai.WorkoutPlanRequest
@@ -39,12 +41,66 @@ class SchedeCreateViewModel(
     application: Application,
     private val schedeRepository: SchedeRepository,
     private val esserciziRepository: EsserciziRepository,
-    private val coachProfileId: Int? = null
+    private val coachProfileRepository: CoachProfileRepository,
+    private val coachProfileId: Int? = null,
+    private val editSchedaId: Int? = null,
+    private val startAtExercises: Boolean = false
 ) : AndroidViewModel(application) {
 
     private val _state = MutableStateFlow(SchedeCreateState())
     val state: StateFlow<SchedeCreateState> = _state.asStateFlow()
     private val workoutPlanGenerator = GemmaWorkoutPlanGenerator(application)
+
+    private val _coachProfiles = MutableStateFlow<List<CoachProfileEntity>>(emptyList())
+    val coachProfiles: StateFlow<List<CoachProfileEntity>> = _coachProfiles.asStateFlow()
+
+    init {
+        loadCoachProfiles()
+
+        // Se c'è un editSchedaId, carica la scheda esistente
+        if (editSchedaId != null) {
+            loadExistingScheda(editSchedaId)
+        } else if (coachProfileId != null) {
+            // Se c'è un coachProfileId dall'intent, impostalo nel formData
+            _state.value = _state.value.copy(
+                formData = _state.value.formData.copy(coachProfileId = coachProfileId)
+            )
+        }
+    }
+
+    private fun loadExistingScheda(schedaId: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val scheda = schedeRepository.getSchedeById(schedaId) ?: return@launch
+
+            // Converti la scheda esistente in formData
+            val formData = SchedeFormData(
+                titolo = scheda.titolo,
+                data = scheda.data,
+                intensita = scheda.intesita,
+                selectedMuscleGroups = scheda.getAllGruppiMuscolari().toMutableSet(),
+                notes = scheda.notes ?: "",
+                coachProfileId = scheda.coachProfileId
+            )
+
+            // Carica gli esercizi
+            _esercizi = esserciziRepository.getAllById(schedaId)
+
+            withContext(Dispatchers.Main) {
+                _state.value = _state.value.copy(
+                    formData = formData,
+                    schedeEntity = scheda,
+                    currentStep = if (startAtExercises) SchedeCreateStep.Esercizi else SchedeCreateStep.Form
+                )
+            }
+        }
+    }
+
+    private fun loadCoachProfiles() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val profiles = coachProfileRepository.getAllProfilesSync()
+            _coachProfiles.value = profiles
+        }
+    }
 
     // Esercizi list - LiveData from repository
     private var _esercizi: LiveData<List<EsserciziEntity>>? = null
@@ -193,8 +249,14 @@ class SchedeCreateViewModel(
         return when (_state.value.currentStep) {
             SchedeCreateStep.Form -> false
             SchedeCreateStep.Esercizi -> {
-                _state.value = _state.value.copy(currentStep = SchedeCreateStep.Form)
-                true
+                // If we started at exercises (e.g., adding to existing scheda), 
+                // don't allow going back to Form step - close the activity instead
+                if (startAtExercises) {
+                    false
+                } else {
+                    _state.value = _state.value.copy(currentStep = SchedeCreateStep.Form)
+                    true
+                }
             }
             SchedeCreateStep.Riepilogo -> {
                 _state.value = _state.value.copy(currentStep = SchedeCreateStep.Esercizi)
@@ -234,7 +296,7 @@ class SchedeCreateViewModel(
             else
                 null,
             notes = formData.notes.ifBlank { null },
-            coachProfileId = coachProfileId
+            coachProfileId = formData.coachProfileId
         )
 
         withContext(Dispatchers.IO) {

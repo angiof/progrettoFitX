@@ -254,5 +254,12 @@ interface DaoSchede {
      */
     @Query("SELECT COUNT(*) FROM schede WHERE coachProfileId = :profileId AND favorite = 1")
     suspend fun countFavoriteSchedeByCoach(profileId: Int): Int
+
+    /**
+     * Aggiorna il profilo coach per piu schede contemporaneamente.
+     * Usato per l'assegnazione batch.
+     */
+    @Query("UPDATE schede SET coachProfileId = :profileId WHERE id IN (:schedeIds)")
+    suspend fun updateProfileForSchede(schedeIds: List<Int>, profileId: Int?)
 }
 

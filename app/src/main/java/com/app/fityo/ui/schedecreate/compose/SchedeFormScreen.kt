@@ -78,7 +78,14 @@ data class SchedeFormData(
     val data: String = "",
     val intensita: String = "",
     val selectedMuscleGroups: Set<String> = emptySet(),
-    val notes: String = ""
+    val notes: String = "",
+    val coachProfileId: Int? = null
+)
+
+data class ProfileOption(
+    val id: Int?,
+    val name: String,
+    val avatarColor: Int
 )
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -88,6 +95,7 @@ fun SchedeFormScreen(
     intensityOptions: List<String>,
     muscleGroupOptions: List<String>,
     trainingStyleOptions: List<String>,
+    profileOptions: List<ProfileOption> = emptyList(),
     isLoading: Boolean,
     loadingMessage: String?,
     errorMessage: String?,
@@ -101,6 +109,7 @@ fun SchedeFormScreen(
     var showIntensityDropdown by remember { mutableStateOf(false) }
     var showMuscleGroupsSelector by remember { mutableStateOf(false) }
     var showAutoCompileDialog by remember { mutableStateOf(false) }
+    var showProfileDropdown by remember { mutableStateOf(false) }
 
     val isoFormatter = DateTimeFormatter.ISO_LOCAL_DATE
 
@@ -156,6 +165,90 @@ fun SchedeFormScreen(
                     .background(DarkCard)
                     .padding(16.dp)
             ) {
+                // Assegna a profilo (solo se ci sono profili)
+                if (profileOptions.isNotEmpty()) {
+                    Text(
+                        text = "Assegna a",
+                        color = TextSecondary,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    val selectedProfile = profileOptions.find { it.id == formData.coachProfileId }
+                    val displayText = selectedProfile?.name ?: "Personale"
+
+                    ExposedDropdownMenuBox(
+                        expanded = showProfileDropdown,
+                        onExpandedChange = { showProfileDropdown = it }
+                    ) {
+                        OutlinedTextField(
+                            value = displayText,
+                            onValueChange = {},
+                            readOnly = true,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor(),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = AccentBlue,
+                                unfocusedBorderColor = DarkSurface,
+                                focusedTextColor = TextPrimary,
+                                unfocusedTextColor = TextPrimary
+                            ),
+                            leadingIcon = if (selectedProfile != null) {
+                                {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(24.dp)
+                                            .clip(CircleShape)
+                                            .background(Color(selectedProfile.avatarColor))
+                                    )
+                                }
+                            } else null,
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = showProfileDropdown) },
+                            shape = RoundedCornerShape(12.dp)
+                        )
+
+                        ExposedDropdownMenu(
+                            expanded = showProfileDropdown,
+                            onDismissRequest = { showProfileDropdown = false },
+                            modifier = Modifier.background(DarkSurface)
+                        ) {
+                            // Opzione Personale
+                            DropdownMenuItem(
+                                text = { Text("Personale", color = TextPrimary) },
+                                onClick = {
+                                    onFormDataChanged(formData.copy(coachProfileId = null))
+                                    showProfileDropdown = false
+                                }
+                            )
+                            // Profili coach
+                            profileOptions.forEach { profile ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(20.dp)
+                                                    .clip(CircleShape)
+                                                    .background(Color(profile.avatarColor))
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text(profile.name, color = TextPrimary)
+                                        }
+                                    },
+                                    onClick = {
+                                        onFormDataChanged(formData.copy(coachProfileId = profile.id))
+                                        showProfileDropdown = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
+
                 // Titolo
                 Text(
                     text = "Nome Scheda",

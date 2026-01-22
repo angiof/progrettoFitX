@@ -24,6 +24,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -54,6 +55,7 @@ import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
@@ -63,6 +65,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
@@ -110,7 +115,10 @@ fun EsercissiListScreen(
 ) {
     var showAddSheet by remember { mutableStateOf(false) }
     var editingEsercizio by remember { mutableStateOf<EsserciziEntity?>(null) }
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true,
+        confirmValueChange = { it != SheetValue.Hidden }
+    )
     val scope = rememberCoroutineScope()
 
     Box(
@@ -260,13 +268,7 @@ fun EsercissiListScreen(
         // Add/Edit Sheet
         if (showAddSheet) {
             ModalBottomSheet(
-                onDismissRequest = {
-                    scope.launch {
-                        sheetState.hide()
-                        showAddSheet = false
-                        editingEsercizio = null
-                    }
-                },
+                onDismissRequest = { /* Swipe bloccato, chiusura solo con X */ },
                 sheetState = sheetState,
                 containerColor = DarkCard,
                 dragHandle = {
@@ -525,6 +527,12 @@ private fun EsercizioFormSheet(
     var pendingSuggestion by remember { mutableStateOf<WgerSuggestion?>(null) }
     var showWgerDialog by remember { mutableStateOf(false) }
 
+    // Focus management
+    val focusManager = LocalFocusManager.current
+    val focusSerie = remember { FocusRequester() }
+    val focusRipetizioni = remember { FocusRequester() }
+    val focusPeso = remember { FocusRequester() }
+
     val isValid = formData.nome.isNotBlank() && formData.nSerie > 0 && formData.nRipetizioni > 0
 
     androidx.compose.runtime.LaunchedEffect(wgerSuggestionsEnabled, formData.nome) {
@@ -593,6 +601,7 @@ private fun EsercizioFormSheet(
             colors = textFieldColors(),
             singleLine = true,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+            keyboardActions = KeyboardActions(onNext = { focusSerie.requestFocus() }),
             shape = RoundedCornerShape(12.dp),
             trailingIcon = {
                 IconButton(
@@ -641,13 +650,16 @@ private fun EsercizioFormSheet(
                     formData = formData.copy(nSerie = it.toIntOrNull() ?: 0)
                 },
                 label = { Text("Serie") },
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .focusRequester(focusSerie),
                 colors = textFieldColors(),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,
                     imeAction = ImeAction.Next
                 ),
+                keyboardActions = KeyboardActions(onNext = { focusRipetizioni.requestFocus() }),
                 shape = RoundedCornerShape(12.dp)
             )
 
@@ -657,13 +669,16 @@ private fun EsercizioFormSheet(
                     formData = formData.copy(nRipetizioni = it.toIntOrNull() ?: 0)
                 },
                 label = { Text("Ripetizioni") },
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .focusRequester(focusRipetizioni),
                 colors = textFieldColors(),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,
                     imeAction = ImeAction.Next
                 ),
+                keyboardActions = KeyboardActions(onNext = { focusPeso.requestFocus() }),
                 shape = RoundedCornerShape(12.dp)
             )
         }
@@ -714,13 +729,16 @@ private fun EsercizioFormSheet(
             },
             label = { Text("Peso (kg)") },
             placeholder = { Text("Opzionale") },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .focusRequester(focusPeso),
             colors = textFieldColors(),
             singleLine = true,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Decimal,
-                imeAction = ImeAction.Next
+                imeAction = ImeAction.Done
             ),
+            keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
             shape = RoundedCornerShape(12.dp)
         )
 
@@ -817,7 +835,7 @@ private fun EsercizioFormSheet(
     if (showWgerDialog && pendingSuggestion != null) {
         val suggestion = pendingSuggestion!!
         WgerExerciseInfoDialog(
-            exerciseId = suggestion.id,
+            exerciseId = suggestion.baseId,
             onDismiss = {
                 showWgerDialog = false
                 pendingSuggestion = null
@@ -825,9 +843,10 @@ private fun EsercizioFormSheet(
             onConfirm = {
                 formData = formData.copy(
                     nome = suggestion.value,
-                    wgerId = suggestion.id
+                    wgerId = suggestion.baseId
                 )
                 wgerSuggestions = emptyList()
+                wgerSuggestionsEnabled = false
                 showWgerDialog = false
                 pendingSuggestion = null
             }

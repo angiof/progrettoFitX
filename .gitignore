@@ -1,12 +1,8 @@
 *.iml
 .gradle
 /local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
+/.idea/
+.idea/
 .DS_Store
 /build
 /captures
@@ -16,9 +12,6 @@ local.properties
 
 # Local tools
 /.claude/
-
-# IDE metadata
-/.idea/.name
 
 # Build artifacts
 *.aab
@@ -36,3 +29,13 @@ app/src/main/assets/*.bin
 
 # Large TensorFlow/MediaPipe models
 app/src/main/assets/models/*.tflite
+
+# Log files
+*.log
+**/*.log
+
+# Kotlin build cache
+.kotlin/
+
+# OS generated files
+nul

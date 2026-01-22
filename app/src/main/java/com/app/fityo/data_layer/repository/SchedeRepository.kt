@@ -137,4 +137,7 @@ class SchedeRepository(private val daoSchede: DaoSchede) {
 
     suspend fun countFavoriteSchedeByCoach(profileId: Int): Int =
         daoSchede.countFavoriteSchedeByCoach(profileId)
+
+    suspend fun updateProfileForSchede(schedeIds: List<Int>, profileId: Int?) =
+        daoSchede.updateProfileForSchede(schedeIds, profileId)
 }
