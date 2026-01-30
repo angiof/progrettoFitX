@@ -126,7 +126,7 @@ dependencies {
 
     implementation 'com.flaviofaria:kenburnsview:1.0.7'
 
-    // Gson per TypeConverter
+    // Gson per TypeConverter 
     implementation 'com.google.code.gson:gson:2.10.1'
 
     // Retrofit (Open Food Facts)
@@ -150,7 +150,6 @@ dependencies {
     implementation 'androidx.compose.material:material-icons-extended'
     debugImplementation 'androidx.compose.ui:ui-tooling'
     debugImplementation 'androidx.compose.ui:ui-test-manifest'
-    androidTestImplementation 'androidx.compose.ui:ui-test-junit4'
 
     // Coil per immagini in Compose
     implementation 'io.coil-kt:coil-compose:2.5.0'
