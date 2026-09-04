@@ -175,10 +175,28 @@ object PdfExporter {
             }
 
             fun drawExerciseBox(index: Int, esercizio: EsserciziEntity) {
-                if (cursorY > pageHeight - 150) newPage()
+                // Le righe sotto il titolo sono opzionali: il riquadro si adatta invece di
+                // lasciare spazio vuoto o, con le note, tagliare l'ultima riga.
+                val extras = mutableListOf<String>()
+                esercizio.peso?.let { extras.add(context.getString(R.string.pdf_label_peso, it)) }
+                esercizio.intervallo?.let { extras.add(context.getString(R.string.pdf_label_recupero, it)) }
+                esercizio.insometria?.let { extras.add(context.getString(R.string.pdf_label_isometria, it)) }
+
+                val optionalLines = mutableListOf<String>()
+                if (!esercizio.attrezzo.isNullOrBlank()) {
+                    optionalLines.add(context.getString(R.string.pdf_label_attrezzo, esercizio.attrezzo))
+                }
+                if (extras.isNotEmpty()) {
+                    optionalLines.add(extras.joinToString(" - "))
+                }
+                esercizio.notes?.takeIf { it.isNotBlank() }?.let {
+                    optionalLines.add(context.getString(R.string.pdf_label_note, it.replace("\n", " ")))
+                }
+
+                val boxHeight = 55f + optionalLines.size * 18f
+                if (cursorY > pageHeight - (boxHeight + 40f)) newPage()
 
                 val boxTop = cursorY - 10f
-                val boxHeight = 110f
 
                 // Background box
                 currentPage.canvas.drawRect(
@@ -202,23 +220,12 @@ object PdfExporter {
                 cursorY += 25f
 
                 // Dettagli
-                val detailsY = cursorY
                 currentPage.canvas.drawText(context.getString(R.string.pdf_label_series, esercizio.nSerie), margin + 12f, cursorY, bodyBoldPaint)
                 currentPage.canvas.drawText(context.getString(R.string.pdf_label_reps, esercizio.nRipetizione), margin + 150f, cursorY, bodyBoldPaint)
                 cursorY += 20f
 
-                if (!esercizio.attrezzo.isNullOrBlank()) {
-                    currentPage.canvas.drawText(context.getString(R.string.pdf_label_attrezzo, esercizio.attrezzo), margin + 12f, cursorY, bodyPaint)
-                    cursorY += 18f
-                }
-
-                val extras = mutableListOf<String>()
-                esercizio.peso?.let { extras.add(context.getString(R.string.pdf_label_peso, it)) }
-                esercizio.intervallo?.let { extras.add(context.getString(R.string.pdf_label_recupero, it)) }
-                esercizio.insometria?.let { extras.add(context.getString(R.string.pdf_label_isometria, it)) }
-
-                if (extras.isNotEmpty()) {
-                    currentPage.canvas.drawText(extras.joinToString(" - "), margin + 12f, cursorY, bodyPaint)
+                optionalLines.forEach { line ->
+                    currentPage.canvas.drawText(line, margin + 12f, cursorY, bodyPaint)
                     cursorY += 18f
                 }
 

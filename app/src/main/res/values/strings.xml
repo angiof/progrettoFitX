@@ -251,6 +251,7 @@
     <string name="pdf_label_peso">Peso: %1$s kg</string>
     <string name="pdf_label_recupero">Recupero: %1$s s</string>
     <string name="pdf_label_isometria">Isometria: %1$s s</string>
+    <string name="pdf_label_note">Note: %1$s</string>
     <string name="complete_scheda">Completa Scheda</string>
     <string name="export_fitx">Esporta Scheda (.fitx)</string>
     <string name="import_scheda">Importa Scheda</string>
@@ -435,6 +436,8 @@
     <string name="import_options_subtitle">Scegli come importare la tua scheda di allenamento</string>
     <string name="import_option_fityo">Formato FitYo (.fitx)</string>
     <string name="import_option_fityo_desc">Importa una scheda esportata da FitYo</string>
+    <string name="import_option_excel">Foglio Excel (.xlsx)</string>
+    <string name="import_option_excel_desc">Leggi il file e continua la creazione della scheda</string>
     <string name="import_option_pdf">Documento PDF</string>
     <string name="import_option_pdf_desc">Estrai esercizi da un PDF</string>
     <string name="import_option_camera">Scansione Camera (OCR)</string>

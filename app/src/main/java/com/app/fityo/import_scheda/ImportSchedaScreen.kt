@@ -64,6 +64,7 @@ private val AccentRed = Color(0xFFF44336)
 fun ImportOptionsDialog(
     onDismiss: () -> Unit,
     onSelectFityo: () -> Unit,
+    onSelectExcel: () -> Unit,
     onSelectPdf: () -> Unit,
     onSelectCamera: () -> Unit
 ) {
@@ -99,7 +100,16 @@ fun ImportOptionsDialog(
                     onClick = onSelectFityo // NON chiamare onDismiss, il dialog si nasconde con showOptionsDialog=false
                 )
 
-                // Opzione 2: PDF
+                // Opzione 2: Excel
+                ImportOptionCard(
+                    icon = Icons.Default.GridOn,
+                    title = stringResource(R.string.import_option_excel),
+                    subtitle = stringResource(R.string.import_option_excel_desc),
+                    accentColor = AccentGreen,
+                    onClick = onSelectExcel
+                )
+
+                // Opzione 3: PDF
                 ImportOptionCard(
                     icon = Icons.Default.PictureAsPdf,
                     title = stringResource(R.string.import_option_pdf),
@@ -108,7 +118,7 @@ fun ImportOptionsDialog(
                     onClick = onSelectPdf
                 )
 
-                // Opzione 3: Camera OCR
+                // Opzione 4: Camera OCR
                 ImportOptionCard(
                     icon = Icons.Default.CameraAlt,
                     title = stringResource(R.string.import_option_camera),

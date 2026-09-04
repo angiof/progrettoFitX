@@ -21,6 +21,9 @@ class EsserciziRepository(private val daoEssercissi: DaoEssercissi) {
     fun getAllById(id: Int): LiveData<List<EsserciziEntity>> =
         daoEssercissi.getEssercissiBySchedaId(id)
 
+    suspend fun getAllByIdSync(schedaId: Int): List<EsserciziEntity> =
+        daoEssercissi.getEserciziByschedaIdSync(schedaId)
+
     suspend fun getCountById(id: Int): Int = daoEssercissi.countEsserciziById(id)
 
 

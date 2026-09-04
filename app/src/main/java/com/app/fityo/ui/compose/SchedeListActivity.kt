@@ -224,10 +224,7 @@ class SchedeListActivity : ComponentActivity() {
                         )
                     },
                     onCreateScheda = {
-                        startActivity(
-                            Intent(this, AcitivySheda::class.java)
-                                .putExtra("isNew", true)
-                        )
+                        startActivity(Intent(this, SchedeCreateActivity::class.java))
                     },
                     onImportScheda = {
                         // Apri la nuova ImportSchedaActivity con le 3 opzioni

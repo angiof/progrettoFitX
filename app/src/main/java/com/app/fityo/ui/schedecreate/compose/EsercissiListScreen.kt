@@ -17,10 +17,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -30,6 +34,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.BookmarkAdd
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -59,11 +64,13 @@ import androidx.compose.material3.SheetValue
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -86,7 +93,7 @@ import com.app.fityo.data_layer.db.EsserciziEntity
 import com.app.fityo.data_layer.repository.WgerRepository
 import com.app.fityo.dominio.WgerSuggestion
 import com.app.fityo.ui.wger.WgerExerciseInfoDialog
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.util.Locale
 
@@ -110,6 +117,8 @@ fun EsercissiListScreen(
     onAddEsercizio: (EsercizioFormData) -> Unit,
     onEditEsercizio: (EsercizioFormData) -> Unit,
     onDeleteEsercizio: (EsserciziEntity) -> Unit,
+    onSaveAttrezzo: (String) -> Unit,
+    onSaveNomeComeEsercizio: (String) -> Unit,
     onNext: () -> Unit,
     onBack: () -> Unit
 ) {
@@ -297,6 +306,8 @@ fun EsercissiListScreen(
                         )
                     },
                     equipmentOptions = equipmentOptions,
+                    onSaveAttrezzo = onSaveAttrezzo,
+                    onSaveNomeComeEsercizio = onSaveNomeComeEsercizio,
                     onSave = { formData ->
                         if (editingEsercizio != null) {
                             onEditEsercizio(formData)
@@ -510,6 +521,8 @@ private fun EsercizioCard(
 private fun EsercizioFormSheet(
     initialData: EsercizioFormData?,
     equipmentOptions: List<String>,
+    onSaveAttrezzo: (String) -> Unit,
+    onSaveNomeComeEsercizio: (String) -> Unit,
     onSave: (EsercizioFormData) -> Unit,
     onCancel: () -> Unit
 ) {
@@ -519,7 +532,7 @@ private fun EsercizioFormSheet(
     var showEquipmentDropdown by remember { mutableStateOf(false) }
     var showIsometriaPicker by remember { mutableStateOf(false) }
     var showRecuperoPicker by remember { mutableStateOf(false) }
-    val wgerRepository = remember { WgerRepository(WgerClient.service) }
+    // val wgerRepository = remember { WgerRepository(WgerClient.service) }
     var wgerSuggestionsEnabled by remember { mutableStateOf(false) }
     var wgerSuggestions by remember { mutableStateOf<List<WgerSuggestion>>(emptyList()) }
     var wgerSearchError by remember { mutableStateOf<String?>(null) }
@@ -535,36 +548,53 @@ private fun EsercizioFormSheet(
 
     val isValid = formData.nome.isNotBlank() && formData.nSerie > 0 && formData.nRipetizioni > 0
 
-    androidx.compose.runtime.LaunchedEffect(wgerSuggestionsEnabled, formData.nome) {
-        if (!wgerSuggestionsEnabled) {
-            wgerSuggestions = emptyList()
-            wgerSearchError = null
-            isSearching = false
-            return@LaunchedEffect
+    // Suggerimenti esercizi da Wger disabilitati: chiamata di rete sospesa per il momento.
+    // androidx.compose.runtime.LaunchedEffect(wgerSuggestionsEnabled, formData.nome) {
+    //     if (!wgerSuggestionsEnabled) {
+    //         wgerSuggestions = emptyList()
+    //         wgerSearchError = null
+    //         isSearching = false
+    //         return@LaunchedEffect
+    //     }
+    //     val query = formData.nome.trim()
+    //     if (query.length < 2) {
+    //         wgerSuggestions = emptyList()
+    //         wgerSearchError = null
+    //         isSearching = false
+    //         return@LaunchedEffect
+    //     }
+    //     isSearching = true
+    //     delay(350)
+    //     val result = wgerRepository.searchExercises(query)
+    //     result.onSuccess {
+    //         wgerSuggestions = it
+    //         wgerSearchError = null
+    //     }.onFailure {
+    //         wgerSuggestions = emptyList()
+    //         wgerSearchError = "Errore di rete."
+    //     }
+    //     isSearching = false
+    // }
+
+    // Il contenuto puo superare l'altezza del bottom sheet quando si apre un DurationPicker:
+    // senza scroll il pulsante di conferma finisce fuori schermo e diventa impossibile premerlo.
+    val formScrollState = rememberScrollState()
+
+    // Il picker entra con un'animazione, quindi l'altezza cresce nel tempo: seguiamo il fondo
+    // finche non si stabilizza, altrimenti lo scroll si ferma prima di rivelare i pulsanti.
+    LaunchedEffect(showIsometriaPicker, showRecuperoPicker) {
+        if (showIsometriaPicker || showRecuperoPicker) {
+            snapshotFlow { formScrollState.maxValue }
+                .collectLatest { max -> formScrollState.animateScrollTo(max) }
         }
-        val query = formData.nome.trim()
-        if (query.length < 2) {
-            wgerSuggestions = emptyList()
-            wgerSearchError = null
-            isSearching = false
-            return@LaunchedEffect
-        }
-        isSearching = true
-        delay(350)
-        val result = wgerRepository.searchExercises(query)
-        result.onSuccess {
-            wgerSuggestions = it
-            wgerSearchError = null
-        }.onFailure {
-            wgerSuggestions = emptyList()
-            wgerSearchError = "Errore di rete."
-        }
-        isSearching = false
     }
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .verticalScroll(formScrollState)
+            .imePadding()
+            .navigationBarsPadding()
             .padding(horizontal = 16.dp)
             .padding(bottom = 32.dp)
     ) {
@@ -594,7 +624,13 @@ private fun EsercizioFormSheet(
         // Nome
         OutlinedTextField(
             value = formData.nome,
-            onValueChange = { formData = formData.copy(nome = it) },
+            onValueChange = { nuovoNome ->
+                // Se l'attrezzo non e ancora stato scelto proviamo a ricavarlo dal nome.
+                val attrezzo = formData.attrezzo.ifBlank {
+                    attrezzoDaNome(nuovoNome, equipmentOptions).orEmpty()
+                }
+                formData = formData.copy(nome = nuovoNome, attrezzo = attrezzo)
+            },
             label = { Text("Nome esercizio") },
             placeholder = { Text("Es. Panca piana, Squat...") },
             modifier = Modifier.fillMaxWidth(),
@@ -605,22 +641,35 @@ private fun EsercizioFormSheet(
             shape = RoundedCornerShape(12.dp),
             trailingIcon = {
                 IconButton(
-                    onClick = {
-                        val newState = !wgerSuggestionsEnabled
-                        wgerSuggestionsEnabled = newState
-                        if (!newState) {
-                            wgerSuggestions = emptyList()
-                            wgerSearchError = null
-                        }
-                    }
+                    onClick = { onSaveNomeComeEsercizio(formData.nome) },
+                    enabled = formData.nome.isNotBlank()
                 ) {
                     Icon(
-                        imageVector = if (wgerSuggestionsEnabled) Icons.Filled.Info else Icons.Outlined.Info,
-                        contentDescription = "Suggerimenti Wger",
-                        tint = if (wgerSuggestionsEnabled) AccentBlue else TextSecondary
+                        imageVector = Icons.Default.BookmarkAdd,
+                        contentDescription = "Salva tra i tuoi esercizi",
+                        tint = if (formData.nome.isNotBlank()) AccentGreen else TextSecondary
                     )
                 }
             }
+            // Toggle dei suggerimenti Wger nascosto finche la chiamata di rete resta disabilitata.
+            // trailingIcon = {
+            //     IconButton(
+            //         onClick = {
+            //             val newState = !wgerSuggestionsEnabled
+            //             wgerSuggestionsEnabled = newState
+            //             if (!newState) {
+            //                 wgerSuggestions = emptyList()
+            //                 wgerSearchError = null
+            //             }
+            //         }
+            //     ) {
+            //         Icon(
+            //             imageVector = if (wgerSuggestionsEnabled) Icons.Filled.Info else Icons.Outlined.Info,
+            //             contentDescription = "Suggerimenti Wger",
+            //             tint = if (wgerSuggestionsEnabled) AccentBlue else TextSecondary
+            //         )
+            //     }
+            // }
         )
 
         if (wgerSuggestionsEnabled) {
@@ -700,7 +749,21 @@ private fun EsercizioFormSheet(
                     .menuAnchor(),
                 colors = textFieldColors(),
                 singleLine = true,
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                trailingIcon = {
+                    val nuovo = formData.attrezzo.isNotBlank() &&
+                        equipmentOptions.none { it.equals(formData.attrezzo.trim(), ignoreCase = true) }
+                    IconButton(
+                        onClick = { onSaveAttrezzo(formData.attrezzo) },
+                        enabled = nuovo
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.FitnessCenter,
+                            contentDescription = "Salva tra i tuoi attrezzi",
+                            tint = if (nuovo) AccentBlue else TextSecondary
+                        )
+                    }
+                }
             )
             ExposedDropdownMenu(
                 expanded = showEquipmentDropdown,
@@ -756,7 +819,11 @@ private fun EsercizioFormSheet(
                 placeholder = { Text("00:00") },
                 modifier = Modifier
                     .weight(1f)
-                    .clickable { showIsometriaPicker = true },
+                    .clickable {
+                        focusManager.clearFocus()
+                        showRecuperoPicker = false
+                        showIsometriaPicker = true
+                    },
                 colors = textFieldColors(),
                 readOnly = true,
                 enabled = false,
@@ -770,7 +837,11 @@ private fun EsercizioFormSheet(
                 placeholder = { Text("00:00") },
                 modifier = Modifier
                     .weight(1f)
-                    .clickable { showRecuperoPicker = true },
+                    .clickable {
+                        focusManager.clearFocus()
+                        showIsometriaPicker = false
+                        showRecuperoPicker = true
+                    },
                 colors = textFieldColors(),
                 readOnly = true,
                 enabled = false,
@@ -949,6 +1020,21 @@ private fun DurationPicker(
             }
         }
     }
+}
+
+/**
+ * Il nome dell'esercizio contiene quasi sempre l'attrezzo ("Curl con manubri", "Panca piana"):
+ * se riconosciamo una voce della lista attrezzi la proponiamo gia compilata.
+ * La corrispondenza per contenuto parte da 4 caratteri, altrimenti sigle come "bw" darebbero falsi positivi.
+ */
+private fun attrezzoDaNome(nome: String, opzioni: List<String>): String? {
+    val cercato = nome.trim().lowercase()
+    if (cercato.isEmpty()) return null
+
+    return opzioni.firstOrNull { it.trim().lowercase() == cercato }
+        ?: opzioni
+            .filter { it.trim().length >= 4 && cercato.contains(it.trim().lowercase()) }
+            .maxByOrNull { it.trim().length }
 }
 
 @Composable

@@ -1,7 +1,13 @@
 package com.app.fityo.ui.schedecreate
 
+import android.content.Context
+import android.net.Uri
 import android.os.Bundle
+import android.provider.OpenableColumns
+import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,15 +17,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import com.app.fityo.R
 import com.app.fityo.data_layer.db.DB.DbFit
+import com.app.fityo.data_layer.db.repos.CustomValueRepository
 import com.app.fityo.data_layer.db.repos.EsserciziRepository
 import com.app.fityo.data_layer.repository.CoachProfileRepository
 import com.app.fityo.data_layer.repository.SchedeRepository
 import com.app.fityo.ui.factory.GenericViewModelFactory
 import com.app.fityo.ui.schedecreate.compose.EsercissiListScreen
+import com.app.fityo.ui.schedecreate.compose.ImportPreviewScreen
+import com.app.fityo.ui.schedecreate.compose.PdfPreviewScreen
 import com.app.fityo.ui.schedecreate.compose.ProfileOption
 import com.app.fityo.ui.schedecreate.compose.RiepilogoScreen
 import com.app.fityo.ui.schedecreate.compose.SchedeCreateTheme
@@ -31,6 +40,14 @@ class SchedeCreateActivity : ComponentActivity() {
         const val EXTRA_COACH_PROFILE_ID = "extra_coach_profile_id"
         const val EXTRA_SCHEDA_ID = "extra_scheda_id"
         const val EXTRA_START_AT_EXERCISES = "extra_start_at_exercises"
+        const val EXTRA_EXCEL_URI = "extra_excel_uri"
+
+        // Alcuni file manager restituiscono octet-stream per gli xlsx, quindi accettiamo anche
+        // quello e lasciamo che sia XlsxReader a dire se il contenuto e davvero un foglio di calcolo.
+        val EXCEL_MIME_TYPES = arrayOf(
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/octet-stream"
+        )
     }
 
     private val viewModel: SchedeCreateViewModel by viewModels {
@@ -47,6 +64,7 @@ class SchedeCreateActivity : ComponentActivity() {
                 schedeRepository = SchedeRepository(db.schedeDao()),
                 esserciziRepository = EsserciziRepository(db.essercissiDao()),
                 coachProfileRepository = CoachProfileRepository(db.coachProfileDao()),
+                customValueRepository = CustomValueRepository(db.customValueDao()),
                 coachProfileId = coachProfileId,
                 editSchedaId = schedaId,
                 startAtExercises = startAtExercises
@@ -62,16 +80,20 @@ class SchedeCreateActivity : ComponentActivity() {
         resources.getStringArray(R.array.muscle_group_options).toList()
     }
 
-    private val equipmentOptions by lazy {
-        resources.getStringArray(R.array.equipment_options).toList()
-    }
-
     private val trainingStyleOptions by lazy {
         resources.getStringArray(R.array.training_style_options).toList()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Arriviamo dal dialog "Importa scheda": leggiamo subito il file e partiamo dall'anteprima.
+        if (savedInstanceState == null) {
+            intent.getStringExtra(EXTRA_EXCEL_URI)?.let { raw ->
+                val uri = Uri.parse(raw)
+                viewModel.importExcel(uri, displayName(this, uri))
+            }
+        }
 
         setContent {
             SchedeCreateTheme {
@@ -83,7 +105,6 @@ class SchedeCreateActivity : ComponentActivity() {
                         viewModel = viewModel,
                         intensityOptions = intensityOptions,
                         muscleGroupOptions = muscleGroupOptions,
-                        equipmentOptions = equipmentOptions,
                         trainingStyleOptions = trainingStyleOptions,
                         onFinish = { finish() }
                     )
@@ -101,20 +122,34 @@ class SchedeCreateActivity : ComponentActivity() {
     }
 }
 
+private fun displayName(context: Context, uri: Uri): String {
+    context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+        val index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+        if (index >= 0 && cursor.moveToFirst()) return cursor.getString(index)
+    }
+    return uri.lastPathSegment.orEmpty()
+}
+
 @Composable
 private fun SchedeCreateNavHost(
     viewModel: SchedeCreateViewModel,
     intensityOptions: List<String>,
     muscleGroupOptions: List<String>,
-    equipmentOptions: List<String>,
     trainingStyleOptions: List<String>,
     onFinish: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
     val coachProfiles by viewModel.coachProfiles.collectAsState()
-    val esercizi by viewModel.esercizi?.observeAsState(initial = emptyList()) ?: run {
-        // Se esercizi e null, restituisci un default
-        androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(emptyList<com.app.fityo.data_layer.db.EsserciziEntity>()) }
+    val equipmentOptions by viewModel.equipmentOptions.collectAsState()
+    val esercizi = state.esercizi
+    val context = LocalContext.current
+
+    val excelPicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) {
+            viewModel.importExcel(uri, displayName(context, uri))
+        }
     }
 
     // Converti i profili in ProfileOption
@@ -148,9 +183,25 @@ private fun SchedeCreateNavHost(
                     onFormDataChanged = { viewModel.updateFormData(it) },
                     onNext = { viewModel.navigateToEsercizi() },
                     onAutoCompile = { viewModel.autoCompileScheda(it) },
+                    onImportExcel = { excelPicker.launch(SchedeCreateActivity.EXCEL_MIME_TYPES) },
                     onDismissError = { viewModel.clearError() },
                     onBack = { onFinish() }
                 )
+            }
+
+            SchedeCreateStep.ImportPreview -> {
+                state.importState?.let { importState ->
+                    ImportPreviewScreen(
+                        importState = importState,
+                        onSelectSheet = { viewModel.selectSheet(it) },
+                        onSelectDay = { viewModel.selectDay(it) },
+                        onSelectVariant = { viewModel.selectVariant(it) },
+                        onRowChanged = { viewModel.updateImportedRow(it) },
+                        onAddEquipment = { viewModel.addCustomEquipment(it) },
+                        onConfirm = { viewModel.confirmImport() },
+                        onBack = { viewModel.cancelImport() }
+                    )
+                }
             }
 
             SchedeCreateStep.Esercizi -> {
@@ -160,22 +211,52 @@ private fun SchedeCreateNavHost(
                     onAddEsercizio = { viewModel.addEsercizio(it) },
                     onEditEsercizio = { viewModel.updateEsercizio(it) },
                     onDeleteEsercizio = { viewModel.deleteEsercizio(it) },
+                    onSaveAttrezzo = { nome ->
+                        viewModel.saveAttrezzo(nome) { message ->
+                            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                    onSaveNomeComeEsercizio = { nome ->
+                        viewModel.saveNomeComeEsercizio(nome) { message ->
+                            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                        }
+                    },
                     onNext = { viewModel.navigateToRiepilogo() },
                     onBack = { viewModel.navigateBack() }
                 )
             }
 
             SchedeCreateStep.Riepilogo -> {
-                state.schedeEntity?.let { scheda ->
-                    RiepilogoScreen(
-                        scheda = scheda,
-                        esercizi = esercizi,
-                        onSaveAndExit = { reminderTime ->
-                            viewModel.saveAndExit(reminderTime)
-                        },
-                        onBack = { viewModel.navigateBack() }
-                    )
-                }
+                RiepilogoScreen(
+                    formData = state.formData,
+                    esercizi = esercizi,
+                    intensityOptions = intensityOptions,
+                    muscleGroupOptions = muscleGroupOptions,
+                    profileOptions = profileOptions,
+                    onFormDataChanged = { viewModel.updateFormData(it) },
+                    onSaveAndExit = { reminderTime ->
+                        viewModel.saveAndExit(reminderTime)
+                    },
+                    onExportPdf = { viewModel.openPdfPreview() },
+                    onBack = { viewModel.navigateBack() }
+                )
+            }
+
+            SchedeCreateStep.PdfPreview -> {
+                PdfPreviewScreen(
+                    meta = state.pdfMeta,
+                    notes = state.formData.notes,
+                    esercizi = esercizi,
+                    onMetaChanged = { viewModel.updatePdfMeta(it) },
+                    onNotesChanged = { viewModel.updateFormData(state.formData.copy(notes = it)) },
+                    onEsercizioChanged = { viewModel.updateEsercizioEntity(it) },
+                    onGenerate = {
+                        viewModel.exportPdf { message ->
+                            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+                        }
+                    },
+                    onBack = { viewModel.navigateBack() }
+                )
             }
         }
     }

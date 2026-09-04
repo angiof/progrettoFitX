@@ -8,6 +8,7 @@ import android.graphics.Rect
  */
 enum class ImportType {
     FITYO_FORMAT,   // File JSON/formato nativo FitYo
+    EXCEL,          // Foglio .xlsx: prosegue nel flusso di creazione scheda
     PDF,            // Importa da PDF
     CAMERA_OCR      // Scansione con fotocamera
 }

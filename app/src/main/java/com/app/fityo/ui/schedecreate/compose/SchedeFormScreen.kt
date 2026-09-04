@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -48,6 +49,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
@@ -71,6 +73,7 @@ import com.app.fityo.R
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 data class SchedeFormData(
@@ -102,13 +105,14 @@ fun SchedeFormScreen(
     onFormDataChanged: (SchedeFormData) -> Unit,
     onNext: () -> Unit,
     onAutoCompile: (AutoCompileOptions) -> Unit,
+    onImportExcel: () -> Unit,
     onDismissError: () -> Unit,
     onBack: () -> Unit
 ) {
     var showDatePicker by remember { mutableStateOf(false) }
     var showIntensityDropdown by remember { mutableStateOf(false) }
     var showMuscleGroupsSelector by remember { mutableStateOf(false) }
-    var showAutoCompileDialog by remember { mutableStateOf(false) }
+    // var showAutoCompileDialog by remember { mutableStateOf(false) }
     var showProfileDropdown by remember { mutableStateOf(false) }
 
     val isoFormatter = DateTimeFormatter.ISO_LOCAL_DATE
@@ -569,46 +573,82 @@ fun SchedeFormScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedButton(
-                onClick = { showAutoCompileDialog = true },
+                onClick = onImportExcel,
                 enabled = !isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = AccentBlue
-                ),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = AccentBlue),
                 border = BorderStroke(1.dp, AccentBlue),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Icon(
-                    Icons.Default.AutoAwesome,
-                    contentDescription = null
-                )
+                Icon(Icons.Default.UploadFile, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = stringResource(R.string.auto_compile_button),
+                    text = "Importa scheda da Excel",
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp
                 )
             }
+
+            // Autocompletamento IA disabilitato: non usiamo piu la IA locale (Gemma) per ora.
+            // Spacer(modifier = Modifier.height(12.dp))
+            //
+            // OutlinedButton(
+            //     onClick = { showAutoCompileDialog = true },
+            //     enabled = !isLoading,
+            //     modifier = Modifier
+            //         .fillMaxWidth()
+            //         .height(56.dp),
+            //     colors = ButtonDefaults.outlinedButtonColors(
+            //         contentColor = AccentBlue
+            //     ),
+            //     border = BorderStroke(1.dp, AccentBlue),
+            //     shape = RoundedCornerShape(12.dp)
+            // ) {
+            //     Icon(
+            //         Icons.Default.AutoAwesome,
+            //         contentDescription = null
+            //     )
+            //     Spacer(modifier = Modifier.width(8.dp))
+            //     Text(
+            //         text = stringResource(R.string.auto_compile_button),
+            //         fontWeight = FontWeight.Bold,
+            //         fontSize = 14.sp
+            //     )
+            // }
 
             Spacer(modifier = Modifier.height(16.dp))
         }
 
         // Date Picker Dialog
         if (showDatePicker) {
+            // Una scheda non ha senso per un giorno gia passato: si parte da oggi in avanti.
+            // La soglia e in UTC perche e in UTC che DatePicker passa le date a isSelectableDate.
+            val todayUtcMillis = remember {
+                LocalDate.now().atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+            }
             val datePickerState = rememberDatePickerState(
                 initialSelectedDateMillis = try {
                     if (formData.data.isNotBlank()) {
                         LocalDate.parse(formData.data, isoFormatter)
-                            .atStartOfDay(ZoneId.systemDefault())
+                            .atStartOfDay(ZoneOffset.UTC)
                             .toInstant()
                             .toEpochMilli()
+                            .coerceAtLeast(todayUtcMillis)
                     } else {
-                        System.currentTimeMillis()
+                        todayUtcMillis
                     }
                 } catch (e: Exception) {
-                    System.currentTimeMillis()
+                    todayUtcMillis
+                },
+                yearRange = LocalDate.now().year..(LocalDate.now().year + 5),
+                selectableDates = object : SelectableDates {
+                    override fun isSelectableDate(utcTimeMillis: Long): Boolean =
+                        utcTimeMillis >= todayUtcMillis
+
+                    override fun isSelectableYear(year: Int): Boolean =
+                        year >= LocalDate.now().year
                 }
             )
 
@@ -619,7 +659,7 @@ fun SchedeFormScreen(
                         onClick = {
                             datePickerState.selectedDateMillis?.let { millis ->
                                 val date = Instant.ofEpochMilli(millis)
-                                    .atZone(ZoneId.systemDefault())
+                                    .atZone(ZoneOffset.UTC)
                                     .toLocalDate()
                                 onFormDataChanged(formData.copy(data = date.format(isoFormatter)))
                             }
@@ -640,19 +680,20 @@ fun SchedeFormScreen(
         }
     }
 
-    if (showAutoCompileDialog) {
-        AutoCompileDialog(
-            formData = formData,
-            intensityOptions = intensityOptions,
-            muscleGroupOptions = muscleGroupOptions,
-            trainingStyleOptions = trainingStyleOptions,
-            onDismiss = { showAutoCompileDialog = false },
-            onConfirm = { options ->
-                showAutoCompileDialog = false
-                onAutoCompile(options)
-            }
-        )
-    }
+    // Dialog dell'autocompletamento IA disabilitato insieme al pulsante che lo apriva.
+    // if (showAutoCompileDialog) {
+    //     AutoCompileDialog(
+    //         formData = formData,
+    //         intensityOptions = intensityOptions,
+    //         muscleGroupOptions = muscleGroupOptions,
+    //         trainingStyleOptions = trainingStyleOptions,
+    //         onDismiss = { showAutoCompileDialog = false },
+    //         onConfirm = { options ->
+    //             showAutoCompileDialog = false
+    //             onAutoCompile(options)
+    //         }
+    //     )
+    // }
 
     if (isLoading) {
         AlertDialog(

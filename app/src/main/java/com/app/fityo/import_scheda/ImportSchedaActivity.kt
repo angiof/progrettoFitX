@@ -1,6 +1,8 @@
 package com.app.fityo.import_scheda
 
+import android.content.Intent
 import android.net.Uri
+import com.app.fityo.ui.schedecreate.SchedeCreateActivity
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -47,6 +49,24 @@ class ImportSchedaActivity : ComponentActivity() {
             handleFitxImport(uri)
         } else {
             // Utente ha cancellato - torna al dialog
+            showOptionsDialog = true
+            currentImportType = null
+        }
+    }
+
+    // Launcher per Excel: qui non salviamo niente, il file viene passato alla creazione scheda
+    // che ne mostra l'anteprima e poi prosegue con il flusso normale.
+    private val excelFilePicker = registerForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            startActivity(
+                Intent(this, SchedeCreateActivity::class.java)
+                    .putExtra(SchedeCreateActivity.EXTRA_EXCEL_URI, uri.toString())
+                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            )
+            finish()
+        } else {
             showOptionsDialog = true
             currentImportType = null
         }
@@ -159,6 +179,11 @@ class ImportSchedaActivity : ComponentActivity() {
                         showOptionsDialog = false
                         currentImportType = ImportType.FITYO_FORMAT
                         fitxFilePicker.launch("*/*")
+                    },
+                    onSelectExcel = {
+                        showOptionsDialog = false
+                        currentImportType = ImportType.EXCEL
+                        excelFilePicker.launch(SchedeCreateActivity.EXCEL_MIME_TYPES)
                     },
                     onSelectPdf = {
                         showOptionsDialog = false

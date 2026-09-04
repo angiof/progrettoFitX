@@ -9,6 +9,7 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.app.fityo.data_layer.db.Avatar3DEntity
 import com.app.fityo.data_layer.db.ChatMessageEntity
+import com.app.fityo.data_layer.db.CustomValueEntity
 import com.app.fityo.data_layer.db.EsserciziEntity
 import com.app.fityo.data_layer.db.SchedeEntity
 import com.app.fityo.data_layer.db.NotificationEntity
@@ -22,6 +23,7 @@ import com.app.fityo.data_layer.db.DailyNutritionItemEntity
 import com.app.fityo.data_layer.db.converters.Converters
 import com.app.fityo.data_layer.db.dao.DaoAvatar3D
 import com.app.fityo.data_layer.db.dao.DaoChat
+import com.app.fityo.data_layer.db.dao.DaoCustomValue
 import com.app.fityo.data_layer.db.dao.DaoEssercissi
 import com.app.fityo.data_layer.db.dao.DaoSchede
 import com.app.fityo.data_layer.db.dao.DaoNotifications
@@ -46,9 +48,10 @@ import com.app.fityo.data_layer.db.dao.DaoDailyNutritionItem
         CoachAppointmentEntity::class,
         DailyNutritionEntity::class,
         DailyNutritionItemEntity::class,
-        ChatMessageEntity::class
+        ChatMessageEntity::class,
+        CustomValueEntity::class
     ],
-    version = 17
+    version = 18
 )
 @TypeConverters(Converters::class)
 
@@ -66,6 +69,7 @@ abstract class DbFit : RoomDatabase() {
     abstract fun chatDao(): DaoChat
     abstract fun dailyNutritionDao(): DaoDailyNutrition
     abstract fun dailyNutritionItemDao(): DaoDailyNutritionItem
+    abstract fun customValueDao(): DaoCustomValue
 
 
     companion object {
@@ -350,6 +354,23 @@ abstract class DbFit : RoomDatabase() {
         }
 
 
+        private val MIGRATION_17_18 = object : Migration(17, 18) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS custom_values (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        type TEXT NOT NULL,
+                        value TEXT NOT NULL,
+                        createdAt INTEGER NOT NULL
+                    )
+                """)
+                database.execSQL("""
+                    CREATE UNIQUE INDEX IF NOT EXISTS index_custom_values_type_value
+                    ON custom_values(type, value)
+                """)
+            }
+        }
+
         fun getDatabase(context: Context): DbFit {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -357,6 +378,9 @@ abstract class DbFit : RoomDatabase() {
                     DbFit::class.java,
                     "dbFit"
                 )
+                    // Le migration precedenti non sono mai state registrate: aggiungiamo almeno
+                    // questa cosi chi e gia alla 17 non perde le schede passando alla 18.
+                    .addMigrations(MIGRATION_17_18)
                     .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance
