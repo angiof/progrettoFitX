@@ -24,7 +24,14 @@ data class SchedeEntity(
     var totalSteps: Int? = null, // Passi totali durante l'allenamento
     var avgHeartRate: Int? = null, // BPM medio durante l'allenamento
     var maxHeartRate: Int? = null, // BPM massimo durante l'allenamento
-    val coachProfileId: Int? = null // FK a coach_profiles.id (null = scheda personale)
+    val coachProfileId: Int? = null, // FK a coach_profiles.id (null = scheda personale)
+
+    // Da quale foglio Excel arriva questa scheda. Il layout NON si salva: si rianalizza il
+    // file al momento del bisogno, altrimenti basta che il trainer sposti una colonna e
+    // riscriveremmo nel posto sbagliato.
+    val sourceFile: String? = null, // Nome mostrato all'utente
+    val sourceUri: String? = null,  // Uri del documento, per riaprirlo o riscriverlo
+    val sourceSheet: Int? = null    // Indice del foglio dentro il file
 ) : Serializable {
     // Helper per ottenere tutti i gruppi muscolari (sia singolo che multipli)
     fun getAllGruppiMuscolari(): List<String> {

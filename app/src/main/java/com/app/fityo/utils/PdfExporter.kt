@@ -190,6 +190,14 @@ object PdfExporter {
                 if (extras.isNotEmpty()) {
                     optionalLines.add(extras.joinToString(" - "))
                 }
+                val avanzate = mutableListOf<String>()
+                esercizio.rpe?.takeIf { it.isNotBlank() }?.let { avanzate.add("RPE $it") }
+                esercizio.tempo?.takeIf { it.isNotBlank() }?.let { avanzate.add("Tempo $it") }
+                esercizio.percentuale?.let { avanzate.add("${formatPeso(it)}% 1RM") }
+                if (avanzate.isNotEmpty()) {
+                    optionalLines.add(avanzate.joinToString(" - "))
+                }
+
                 esercizio.notes?.takeIf { it.isNotBlank() }?.let {
                     optionalLines.add(context.getString(R.string.pdf_label_note, it.replace("\n", " ")))
                 }
@@ -211,6 +219,15 @@ object PdfExporter {
                     margin + 4f, boxTop + boxHeight,
                     Paint().apply { color = accentColor }
                 )
+
+                // Barra laterale arancione per gli esercizi legati in superset.
+                if (esercizio.supersetGroup != null) {
+                    currentPage.canvas.drawRect(
+                        margin, boxTop,
+                        margin + 4f, boxTop + boxHeight,
+                        Paint().apply { color = Color.parseColor("#FB8C00") }
+                    )
+                }
 
                 // Esercizio numero e nome
                 currentPage.canvas.drawText(
@@ -292,8 +309,22 @@ object PdfExporter {
             if (esercizi.isEmpty()) {
                 writeLine(context.getString(R.string.pdf_no_exercises), subtitlePaint, 24f)
             } else {
-                esercizi.forEachIndexed { index, esercizio ->
-                    drawExerciseBox(index, esercizio)
+                // Scheda complessa: un blocco per settimana/giorno con la sua intestazione,
+                // e la numerazione degli esercizi che riparte da 1 dentro ogni giorno.
+                val struttura = esercizi
+                    .groupBy { it.settimana to it.giorno }
+                    .toSortedMap(compareBy({ it.first }, { it.second }))
+                val etichette = struttura.size > 1
+
+                struttura.forEach { (chiave, gruppo) ->
+                    val (settimana, giorno) = chiave
+                    if (etichette) {
+                        cursorY += 6f
+                        writeLine("Settimana $settimana - Giorno $giorno", subtitlePaint, 24f)
+                    }
+                    gruppo.sortedBy { it.ordine }.forEachIndexed { index, esercizio ->
+                        drawExerciseBox(index, esercizio)
+                    }
                 }
             }
 

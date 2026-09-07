@@ -31,7 +31,16 @@ data class FitxFormat(
         val peso: Float?,
         val recupero: Int?,
         val isometria: Int?,
-        val notes: String? = null // Note specifiche per esercizio
+        val notes: String? = null, // Note specifiche per esercizio
+        // Schede complesse: i file .fitx piu vecchi non hanno queste chiavi e ricadono
+        // sui default, cioe una scheda a settimana e giorno unici.
+        val settimana: Int = 1,
+        val giorno: Int = 1,
+        val ordine: Int = 0,
+        val supersetGroup: Int? = null,
+        val rpe: String? = null,
+        val tempo: String? = null,
+        val percentuale: Float? = null
     )
 
     companion object {
@@ -57,7 +66,14 @@ data class FitxFormat(
                             peso = esercizio.peso,
                             recupero = esercizio.intervallo,
                             isometria = esercizio.insometria,
-                            notes = esercizio.notes
+                            notes = esercizio.notes,
+                            settimana = esercizio.settimana,
+                            giorno = esercizio.giorno,
+                            ordine = esercizio.ordine,
+                            supersetGroup = esercizio.supersetGroup,
+                            rpe = esercizio.rpe,
+                            tempo = esercizio.tempo,
+                            percentuale = esercizio.percentuale
                         )
                     }
                 )
@@ -95,6 +111,13 @@ data class FitxFormat(
                 esercizioJson.put("recupero", esercizio.recupero ?: JSONObject.NULL)
                 esercizioJson.put("isometria", esercizio.isometria ?: JSONObject.NULL)
                 esercizioJson.put("notes", esercizio.notes ?: JSONObject.NULL)
+                esercizioJson.put("settimana", esercizio.settimana)
+                esercizioJson.put("giorno", esercizio.giorno)
+                esercizioJson.put("ordine", esercizio.ordine)
+                esercizioJson.put("supersetGroup", esercizio.supersetGroup ?: JSONObject.NULL)
+                esercizioJson.put("rpe", esercizio.rpe ?: JSONObject.NULL)
+                esercizioJson.put("tempo", esercizio.tempo ?: JSONObject.NULL)
+                esercizioJson.put("percentuale", esercizio.percentuale ?: JSONObject.NULL)
                 eserciziArray.put(esercizioJson)
             }
             schedaJson.put("esercizi", eserciziArray)
@@ -137,7 +160,19 @@ data class FitxFormat(
                                         else esercizioJson.getInt("isometria"),
                             notes = if (esercizioJson.has("notes") && !esercizioJson.isNull("notes"))
                                     esercizioJson.getString("notes")
-                                    else null
+                                    else null,
+                            settimana = esercizioJson.optInt("settimana", 1),
+                            giorno = esercizioJson.optInt("giorno", 1),
+                            ordine = esercizioJson.optInt("ordine", i),
+                            supersetGroup = if (esercizioJson.isNull("supersetGroup")) null
+                                            else esercizioJson.optInt("supersetGroup").takeIf {
+                                                esercizioJson.has("supersetGroup")
+                                            },
+                            rpe = esercizioJson.optString("rpe").takeIf { it.isNotBlank() },
+                            tempo = esercizioJson.optString("tempo").takeIf { it.isNotBlank() },
+                            percentuale = if (esercizioJson.isNull("percentuale")) null
+                                          else esercizioJson.optDouble("percentuale")
+                                              .takeIf { !it.isNaN() }?.toFloat()
                         )
                     )
                 }

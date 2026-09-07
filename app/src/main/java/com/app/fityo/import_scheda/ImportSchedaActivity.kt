@@ -251,7 +251,14 @@ class ImportSchedaActivity : ComponentActivity() {
                             peso = fitxEsercizio.peso,
                             recupero = fitxEsercizio.recupero,
                             isometria = fitxEsercizio.isometria,
-                            notes = fitxEsercizio.notes
+                            notes = fitxEsercizio.notes,
+                            settimana = fitxEsercizio.settimana,
+                            giorno = fitxEsercizio.giorno,
+                            ordine = fitxEsercizio.ordine,
+                            supersetGroup = fitxEsercizio.supersetGroup,
+                            rpe = fitxEsercizio.rpe,
+                            tempo = fitxEsercizio.tempo,
+                            percentuale = fitxEsercizio.percentuale
                         )
                     }
                 )
@@ -383,7 +390,14 @@ class ImportSchedaActivity : ComponentActivity() {
                         intervallo = esercizio.recupero,
                         insometria = esercizio.isometria,
                         notes = esercizio.notes,
-                        schedaId = schedaId.toInt()
+                        schedaId = schedaId.toInt(),
+                        settimana = esercizio.settimana,
+                        giorno = esercizio.giorno,
+                        ordine = esercizio.ordine,
+                        supersetGroup = esercizio.supersetGroup,
+                        rpe = esercizio.rpe,
+                        tempo = esercizio.tempo,
+                        percentuale = esercizio.percentuale
                     )
                     eserciziDao.insert(entity)
                 }
@@ -421,5 +435,13 @@ private data class EsercizioImportData(
     val peso: Float?,
     val recupero: Int?,
     val isometria: Int?,
-    val notes: String?
+    val notes: String?,
+    // Solo il formato .fitx porta questi dati; OCR e foto restano su settimana/giorno unici.
+    val settimana: Int = 1,
+    val giorno: Int = 1,
+    val ordine: Int = 0,
+    val supersetGroup: Int? = null,
+    val rpe: String? = null,
+    val tempo: String? = null,
+    val percentuale: Float? = null
 )

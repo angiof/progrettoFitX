@@ -51,7 +51,7 @@ import com.app.fityo.data_layer.db.dao.DaoDailyNutritionItem
         ChatMessageEntity::class,
         CustomValueEntity::class
     ],
-    version = 18
+    version = 20
 )
 @TypeConverters(Converters::class)
 
@@ -371,6 +371,32 @@ abstract class DbFit : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_18_19 = object : Migration(18, 19) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Schede complesse: settimane, giorni, superset e campi avanzati. Le schede
+                // esistenti diventano "settimana 1, giorno 1" e restano identiche a prima.
+                database.execSQL("ALTER TABLE essercissi ADD COLUMN settimana INTEGER NOT NULL DEFAULT 1")
+                database.execSQL("ALTER TABLE essercissi ADD COLUMN giorno INTEGER NOT NULL DEFAULT 1")
+                database.execSQL("ALTER TABLE essercissi ADD COLUMN ordine INTEGER NOT NULL DEFAULT 0")
+                database.execSQL("ALTER TABLE essercissi ADD COLUMN supersetGroup INTEGER")
+                database.execSQL("ALTER TABLE essercissi ADD COLUMN rpe TEXT")
+                database.execSQL("ALTER TABLE essercissi ADD COLUMN tempo TEXT")
+                database.execSQL("ALTER TABLE essercissi ADD COLUMN percentuale REAL")
+            }
+        }
+
+        private val MIGRATION_19_20 = object : Migration(19, 20) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Provenienza del foglio Excel: serve per riscrivere nel file di partenza e per
+                // riconoscere un re-import invece di duplicare la scheda.
+                database.execSQL("ALTER TABLE schede ADD COLUMN sourceFile TEXT")
+                database.execSQL("ALTER TABLE schede ADD COLUMN sourceUri TEXT")
+                database.execSQL("ALTER TABLE schede ADD COLUMN sourceSheet INTEGER")
+                database.execSQL("ALTER TABLE essercissi ADD COLUMN sourceRow INTEGER")
+                database.execSQL("ALTER TABLE essercissi ADD COLUMN sourceVariant INTEGER")
+            }
+        }
+
         fun getDatabase(context: Context): DbFit {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -380,7 +406,7 @@ abstract class DbFit : RoomDatabase() {
                 )
                     // Le migration precedenti non sono mai state registrate: aggiungiamo almeno
                     // questa cosi chi e gia alla 17 non perde le schede passando alla 18.
-                    .addMigrations(MIGRATION_17_18)
+                    .addMigrations(MIGRATION_17_18, MIGRATION_18_19, MIGRATION_19_20)
                     .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance

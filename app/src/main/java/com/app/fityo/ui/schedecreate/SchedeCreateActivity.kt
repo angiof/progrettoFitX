@@ -216,6 +216,7 @@ private fun SchedeCreateNavHost(
                 state.importState?.let { importState ->
                     ImportPreviewScreen(
                         importState = importState,
+                        duplicateWarning = state.duplicateSourceWarning,
                         onSelectSheet = { viewModel.selectSheet(it) },
                         onSelectDay = { viewModel.selectDay(it) },
                         onSelectVariant = { viewModel.selectVariant(it) },
@@ -229,8 +230,22 @@ private fun SchedeCreateNavHost(
 
             SchedeCreateStep.Esercizi -> {
                 EsercissiListScreen(
-                    esercizi = esercizi,
+                    esercizi = state.visibleEsercizi,
                     equipmentOptions = equipmentOptions,
+                    advancedMode = state.advancedMode,
+                    canDisableAdvanced = state.weekCount == 1 && state.dayCount == 1,
+                    weekCount = state.weekCount,
+                    dayCount = state.dayCount,
+                    selectedWeek = state.selectedWeek,
+                    selectedDay = state.selectedDay,
+                    onToggleAdvanced = { viewModel.setAdvancedMode(it) },
+                    onSelectWeek = { viewModel.selectWeek(it) },
+                    onSelectDay = { viewModel.selectTrainingDay(it) },
+                    onAddWeek = { viewModel.addWeek() },
+                    onAddDay = { viewModel.addDay() },
+                    onDeleteWeek = { viewModel.deleteWeek(it) },
+                    onDeleteDay = { viewModel.deleteDay(it) },
+                    onProgressione = { viewModel.applyProgressione(it) },
                     onAddEsercizio = { viewModel.addEsercizio(it) },
                     onEditEsercizio = { viewModel.updateEsercizio(it) },
                     onDeleteEsercizio = { viewModel.deleteEsercizio(it) },
@@ -256,6 +271,7 @@ private fun SchedeCreateNavHost(
                     intensityOptions = intensityOptions,
                     muscleGroupOptions = muscleGroupOptions,
                     profileOptions = profileOptions,
+                    sourceLabel = state.source?.fileName?.takeIf { it.isNotBlank() },
                     onFormDataChanged = { viewModel.updateFormData(it) },
                     onSaveAndExit = { reminderTime ->
                         viewModel.saveAndExit(reminderTime)

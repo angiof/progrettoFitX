@@ -24,6 +24,10 @@ interface DaoSchede {
     @Query("SELECT * FROM schede WHERE id = :id")
     suspend fun getSchedeById(id: Int): SchedeEntity?
 
+    /** Schede gia importate dallo stesso foglio: serve per non crearne un doppione. */
+    @Query("SELECT * FROM schede WHERE sourceUri = :uri AND sourceSheet = :sheet")
+    suspend fun getSchedeBySource(uri: String, sheet: Int): List<SchedeEntity>
+
     @Query("SELECT * FROM schede WHERE data = :date")
     suspend fun getSchedeByDate(date: String): List<SchedeEntity>
 

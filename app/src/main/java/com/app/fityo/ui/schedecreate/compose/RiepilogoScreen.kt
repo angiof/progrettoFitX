@@ -90,6 +90,7 @@ fun RiepilogoScreen(
     intensityOptions: List<String>,
     muscleGroupOptions: List<String>,
     profileOptions: List<ProfileOption>,
+    sourceLabel: String? = null,
     onFormDataChanged: (SchedeFormData) -> Unit,
     onSaveAndExit: (reminderTime: String?) -> Unit,
     onExportPdf: () -> Unit,
@@ -320,6 +321,52 @@ fun RiepilogoScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
+                    // Il file di origine resta legato alla scheda: e da li che si potra
+                    // riaprire o riscrivere il foglio.
+                    sourceLabel?.let { label ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(text = "Origine", color = TextSecondary, fontSize = 14.sp)
+                            Text(
+                                text = label,
+                                color = TextPrimary,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.padding(start = 12.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
+
+                    // Struttura, solo se la scheda e davvero su piu settimane o giorni.
+                    val weeks = esercizi.maxOfOrNull { it.settimana } ?: 1
+                    val days = esercizi.maxOfOrNull { it.giorno } ?: 1
+                    if (weeks > 1 || days > 1) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Struttura",
+                                color = TextSecondary,
+                                fontSize = 14.sp
+                            )
+                            Text(
+                                text = "$weeks settimane x $days giorni",
+                                color = TextPrimary,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
+
                     // Exercises count
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -391,9 +438,32 @@ fun RiepilogoScreen(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    esercizi.forEachIndexed { index, esercizio ->
+                    val struttura = esercizi.any { it.settimana > 1 || it.giorno > 1 }
+                    // In memoria l'ordine e quello di inserimento: qui serve quello della scheda,
+                    // altrimenti le intestazioni di settimana si ripeterebbero a blocchi.
+                    val ordinati = esercizi.sortedWith(
+                        compareBy({ it.settimana }, { it.giorno }, { it.ordine })
+                    )
+
+                    ordinati.forEachIndexed { index, esercizio ->
                         if (index > 0) {
                             Spacer(modifier = Modifier.height(8.dp))
+                        }
+
+                        // Con piu settimane la lista piatta sarebbe ambigua: diciamo di chi e.
+                        val precedente = ordinati.getOrNull(index - 1)
+                        if (struttura &&
+                            (precedente == null ||
+                                precedente.settimana != esercizio.settimana ||
+                                precedente.giorno != esercizio.giorno)
+                        ) {
+                            Text(
+                                text = "Settimana ${esercizio.settimana} - Giorno ${esercizio.giorno}",
+                                color = AccentBlue,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                            )
                         }
 
                         Row(

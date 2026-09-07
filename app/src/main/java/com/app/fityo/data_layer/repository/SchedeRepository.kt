@@ -33,6 +33,10 @@ class SchedeRepository(private val daoSchede: DaoSchede) {
     }
 
     // Ottiene una scheda specifica per ID dal database
+    suspend fun getSchedeBySource(uri: String, sheet: Int): List<SchedeEntity> {
+        return daoSchede.getSchedeBySource(uri, sheet)
+    }
+
     suspend fun getSchedeById(id: Int): SchedeEntity? {
         return daoSchede.getSchedeById(id)
     }

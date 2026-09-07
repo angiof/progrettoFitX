@@ -1,6 +1,7 @@
 package com.app.fityo.ui.schedecreate
 
 import android.app.Application
+import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
@@ -46,6 +47,7 @@ sealed class SchedeCreateStep {
 
 data class ExcelImportState(
     val fileName: String,
+    val fileUri: String,
     val sheets: List<ExcelSheet>,
     val selectedSheet: Int,
     val layout: SheetLayout?,
@@ -76,7 +78,39 @@ data class SchedeCreateState(
     val importState: ExcelImportState? = null,
     val pdfMeta: ExportMetadata = ExportMetadata(),
     val showExitDialog: Boolean = false,
-    val closeRequested: Boolean = false
+    val closeRequested: Boolean = false,
+
+    // Modalita avanzata: una scheda semplice e semplicemente una scheda con una settimana
+    // e un giorno, quindi questi campi non cambiano cosa viene salvato, solo cosa si vede.
+    val advancedMode: Boolean = false,
+    val weekCount: Int = 1,
+    val dayCount: Int = 1,
+    val selectedWeek: Int = 1,
+    val selectedDay: Int = 1,
+    val source: SchedaSource? = null,
+
+    // Un'altra scheda nata dallo stesso file: lo diciamo prima che l'utente ne crei un doppione.
+    val duplicateSourceWarning: String? = null
+) {
+    /** Gli esercizi del giorno aperto; in modalita semplice sono tutti. */
+    val visibleEsercizi: List<EsserciziEntity>
+        get() = if (!advancedMode) {
+            esercizi.sortedBy { it.ordine }
+        } else {
+            esercizi
+                .filter { it.settimana == selectedWeek && it.giorno == selectedDay }
+                .sortedBy { it.ordine }
+        }
+}
+
+/** Ritocchi rapidi applicati a tutta la settimana appena copiata. */
+enum class Progressione { PESO, RIPETIZIONI, PERCENTUALE }
+
+/** Da dove arriva la scheda, quando arriva da un foglio Excel. */
+data class SchedaSource(
+    val fileName: String,
+    val uri: String,
+    val sheet: Int
 )
 
 class SchedeCreateViewModel(
@@ -155,8 +189,15 @@ class SchedeCreateViewModel(
                 ),
                 schedeEntity = scheda,
                 esercizi = esercizi,
-                currentStep = if (startAtExercises) SchedeCreateStep.Esercizi else SchedeCreateStep.Form
-            )
+                currentStep = if (startAtExercises) SchedeCreateStep.Esercizi else SchedeCreateStep.Form,
+                source = scheda.sourceUri?.let { uri ->
+                    SchedaSource(
+                        fileName = scheda.sourceFile.orEmpty(),
+                        uri = uri,
+                        sheet = scheda.sourceSheet ?: 0
+                    )
+                }
+            ).withStructureFrom(esercizi)
         }
     }
 
@@ -183,15 +224,34 @@ class SchedeCreateViewModel(
                     notes = scheda.notes ?: "",
                     coachProfileId = coachProfileId ?: scheda.coachProfileId
                 ),
+                // La copia non eredita la provenienza: e una scheda nuova, e riscrivere nel
+                // foglio del cliente originale sarebbe esattamente la cosa sbagliata.
                 esercizi = esercizi.map { esercizio ->
                     esercizio.copy(
                         id = nextDraftId--,
                         completed = false,
-                        schedaId = DRAFT_SCHEDA_ID
+                        schedaId = DRAFT_SCHEDA_ID,
+                        sourceRow = null,
+                        sourceVariant = null
                     )
-                }
-            )
+                },
+                source = null
+            ).withStructureFrom(esercizi)
         }
+    }
+
+    /**
+     * Riaprendo una scheda gia complessa i tab devono esserci subito: la struttura si deduce
+     * dagli esercizi salvati, non serve un flag sulla scheda.
+     */
+    private fun SchedeCreateState.withStructureFrom(esercizi: List<EsserciziEntity>): SchedeCreateState {
+        val weeks = esercizi.maxOfOrNull { it.settimana } ?: 1
+        val days = esercizi.maxOfOrNull { it.giorno } ?: 1
+        return copy(
+            weekCount = weeks,
+            dayCount = days,
+            advancedMode = weeks > 1 || days > 1 || esercizi.any { it.supersetGroup != null }
+        )
     }
 
     private fun loadCoachProfiles() {
@@ -212,22 +272,189 @@ class SchedeCreateViewModel(
     }
 
     fun addEsercizio(formData: EsercizioFormData) {
-        val esercizio = formData.toEntity(id = nextDraftId--, existing = null)
-        _state.value = _state.value.copy(esercizi = _state.value.esercizi + esercizio)
+        val current = _state.value
+        val week = if (current.advancedMode) current.selectedWeek else 1
+        val day = if (current.advancedMode) current.selectedDay else 1
+        val previous = current.esercizi
+            .filter { it.settimana == week && it.giorno == day }
+            .maxByOrNull { it.ordine }
+
+        val (esercizi, group) = linkToPrevious(current.esercizi, previous, formData.legaAlPrecedente)
+
+        val esercizio = formData.toEntity(id = nextDraftId--, existing = null).copy(
+            settimana = week,
+            giorno = day,
+            ordine = (previous?.ordine ?: -1) + 1,
+            supersetGroup = group
+        )
+
+        _state.value = current.copy(esercizi = esercizi + esercizio)
     }
 
     fun updateEsercizio(formData: EsercizioFormData) {
         val id = formData.id ?: return
-        _state.value = _state.value.copy(
-            esercizi = _state.value.esercizi.map { existing ->
-                if (existing.id == id) formData.toEntity(id, existing) else existing
+        val current = _state.value
+        val existing = current.esercizi.firstOrNull { it.id == id } ?: return
+
+        val siblings = current.esercizi
+            .filter { it.settimana == existing.settimana && it.giorno == existing.giorno }
+            .sortedBy { it.ordine }
+        val previous = siblings.getOrNull(siblings.indexOfFirst { it.id == id } - 1)
+
+        val (esercizi, group) = linkToPrevious(current.esercizi, previous, formData.legaAlPrecedente)
+
+        _state.value = current.copy(
+            esercizi = esercizi.map { entity ->
+                if (entity.id == id) {
+                    formData.toEntity(id, existing).copy(
+                        settimana = existing.settimana,
+                        giorno = existing.giorno,
+                        ordine = existing.ordine,
+                        supersetGroup = group
+                    )
+                } else {
+                    entity
+                }
             }
         )
+    }
+
+    /**
+     * Il superset e un numero condiviso dagli esercizi consecutivi: se il precedente non ne ha
+     * ancora uno glielo assegniamo qui, cosi la coppia risulta legata da entrambi i lati.
+     */
+    private fun linkToPrevious(
+        esercizi: List<EsserciziEntity>,
+        previous: EsserciziEntity?,
+        link: Boolean
+    ): Pair<List<EsserciziEntity>, Int?> {
+        if (!link || previous == null) return esercizi to null
+
+        val group = previous.supersetGroup
+            ?: ((esercizi.mapNotNull { it.supersetGroup }.maxOrNull() ?: 0) + 1)
+
+        val updated = if (previous.supersetGroup == null) {
+            esercizi.map { if (it.id == previous.id) it.copy(supersetGroup = group) else it }
+        } else {
+            esercizi
+        }
+        return updated to group
     }
 
     fun deleteEsercizio(esercizio: EsserciziEntity) {
         _state.value = _state.value.copy(
             esercizi = _state.value.esercizi.filterNot { it.id == esercizio.id }
+        )
+    }
+
+    fun setAdvancedMode(enabled: Boolean) {
+        val current = _state.value
+        // Si puo tornare semplice solo se non c'e niente da nascondere.
+        if (!enabled && (current.weekCount > 1 || current.dayCount > 1)) return
+        _state.value = current.copy(advancedMode = enabled)
+    }
+
+    fun selectWeek(week: Int) {
+        _state.value = _state.value.copy(selectedWeek = week)
+    }
+
+    /** Nota: selectDay() e gia il giorno del foglio Excel, questo e il giorno della scheda. */
+    fun selectTrainingDay(day: Int) {
+        _state.value = _state.value.copy(selectedDay = day)
+    }
+
+    /**
+     * La settimana nuova nasce come copia di quella corrente: al trainer resta da ritoccare i
+     * carichi, non da riscrivere gli esercizi. I superset vengono rinumerati per non condividere
+     * il gruppo con la settimana di partenza.
+     */
+    fun addWeek() {
+        val current = _state.value
+        val source = current.esercizi.filter { it.settimana == current.selectedWeek }
+        val newWeek = current.weekCount + 1
+
+        var nextGroup = (current.esercizi.mapNotNull { it.supersetGroup }.maxOrNull() ?: 0) + 1
+        val groupMap = mutableMapOf<Int, Int>()
+
+        val copies = source.map { esercizio ->
+            esercizio.copy(
+                id = nextDraftId--,
+                settimana = newWeek,
+                completed = false,
+                supersetGroup = esercizio.supersetGroup?.let { old ->
+                    groupMap.getOrPut(old) { nextGroup++ }
+                }
+            )
+        }
+
+        _state.value = current.copy(
+            esercizi = current.esercizi + copies,
+            weekCount = newWeek,
+            selectedWeek = newWeek,
+            advancedMode = true
+        )
+    }
+
+    fun addDay() {
+        val current = _state.value
+        val newDay = current.dayCount + 1
+        _state.value = current.copy(
+            dayCount = newDay,
+            selectedDay = newDay,
+            advancedMode = true
+        )
+    }
+
+    fun deleteWeek(week: Int) {
+        val current = _state.value
+        if (current.weekCount <= 1) return
+
+        val remaining = current.esercizi
+            .filterNot { it.settimana == week }
+            .map { if (it.settimana > week) it.copy(settimana = it.settimana - 1) else it }
+
+        _state.value = current.copy(
+            esercizi = remaining,
+            weekCount = current.weekCount - 1,
+            selectedWeek = current.selectedWeek.coerceAtMost(current.weekCount - 1)
+        )
+    }
+
+    fun deleteDay(day: Int) {
+        val current = _state.value
+        if (current.dayCount <= 1) return
+
+        val remaining = current.esercizi
+            .filterNot { it.giorno == day }
+            .map { if (it.giorno > day) it.copy(giorno = it.giorno - 1) else it }
+
+        _state.value = current.copy(
+            esercizi = remaining,
+            dayCount = current.dayCount - 1,
+            selectedDay = current.selectedDay.coerceAtMost(current.dayCount - 1)
+        )
+    }
+
+    /** Applica un ritocco a tutti gli esercizi della settimana aperta. */
+    fun applyProgressione(tipo: Progressione) {
+        val current = _state.value
+        _state.value = current.copy(
+            esercizi = current.esercizi.map { esercizio ->
+                if (esercizio.settimana != current.selectedWeek) {
+                    esercizio
+                } else {
+                    when (tipo) {
+                        Progressione.PESO ->
+                            esercizio.peso?.let { esercizio.copy(peso = it + 2.5f) } ?: esercizio
+                        Progressione.RIPETIZIONI ->
+                            esercizio.copy(nRipetizione = esercizio.nRipetizione + 1)
+                        Progressione.PERCENTUALE ->
+                            esercizio.peso?.let {
+                                esercizio.copy(peso = Math.round(it * 1.05f * 10f) / 10f)
+                            } ?: esercizio
+                    }
+                }
+            }
         )
     }
 
@@ -269,9 +496,10 @@ class SchedeCreateViewModel(
             val exercises = planResult.getOrThrow().exercises
             _state.value = _state.value.copy(autoCompileMessage = "3/3 Creazione esercizi...")
 
-            val drafts = exercises.map { plan ->
+            val drafts = exercises.mapIndexed { index, plan ->
                 EsserciziEntity(
                     id = nextDraftId--,
+                    ordine = index,
                     nome = plan.name,
                     attrezzo = plan.equipment.orEmpty(),
                     nSerie = plan.sets.coerceAtLeast(1),
@@ -297,6 +525,7 @@ class SchedeCreateViewModel(
     fun importExcel(uri: Uri, fileName: String) {
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true, errorMessage = null)
+            keepAccessTo(uri)
 
             val result = runCatching {
                 withContext(Dispatchers.IO) {
@@ -325,6 +554,7 @@ class SchedeCreateViewModel(
                     currentStep = SchedeCreateStep.ImportPreview,
                     importState = buildImportState(
                         fileName = fileName,
+                        fileUri = uri.toString(),
                         sheets = sheets,
                         sheetIndex = index,
                         dayIndex = 0,
@@ -332,15 +562,56 @@ class SchedeCreateViewModel(
                         equipment = equipment
                     )
                 )
+
+                checkExistingImport(uri.toString(), index)
             }
+        }
+    }
+
+    /**
+     * L'Uri del picker vale solo per questa esecuzione: senza permesso persistente il
+     * riferimento salvato sulla scheda sarebbe inutilizzabile al riavvio. Chiediamo anche la
+     * scrittura, che servira per riscrivere il foglio, ma senza pretenderla: parecchi provider
+     * (Drive in testa) concedono solo lettura.
+     */
+    private fun keepAccessTo(uri: Uri) {
+        val resolver = getApplication<Application>().contentResolver
+        val readWrite = Intent.FLAG_GRANT_READ_URI_PERMISSION or
+            Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+
+        runCatching { resolver.takePersistableUriPermission(uri, readWrite) }
+            .onFailure {
+                runCatching {
+                    resolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+            }
+    }
+
+    /**
+     * Lo stesso foglio importato due volte creerebbe due schede identiche senza dire niente:
+     * qui non blocchiamo, avvisiamo e basta, perche puo anche essere voluto.
+     */
+    private fun checkExistingImport(uri: String, sheet: Int) {
+        viewModelScope.launch {
+            val existing = withContext(Dispatchers.IO) {
+                schedeRepository.getSchedeBySource(uri, sheet)
+            }.filter { it.id != persistedSchedaId }
+
+            _state.value = _state.value.copy(
+                duplicateSourceWarning = existing.firstOrNull()?.let {
+                    "Questo foglio e gia stato importato nella scheda \"${it.titolo}\""
+                }
+            )
         }
     }
 
     fun selectSheet(index: Int) {
         val current = _state.value.importState ?: return
+        checkExistingImport(current.fileUri, index)
         _state.value = _state.value.copy(
             importState = buildImportState(
                 fileName = current.fileName,
+                fileUri = current.fileUri,
                 sheets = current.sheets,
                 sheetIndex = index,
                 dayIndex = 0,
@@ -359,6 +630,7 @@ class SchedeCreateViewModel(
         _state.value = _state.value.copy(
             importState = buildImportState(
                 fileName = current.fileName,
+                fileUri = current.fileUri,
                 sheets = current.sheets,
                 sheetIndex = current.selectedSheet,
                 dayIndex = dayIndex ?: current.selectedDay,
@@ -370,6 +642,7 @@ class SchedeCreateViewModel(
 
     private fun buildImportState(
         fileName: String,
+        fileUri: String,
         sheets: List<ExcelSheet>,
         sheetIndex: Int,
         dayIndex: Int,
@@ -389,6 +662,7 @@ class SchedeCreateViewModel(
 
         return ExcelImportState(
             fileName = fileName,
+            fileUri = fileUri,
             sheets = sheets,
             selectedSheet = sheetIndex,
             layout = layout,
@@ -447,7 +721,16 @@ class SchedeCreateViewModel(
 
     fun confirmImport() {
         val current = _state.value.importState ?: return
-        val drafts = current.rows.map { row ->
+        val state = _state.value
+        val week = if (state.advancedMode) state.selectedWeek else 1
+        val day = if (state.advancedMode) state.selectedDay else 1
+
+        // Gli esercizi importati si accodano a quelli gia presenti nello stesso giorno.
+        val firstOrder = (state.esercizi
+            .filter { it.settimana == week && it.giorno == day }
+            .maxOfOrNull { it.ordine } ?: -1) + 1
+
+        val drafts = current.rows.mapIndexed { index, row ->
             EsserciziEntity(
                 id = nextDraftId--,
                 nome = row.nome,
@@ -458,15 +741,29 @@ class SchedeCreateViewModel(
                 intervallo = row.intervallo,
                 peso = row.peso,
                 notes = row.note,
-                schedaId = DRAFT_SCHEDA_ID
+                schedaId = DRAFT_SCHEDA_ID,
+                settimana = week,
+                giorno = day,
+                ordine = firstOrder + index,
+                // Riga e gruppo di colonne di origine: e quello che permettera di riscrivere
+                // il foglio senza doverlo re-interpretare a naso.
+                sourceRow = row.sheetRow,
+                sourceVariant = current.selectedVariant
             )
         }
 
+        val source = SchedaSource(
+            fileName = current.fileName,
+            uri = current.fileUri,
+            sheet = current.selectedSheet
+        )
+
         _state.value = _state.value.copy(
             currentStep = SchedeCreateStep.Esercizi,
-            schedeEntity = buildSchedaEntity(_state.value.formData),
+            schedeEntity = buildSchedaEntity(_state.value.formData, source),
             esercizi = _state.value.esercizi + drafts,
-            importState = null
+            importState = null,
+            source = source
         )
     }
 
@@ -687,7 +984,10 @@ class SchedeCreateViewModel(
         _state.value = _state.value.copy(errorMessage = null)
     }
 
-    private fun buildSchedaEntity(formData: SchedeFormData) = SchedeEntity(
+    private fun buildSchedaEntity(
+        formData: SchedeFormData,
+        source: SchedaSource? = _state.value.source
+    ) = SchedeEntity(
         id = persistedSchedaId,
         titolo = formData.titolo,
         data = formData.data,
@@ -698,7 +998,10 @@ class SchedeCreateViewModel(
         else
             null,
         notes = formData.notes.ifBlank { null },
-        coachProfileId = formData.coachProfileId
+        coachProfileId = formData.coachProfileId,
+        sourceFile = source?.fileName,
+        sourceUri = source?.uri,
+        sourceSheet = source?.sheet
     )
 
     private fun EsercizioFormData.toEntity(id: Int?, existing: EsserciziEntity?) = EsserciziEntity(
@@ -711,9 +1014,16 @@ class SchedeCreateViewModel(
         intervallo = intervallo,
         peso = peso,
         completed = existing?.completed ?: false,
-        notes = existing?.notes,
+        notes = note.ifBlank { null },
         wgerId = wgerId,
-        schedaId = existing?.schedaId ?: DRAFT_SCHEDA_ID
+        schedaId = existing?.schedaId ?: DRAFT_SCHEDA_ID,
+        settimana = existing?.settimana ?: 1,
+        giorno = existing?.giorno ?: 1,
+        ordine = existing?.ordine ?: 0,
+        supersetGroup = existing?.supersetGroup,
+        rpe = rpe.ifBlank { null },
+        tempo = tempo.ifBlank { null },
+        percentuale = percentuale
     )
 
     private fun applyAutoDefaults(formData: SchedeFormData, options: AutoCompileOptions): SchedeFormData {

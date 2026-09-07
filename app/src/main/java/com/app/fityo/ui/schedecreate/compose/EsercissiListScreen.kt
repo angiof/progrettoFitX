@@ -17,8 +17,10 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -39,7 +41,10 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BookmarkAdd
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Timer
@@ -58,6 +63,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
@@ -93,6 +100,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.app.fityo.data_layer.network.WgerClient
 import com.app.fityo.data_layer.db.EsserciziEntity
+import com.app.fityo.ui.schedecreate.Progressione
 import com.app.fityo.data_layer.repository.WgerRepository
 import com.app.fityo.dominio.WgerSuggestion
 import com.app.fityo.ui.wger.WgerExerciseInfoDialog
@@ -109,10 +117,16 @@ data class EsercizioFormData(
     val isometria: Int? = null,
     val intervallo: Int? = null,
     val peso: Float? = null,
-    val wgerId: Int? = null
+    val wgerId: Int? = null,
+    // Campi avanzati: restano nascosti finche l'utente non apre la sezione.
+    val note: String = "",
+    val rpe: String = "",
+    val tempo: String = "",
+    val percentuale: Float? = null,
+    val legaAlPrecedente: Boolean = false
 )
 
-fun EsserciziEntity.toFormData() = EsercizioFormData(
+fun EsserciziEntity.toFormData(legaAlPrecedente: Boolean = false) = EsercizioFormData(
     id = id,
     nome = nome,
     attrezzo = attrezzo,
@@ -121,7 +135,12 @@ fun EsserciziEntity.toFormData() = EsercizioFormData(
     isometria = insometria,
     intervallo = intervallo,
     peso = peso,
-    wgerId = wgerId
+    wgerId = wgerId,
+    note = notes.orEmpty(),
+    rpe = rpe.orEmpty(),
+    tempo = tempo.orEmpty(),
+    percentuale = percentuale,
+    legaAlPrecedente = legaAlPrecedente
 )
 
 /**
@@ -136,7 +155,8 @@ fun EsercizioEditorSheet(
     onSaveAttrezzo: (String) -> Unit,
     onSaveNomeComeEsercizio: (String) -> Unit,
     onSave: (EsercizioFormData) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    canLinkPrevious: Boolean = false
 ) {
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true,
@@ -162,6 +182,7 @@ fun EsercizioEditorSheet(
         EsercizioFormSheet(
             initialData = initialData,
             equipmentOptions = equipmentOptions,
+            canLinkPrevious = canLinkPrevious,
             onSaveAttrezzo = onSaveAttrezzo,
             onSaveNomeComeEsercizio = onSaveNomeComeEsercizio,
             onSave = { formData ->
@@ -192,10 +213,26 @@ fun EsercissiListScreen(
     onSaveAttrezzo: (String) -> Unit,
     onSaveNomeComeEsercizio: (String) -> Unit,
     onNext: () -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    advancedMode: Boolean = false,
+    canDisableAdvanced: Boolean = true,
+    weekCount: Int = 1,
+    dayCount: Int = 1,
+    selectedWeek: Int = 1,
+    selectedDay: Int = 1,
+    onToggleAdvanced: (Boolean) -> Unit = {},
+    onSelectWeek: (Int) -> Unit = {},
+    onSelectDay: (Int) -> Unit = {},
+    onAddWeek: () -> Unit = {},
+    onAddDay: () -> Unit = {},
+    onDeleteWeek: (Int) -> Unit = {},
+    onDeleteDay: (Int) -> Unit = {},
+    onProgressione: (Progressione) -> Unit = {}
 ) {
     var showAddSheet by remember { mutableStateOf(false) }
     var editingEsercizio by remember { mutableStateOf<EsserciziEntity?>(null) }
+    var editingLinked by remember { mutableStateOf(false) }
+    var editingIndex by remember { mutableStateOf(-1) }
 
     Box(
         modifier = Modifier
@@ -237,6 +274,62 @@ fun EsercissiListScreen(
 
             // Step Indicator
             StepIndicator(currentStep = 1)
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // L'interruttore fa comparire settimane, giorni e superset: finche resta spento
+            // la schermata e identica a prima.
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(DarkCard)
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Scheda avanzata",
+                        color = TextPrimary,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = if (advancedMode) "Settimane, giorni e superset"
+                        else "Attivala per settimane e giorni",
+                        color = TextSecondary,
+                        fontSize = 12.sp
+                    )
+                }
+                Switch(
+                    checked = advancedMode,
+                    onCheckedChange = onToggleAdvanced,
+                    enabled = !advancedMode || canDisableAdvanced,
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = Color.White,
+                        checkedTrackColor = AccentBlue,
+                        uncheckedThumbColor = TextSecondary,
+                        uncheckedTrackColor = DarkSurface
+                    )
+                )
+            }
+
+            if (advancedMode) {
+                Spacer(modifier = Modifier.height(12.dp))
+                StructureTabs(
+                    weekCount = weekCount,
+                    dayCount = dayCount,
+                    selectedWeek = selectedWeek,
+                    selectedDay = selectedDay,
+                    onSelectWeek = onSelectWeek,
+                    onSelectDay = onSelectDay,
+                    onAddWeek = onAddWeek,
+                    onAddDay = onAddDay,
+                    onDeleteWeek = onDeleteWeek,
+                    onDeleteDay = onDeleteDay,
+                    onProgressione = onProgressione
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -283,11 +376,21 @@ fun EsercissiListScreen(
                         items = esercizi,
                         key = { _, item -> item.id ?: item.hashCode() }
                     ) { index, esercizio ->
+                        // Il superset e "questo esercizio ha lo stesso gruppo del precedente":
+                        // il primo della coppia mostra l'etichetta, gli altri solo la barra.
+                        val group = esercizio.supersetGroup
+                        val previousGroup = esercizi.getOrNull(index - 1)?.supersetGroup
+                        val linkedToPrevious = group != null && group == previousGroup
+
                         SwipeableEsercizioCard(
                             esercizio = esercizio,
                             index = index,
+                            inSuperset = group != null,
+                            supersetStart = group != null && !linkedToPrevious,
                             onEdit = {
                                 editingEsercizio = esercizio
+                                editingLinked = linkedToPrevious
+                                editingIndex = index
                                 showAddSheet = true
                             },
                             onDelete = { onDeleteEsercizio(esercizio) }
@@ -330,6 +433,8 @@ fun EsercissiListScreen(
         FloatingActionButton(
             onClick = {
                 editingEsercizio = null
+                editingLinked = false
+                editingIndex = esercizi.size
                 showAddSheet = true
             },
             modifier = Modifier
@@ -344,8 +449,9 @@ fun EsercissiListScreen(
         // Add/Edit Sheet
         if (showAddSheet) {
             EsercizioEditorSheet(
-                initialData = editingEsercizio?.toFormData(),
+                initialData = editingEsercizio?.toFormData(editingLinked),
                 equipmentOptions = equipmentOptions,
+                canLinkPrevious = editingIndex > 0,
                 onSaveAttrezzo = onSaveAttrezzo,
                 onSaveNomeComeEsercizio = onSaveNomeComeEsercizio,
                 onSave = { formData ->
@@ -364,11 +470,153 @@ fun EsercissiListScreen(
     }
 }
 
+/**
+ * Tab settimane e giorni. Il "+" della settimana non apre niente: duplica quella corrente e ci
+ * si sposta dentro, cosi la scheda a 4 settimane si costruisce in tre tocchi.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun StructureTabs(
+    weekCount: Int,
+    dayCount: Int,
+    selectedWeek: Int,
+    selectedDay: Int,
+    onSelectWeek: (Int) -> Unit,
+    onSelectDay: (Int) -> Unit,
+    onAddWeek: () -> Unit,
+    onAddDay: () -> Unit,
+    onDeleteWeek: (Int) -> Unit,
+    onDeleteDay: (Int) -> Unit,
+    onProgressione: (Progressione) -> Unit
+) {
+    var showProgressione by remember { mutableStateOf(false) }
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            (1..weekCount).forEach { week ->
+                StructureChip(
+                    label = "Settimana $week",
+                    selected = week == selectedWeek,
+                    color = AccentBlue,
+                    onClick = { onSelectWeek(week) }
+                )
+            }
+            StructureChip(label = "+", selected = false, color = AccentBlue, onClick = onAddWeek)
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            (1..dayCount).forEach { day ->
+                StructureChip(
+                    label = "Giorno $day",
+                    selected = day == selectedDay,
+                    color = AccentGreen,
+                    onClick = { onSelectDay(day) }
+                )
+            }
+            StructureChip(label = "+", selected = false, color = AccentGreen, onClick = onAddDay)
+        }
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            TextButton(onClick = { showProgressione = !showProgressione }) {
+                Text("Progressione settimana", color = AccentOrange, fontSize = 13.sp)
+            }
+            Spacer(modifier = Modifier.weight(1f))
+            if (weekCount > 1) {
+                IconButton(onClick = { onDeleteWeek(selectedWeek) }) {
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = "Elimina settimana $selectedWeek",
+                        tint = AccentRed,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+            if (dayCount > 1) {
+                IconButton(onClick = { onDeleteDay(selectedDay) }) {
+                    Icon(
+                        Icons.Default.DeleteSweep,
+                        contentDescription = "Elimina giorno $selectedDay",
+                        tint = AccentRed,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+        }
+
+        AnimatedVisibility(
+            visible = showProgressione,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                StructureChip(
+                    label = "+2,5 kg",
+                    selected = false,
+                    color = AccentOrange,
+                    onClick = { onProgressione(Progressione.PESO) }
+                )
+                StructureChip(
+                    label = "+1 ripetizione",
+                    selected = false,
+                    color = AccentOrange,
+                    onClick = { onProgressione(Progressione.RIPETIZIONI) }
+                )
+                StructureChip(
+                    label = "+5% carico",
+                    selected = false,
+                    color = AccentOrange,
+                    onClick = { onProgressione(Progressione.PERCENTUALE) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun StructureChip(
+    label: String,
+    selected: Boolean,
+    color: Color,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(10.dp))
+            .background(if (selected) color.copy(alpha = 0.22f) else DarkCard)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 8.dp)
+    ) {
+        Text(
+            text = label,
+            color = if (selected) color else TextSecondary,
+            fontSize = 13.sp,
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
+        )
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SwipeableEsercizioCard(
     esercizio: EsserciziEntity,
     index: Int,
+    inSuperset: Boolean,
+    supersetStart: Boolean,
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -419,6 +667,8 @@ private fun SwipeableEsercizioCard(
         EsercizioCard(
             esercizio = esercizio,
             index = index,
+            inSuperset = inSuperset,
+            supersetStart = supersetStart,
             onEdit = onEdit
         )
     }
@@ -429,6 +679,8 @@ private fun SwipeableEsercizioCard(
 private fun EsercizioCard(
     esercizio: EsserciziEntity,
     index: Int,
+    inSuperset: Boolean = false,
+    supersetStart: Boolean = false,
     onEdit: () -> Unit
 ) {
     Card(
@@ -438,12 +690,34 @@ private fun EsercizioCard(
         colors = CardDefaults.cardColors(containerColor = DarkCard),
         shape = RoundedCornerShape(12.dp)
     ) {
+        if (inSuperset && supersetStart) {
+            Text(
+                text = "SUPERSET",
+                color = AccentOrange,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(start = 16.dp, top = 10.dp)
+            )
+        }
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .height(IntrinsicSize.Min),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Barra laterale: lega visivamente gli esercizi dello stesso superset.
+            Box(
+                modifier = Modifier
+                    .width(4.dp)
+                    .fillMaxHeight()
+                    .background(if (inSuperset) AccentOrange else Color.Transparent)
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
             // Index badge
             Box(
                 modifier = Modifier
@@ -509,6 +783,9 @@ private fun EsercizioCard(
                 val extras = mutableListOf<String>()
                 esercizio.insometria?.let { if (it > 0) extras.add("Iso: ${formatDuration(it)}") }
                 esercizio.intervallo?.let { if (it > 0) extras.add("Rec: ${formatDuration(it)}") }
+                esercizio.rpe?.takeIf { it.isNotBlank() }?.let { extras.add("RPE $it") }
+                esercizio.tempo?.takeIf { it.isNotBlank() }?.let { extras.add("Tempo $it") }
+                esercizio.percentuale?.let { extras.add("${formatPercentuale(it)} 1RM") }
 
                 if (extras.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(4.dp))
@@ -531,12 +808,13 @@ private fun EsercizioCard(
                 }
             }
 
-            IconButton(onClick = onEdit) {
-                Icon(
-                    Icons.Default.Edit,
-                    contentDescription = "Modifica",
-                    tint = TextSecondary
-                )
+                IconButton(onClick = onEdit) {
+                    Icon(
+                        Icons.Default.Edit,
+                        contentDescription = "Modifica",
+                        tint = TextSecondary
+                    )
+                }
             }
         }
     }
@@ -547,6 +825,7 @@ private fun EsercizioCard(
 private fun EsercizioFormSheet(
     initialData: EsercizioFormData?,
     equipmentOptions: List<String>,
+    canLinkPrevious: Boolean,
     onSaveAttrezzo: (String) -> Unit,
     onSaveNomeComeEsercizio: (String) -> Unit,
     onSave: (EsercizioFormData) -> Unit,
@@ -556,6 +835,7 @@ private fun EsercizioFormSheet(
         mutableStateOf(initialData ?: EsercizioFormData())
     }
     var showEquipmentDropdown by remember { mutableStateOf(false) }
+    var showAdvanced by remember { mutableStateOf(false) }
     var showIsometriaPicker by remember { mutableStateOf(false) }
     var showRecuperoPicker by remember { mutableStateOf(false) }
     // val wgerRepository = remember { WgerRepository(WgerClient.service) }
@@ -573,6 +853,15 @@ private fun EsercizioFormSheet(
     val focusPeso = remember { FocusRequester() }
 
     val isValid = formData.nome.isNotBlank() && formData.nSerie > 0 && formData.nRipetizioni > 0
+
+    // Con la sezione chiusa serve comunque sapere che li dentro c'e qualcosa.
+    val advancedCount = listOf(
+        formData.rpe.isNotBlank(),
+        formData.tempo.isNotBlank(),
+        formData.percentuale != null,
+        formData.note.isNotBlank(),
+        formData.legaAlPrecedente
+    ).count { it }
 
     // Suggerimenti esercizi da Wger disabilitati: chiamata di rete sospesa per il momento.
     // androidx.compose.runtime.LaunchedEffect(wgerSuggestionsEnabled, formData.nome) {
@@ -906,6 +1195,131 @@ private fun EsercizioFormSheet(
             )
         }
 
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Sezione avanzata: chiusa di default, cosi chi vuole solo serie e ripetizioni
+        // non la vede nemmeno.
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { showAdvanced = !showAdvanced }
+                .padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Avanzate",
+                color = TextSecondary,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.weight(1f)
+            )
+            if (advancedCount > 0 && !showAdvanced) {
+                Text(
+                    text = "$advancedCount compilati",
+                    color = AccentBlue,
+                    fontSize = 12.sp
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+            Icon(
+                imageVector = if (showAdvanced) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                contentDescription = null,
+                tint = TextSecondary
+            )
+        }
+
+        AnimatedVisibility(
+            visible = showAdvanced,
+            enter = slideInVertically() + fadeIn(),
+            exit = slideOutVertically() + fadeOut()
+        ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    OutlinedTextField(
+                        value = formData.rpe,
+                        onValueChange = { formData = formData.copy(rpe = it) },
+                        label = { Text("RPE / RIR") },
+                        placeholder = { Text("Es. 8 o RIR 2") },
+                        modifier = Modifier.weight(1f),
+                        colors = textFieldColors(),
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    OutlinedTextField(
+                        value = formData.tempo,
+                        onValueChange = { formData = formData.copy(tempo = it) },
+                        label = { Text("Tempo") },
+                        placeholder = { Text("3-1-1-0") },
+                        modifier = Modifier.weight(1f),
+                        colors = textFieldColors(),
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = formData.percentuale?.toString() ?: "",
+                    onValueChange = { formData = formData.copy(percentuale = it.toFloatOrNull()) },
+                    label = { Text("% del massimale") },
+                    placeholder = { Text("Opzionale") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = textFieldColors(),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    shape = RoundedCornerShape(12.dp)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = formData.note,
+                    onValueChange = { formData = formData.copy(note = it) },
+                    label = { Text("Note esercizio") },
+                    placeholder = { Text("Indicazioni, varianti, sensazioni") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = textFieldColors(),
+                    minLines = 2,
+                    shape = RoundedCornerShape(12.dp)
+                )
+
+                if (canLinkPrevious) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Lega all'esercizio precedente",
+                                color = TextPrimary,
+                                fontSize = 14.sp
+                            )
+                            Text(
+                                text = "I due esercizi diventano un superset",
+                                color = TextSecondary,
+                                fontSize = 12.sp
+                            )
+                        }
+                        Switch(
+                            checked = formData.legaAlPrecedente,
+                            onCheckedChange = { formData = formData.copy(legaAlPrecedente = it) },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = Color.White,
+                                checkedTrackColor = AccentOrange,
+                                uncheckedThumbColor = TextSecondary,
+                                uncheckedTrackColor = DarkSurface
+                            )
+                        )
+                    }
+                }
+            }
+        }
+
         Spacer(modifier = Modifier.height(24.dp))
 
         // Save Button
@@ -1086,6 +1500,12 @@ internal fun formatPeso(value: Float?): String {
         String.format(Locale.getDefault(), "%.1f", value)
     }
     return "$text kg"
+}
+
+internal fun formatPercentuale(value: Float): String {
+    val text = if (value % 1f == 0f) value.toInt().toString()
+    else String.format(Locale.getDefault(), "%.1f", value)
+    return "$text%"
 }
 
 private fun formatDuration(value: Int?): String {
