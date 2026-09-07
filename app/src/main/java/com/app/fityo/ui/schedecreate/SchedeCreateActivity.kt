@@ -10,14 +10,22 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import com.app.fityo.R
 import com.app.fityo.data_layer.db.DB.DbFit
@@ -39,6 +47,7 @@ class SchedeCreateActivity : ComponentActivity() {
     companion object {
         const val EXTRA_COACH_PROFILE_ID = "extra_coach_profile_id"
         const val EXTRA_SCHEDA_ID = "extra_scheda_id"
+        const val EXTRA_DUPLICATE_SCHEDA_ID = "extra_duplicate_scheda_id"
         const val EXTRA_START_AT_EXERCISES = "extra_start_at_exercises"
         const val EXTRA_EXCEL_URI = "extra_excel_uri"
 
@@ -56,6 +65,8 @@ class SchedeCreateActivity : ComponentActivity() {
             .takeIf { it != -1 }
         val schedaId = intent.getIntExtra(EXTRA_SCHEDA_ID, -1)
             .takeIf { it != -1 }
+        val duplicateSchedaId = intent.getIntExtra(EXTRA_DUPLICATE_SCHEDA_ID, -1)
+            .takeIf { it != -1 }
         val startAtExercises = intent.getBooleanExtra(EXTRA_START_AT_EXERCISES, false)
 
         GenericViewModelFactory {
@@ -67,6 +78,7 @@ class SchedeCreateActivity : ComponentActivity() {
                 customValueRepository = CustomValueRepository(db.customValueDao()),
                 coachProfileId = coachProfileId,
                 editSchedaId = schedaId,
+                duplicateSchedaId = duplicateSchedaId,
                 startAtExercises = startAtExercises
             )
         }
@@ -141,6 +153,7 @@ private fun SchedeCreateNavHost(
     val state by viewModel.state.collectAsState()
     val coachProfiles by viewModel.coachProfiles.collectAsState()
     val equipmentOptions by viewModel.equipmentOptions.collectAsState()
+    val logo by viewModel.logo.collectAsState()
     val esercizi = state.esercizi
     val context = LocalContext.current
 
@@ -149,6 +162,16 @@ private fun SchedeCreateNavHost(
     ) { uri ->
         if (uri != null) {
             viewModel.importExcel(uri, displayName(context, uri))
+        }
+    }
+
+    val logoPicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) {
+            viewModel.importLogo(uri) { message ->
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -161,9 +184,9 @@ private fun SchedeCreateNavHost(
         )
     }
 
-    // Osserva quando viene salvato
-    LaunchedEffect(state.isSaved) {
-        if (state.isSaved) {
+    // Si esce solo dopo un salvataggio riuscito o dopo che l'utente ha scelto di scartare.
+    LaunchedEffect(state.isSaved, state.closeRequested) {
+        if (state.isSaved || state.closeRequested) {
             onFinish()
         }
     }
@@ -185,7 +208,7 @@ private fun SchedeCreateNavHost(
                     onAutoCompile = { viewModel.autoCompileScheda(it) },
                     onImportExcel = { excelPicker.launch(SchedeCreateActivity.EXCEL_MIME_TYPES) },
                     onDismissError = { viewModel.clearError() },
-                    onBack = { onFinish() }
+                    onBack = { viewModel.navigateBack() }
                 )
             }
 
@@ -247,9 +270,15 @@ private fun SchedeCreateNavHost(
                     meta = state.pdfMeta,
                     notes = state.formData.notes,
                     esercizi = esercizi,
+                    logo = logo.bitmap,
+                    logoPlacement = logo.placement,
                     onMetaChanged = { viewModel.updatePdfMeta(it) },
                     onNotesChanged = { viewModel.updateFormData(state.formData.copy(notes = it)) },
                     onEsercizioChanged = { viewModel.updateEsercizioEntity(it) },
+                    onPickLogo = { logoPicker.launch(arrayOf("image/*")) },
+                    onRemoveLogo = { viewModel.removeLogo() },
+                    onLogoPlacementChanged = { viewModel.updateLogoPlacement(it) },
+                    onSaveLogoPlacement = { viewModel.saveLogoPlacement() },
                     onGenerate = {
                         viewModel.exportPdf { message ->
                             Toast.makeText(context, message, Toast.LENGTH_LONG).show()
@@ -259,5 +288,52 @@ private fun SchedeCreateNavHost(
                 )
             }
         }
+
+        if (state.showExitDialog) {
+            ExitConfirmDialog(
+                onSave = { viewModel.saveAndExit(null) },
+                onDiscard = { viewModel.discardAndExit() },
+                onDismiss = { viewModel.dismissExitDialog() }
+            )
+        }
     }
+}
+
+/**
+ * Uscendo dal flusso la scheda in memoria andrebbe persa senza avvisi: qui la si salva
+ * o si sceglie esplicitamente di buttarla.
+ */
+@Composable
+private fun ExitConfirmDialog(
+    onSave: () -> Unit,
+    onDiscard: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = {
+            Icon(
+                Icons.Default.Warning,
+                contentDescription = null,
+                tint = Color(0xFFFFC107)
+            )
+        },
+        title = { Text("Attenzione") },
+        text = { Text("La scheda non e ancora stata salvata. Vuoi salvarla prima di uscire?") },
+        confirmButton = {
+            TextButton(onClick = onSave) {
+                Text("Salva")
+            }
+        },
+        dismissButton = {
+            Row {
+                TextButton(onClick = onDismiss) {
+                    Text("Annulla")
+                }
+                TextButton(onClick = onDiscard) {
+                    Text("Non salvare")
+                }
+            }
+        }
+    )
 }

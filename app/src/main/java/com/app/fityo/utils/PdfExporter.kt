@@ -4,6 +4,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.RectF
 import android.graphics.Typeface
 import android.graphics.pdf.PdfDocument
 import android.os.Build
@@ -178,7 +179,7 @@ object PdfExporter {
                 // Le righe sotto il titolo sono opzionali: il riquadro si adatta invece di
                 // lasciare spazio vuoto o, con le note, tagliare l'ultima riga.
                 val extras = mutableListOf<String>()
-                esercizio.peso?.let { extras.add(context.getString(R.string.pdf_label_peso, it)) }
+                esercizio.peso?.let { extras.add(context.getString(R.string.pdf_label_peso, formatPeso(it))) }
                 esercizio.intervallo?.let { extras.add(context.getString(R.string.pdf_label_recupero, it)) }
                 esercizio.insometria?.let { extras.add(context.getString(R.string.pdf_label_isometria, it)) }
 
@@ -241,6 +242,24 @@ object PdfExporter {
             // Disegna header della prima pagina
             drawHeader()
 
+            // Logo dell'utente, nel punto scelto trascinandolo sull'anteprima. Solo sulla prima
+            // pagina: e un'intestazione, non una filigrana. Il bitmap si libera a documento
+            // chiuso, perche il canvas della pagina disegna davvero solo a finishPage().
+            val logoBitmap = LogoStore.bitmap(context)
+            logoBitmap?.let { logo ->
+                val placement = LogoStore.placement(context)
+                val logoWidth = pageWidth * placement.widthFraction
+                val logoHeight = logoWidth * logo.height / logo.width
+                val left = pageWidth * placement.xFraction
+                val top = pageHeight * placement.yFraction
+                currentPage.canvas.drawBitmap(
+                    logo,
+                    null,
+                    RectF(left, top, left + logoWidth, top + logoHeight),
+                    Paint(Paint.FILTER_BITMAP_FLAG)
+                )
+            }
+
             // Titolo scheda centrato
             writeLine(exportTitle, headerPaint, 40f, margin)
 
@@ -294,6 +313,7 @@ object PdfExporter {
             FileOutputStream(pdfFile).use { pdf.writeTo(it) }
             copyToPublicDocuments(context, pdfFile, fileName)
             pdf.close()
+            logoBitmap?.recycle()
 
             pdfFile
         }
@@ -330,6 +350,11 @@ object PdfExporter {
             }
         }
     }
+
+    /** Sul foglio stampato "20 kg" si legge meglio di "20.0 kg". */
+    private fun formatPeso(value: Float): String =
+        if (value % 1f == 0f) value.toInt().toString()
+        else String.format(Locale.getDefault(), "%.1f", value)
 
     private fun formatDateForPdf(value: String?): String? {
         if (value.isNullOrBlank()) return null

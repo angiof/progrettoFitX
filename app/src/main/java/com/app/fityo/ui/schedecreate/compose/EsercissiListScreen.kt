@@ -12,6 +12,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -84,6 +86,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -109,6 +112,75 @@ data class EsercizioFormData(
     val wgerId: Int? = null
 )
 
+fun EsserciziEntity.toFormData() = EsercizioFormData(
+    id = id,
+    nome = nome,
+    attrezzo = attrezzo,
+    nSerie = nSerie,
+    nRipetizioni = nRipetizione,
+    isometria = insometria,
+    intervallo = intervallo,
+    peso = peso,
+    wgerId = wgerId
+)
+
+/**
+ * Il form esercizio del flusso di creazione, con la sua chrome da bottom sheet. Esposto perche
+ * anche il dettaglio scheda deve modificare gli esercizi con questo, non con un form diverso.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EsercizioEditorSheet(
+    initialData: EsercizioFormData?,
+    equipmentOptions: List<String>,
+    onSaveAttrezzo: (String) -> Unit,
+    onSaveNomeComeEsercizio: (String) -> Unit,
+    onSave: (EsercizioFormData) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true,
+        confirmValueChange = { it != SheetValue.Hidden }
+    )
+    val scope = rememberCoroutineScope()
+
+    ModalBottomSheet(
+        onDismissRequest = { /* Swipe bloccato, chiusura solo con X */ },
+        sheetState = sheetState,
+        containerColor = DarkCard,
+        dragHandle = {
+            Box(
+                modifier = Modifier
+                    .padding(vertical = 12.dp)
+                    .width(40.dp)
+                    .height(4.dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(TextSecondary.copy(alpha = 0.5f))
+            )
+        }
+    ) {
+        EsercizioFormSheet(
+            initialData = initialData,
+            equipmentOptions = equipmentOptions,
+            onSaveAttrezzo = onSaveAttrezzo,
+            onSaveNomeComeEsercizio = onSaveNomeComeEsercizio,
+            onSave = { formData ->
+                onSave(formData)
+                scope.launch {
+                    sheetState.hide()
+                    onDismiss()
+                }
+            },
+            onCancel = {
+                scope.launch {
+                    sheetState.hide()
+                    onDismiss()
+                }
+            }
+        )
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EsercissiListScreen(
@@ -124,11 +196,6 @@ fun EsercissiListScreen(
 ) {
     var showAddSheet by remember { mutableStateOf(false) }
     var editingEsercizio by remember { mutableStateOf<EsserciziEntity?>(null) }
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true,
-        confirmValueChange = { it != SheetValue.Hidden }
-    )
-    val scope = rememberCoroutineScope()
 
     Box(
         modifier = Modifier
@@ -276,59 +343,23 @@ fun EsercissiListScreen(
 
         // Add/Edit Sheet
         if (showAddSheet) {
-            ModalBottomSheet(
-                onDismissRequest = { /* Swipe bloccato, chiusura solo con X */ },
-                sheetState = sheetState,
-                containerColor = DarkCard,
-                dragHandle = {
-                    Box(
-                        modifier = Modifier
-                            .padding(vertical = 12.dp)
-                            .width(40.dp)
-                            .height(4.dp)
-                            .clip(RoundedCornerShape(2.dp))
-                            .background(TextSecondary.copy(alpha = 0.5f))
-                    )
-                }
-            ) {
-                EsercizioFormSheet(
-                    initialData = editingEsercizio?.let {
-                        EsercizioFormData(
-                            id = it.id,
-                            nome = it.nome,
-                            attrezzo = it.attrezzo,
-                            nSerie = it.nSerie,
-                            nRipetizioni = it.nRipetizione,
-                            isometria = it.insometria,
-                            intervallo = it.intervallo,
-                            peso = it.peso,
-                            wgerId = it.wgerId
-                        )
-                    },
-                    equipmentOptions = equipmentOptions,
-                    onSaveAttrezzo = onSaveAttrezzo,
-                    onSaveNomeComeEsercizio = onSaveNomeComeEsercizio,
-                    onSave = { formData ->
-                        if (editingEsercizio != null) {
-                            onEditEsercizio(formData)
-                        } else {
-                            onAddEsercizio(formData)
-                        }
-                        scope.launch {
-                            sheetState.hide()
-                            showAddSheet = false
-                            editingEsercizio = null
-                        }
-                    },
-                    onCancel = {
-                        scope.launch {
-                            sheetState.hide()
-                            showAddSheet = false
-                            editingEsercizio = null
-                        }
+            EsercizioEditorSheet(
+                initialData = editingEsercizio?.toFormData(),
+                equipmentOptions = equipmentOptions,
+                onSaveAttrezzo = onSaveAttrezzo,
+                onSaveNomeComeEsercizio = onSaveNomeComeEsercizio,
+                onSave = { formData ->
+                    if (editingEsercizio != null) {
+                        onEditEsercizio(formData)
+                    } else {
+                        onAddEsercizio(formData)
                     }
-                )
-            }
+                },
+                onDismiss = {
+                    showAddSheet = false
+                    editingEsercizio = null
+                }
+            )
         }
     }
 }
@@ -393,6 +424,7 @@ private fun SwipeableEsercizioCard(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun EsercizioCard(
     esercizio: EsserciziEntity,
@@ -435,15 +467,19 @@ private fun EsercizioCard(
                     text = esercizio.nome,
                     color = TextPrimary,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
+                    fontSize = 16.sp,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
+                // Nomi di attrezzo lunghi spingevano il peso fuori dalla card: qui le voci
+                // vanno a capo invece di essere tagliate.
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
-                    // Serie x Ripetizioni
                     Text(
                         text = "${esercizio.nSerie} x ${esercizio.nRipetizione}",
                         color = AccentGreen,
@@ -453,12 +489,7 @@ private fun EsercizioCard(
 
                     if (esercizio.attrezzo.isNotBlank()) {
                         Text(
-                            text = " • ",
-                            color = TextSecondary,
-                            fontSize = 14.sp
-                        )
-                        Text(
-                            text = esercizio.attrezzo,
+                            text = "• ${esercizio.attrezzo}",
                             color = TextSecondary,
                             fontSize = 14.sp
                         )
@@ -466,12 +497,7 @@ private fun EsercizioCard(
 
                     esercizio.peso?.let { peso ->
                         Text(
-                            text = " • ",
-                            color = TextSecondary,
-                            fontSize = 14.sp
-                        )
-                        Text(
-                            text = "${peso}kg",
+                            text = "• ${formatPeso(peso)}",
                             color = AccentOrange,
                             fontWeight = FontWeight.Medium,
                             fontSize = 14.sp
@@ -1050,6 +1076,17 @@ private fun textFieldColors() = OutlinedTextFieldDefaults.colors(
     unfocusedLabelColor = TextSecondary,
     disabledLabelColor = TextSecondary
 )
+
+/** Un peso intero si scrive "20 kg", non "20.0 kg". */
+internal fun formatPeso(value: Float?): String {
+    if (value == null) return ""
+    val text = if (value % 1f == 0f) {
+        value.toInt().toString()
+    } else {
+        String.format(Locale.getDefault(), "%.1f", value)
+    }
+    return "$text kg"
+}
 
 private fun formatDuration(value: Int?): String {
     if (value == null || value <= 0) return ""

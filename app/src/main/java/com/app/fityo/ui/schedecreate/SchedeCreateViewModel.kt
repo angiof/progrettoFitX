@@ -1,6 +1,7 @@
 package com.app.fityo.ui.schedecreate
 
 import android.app.Application
+import android.graphics.Bitmap
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -26,6 +27,7 @@ import com.app.fityo.schede.ai.WorkoutPlanRequest
 import com.app.fityo.ui.schedecreate.compose.EsercizioFormData
 import com.app.fityo.ui.schedecreate.compose.SchedeFormData
 import com.app.fityo.utils.ExportMetadata
+import com.app.fityo.utils.LogoStore
 import com.app.fityo.utils.PdfExporter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -57,6 +59,11 @@ data class ExcelImportState(
     val variant: VariantGroup? get() = layout?.variants?.getOrNull(selectedVariant)
 }
 
+data class LogoUiState(
+    val bitmap: Bitmap? = null,
+    val placement: LogoStore.Placement = LogoStore.Placement()
+)
+
 data class SchedeCreateState(
     val currentStep: SchedeCreateStep = SchedeCreateStep.Form,
     val formData: SchedeFormData = SchedeFormData(),
@@ -67,7 +74,9 @@ data class SchedeCreateState(
     val isSaved: Boolean = false,
     val errorMessage: String? = null,
     val importState: ExcelImportState? = null,
-    val pdfMeta: ExportMetadata = ExportMetadata()
+    val pdfMeta: ExportMetadata = ExportMetadata(),
+    val showExitDialog: Boolean = false,
+    val closeRequested: Boolean = false
 )
 
 class SchedeCreateViewModel(
@@ -78,6 +87,7 @@ class SchedeCreateViewModel(
     private val customValueRepository: CustomValueRepository,
     private val coachProfileId: Int? = null,
     private val editSchedaId: Int? = null,
+    private val duplicateSchedaId: Int? = null,
     private val startAtExercises: Boolean = false
 ) : AndroidViewModel(application) {
 
@@ -92,6 +102,10 @@ class SchedeCreateViewModel(
     private val _equipmentOptions = MutableStateFlow<List<String>>(emptyList())
     val equipmentOptions: StateFlow<List<String>> = _equipmentOptions.asStateFlow()
 
+    // Logo del PDF: resta quello di default finche l'utente non lo cambia o lo toglie.
+    private val _logo = MutableStateFlow(LogoUiState())
+    val logo: StateFlow<LogoUiState> = _logo.asStateFlow()
+
     // La scheda vive in memoria finche l'utente non conferma nel riepilogo: questi campi
     // tengono traccia di cosa esiste davvero su DB, per capire cosa inserire/aggiornare/cancellare.
     private var persistedSchedaId: Int? = null
@@ -104,9 +118,12 @@ class SchedeCreateViewModel(
     init {
         loadCoachProfiles()
         refreshEquipmentOptions()
+        loadLogo()
 
         if (editSchedaId != null) {
             loadExistingScheda(editSchedaId)
+        } else if (duplicateSchedaId != null) {
+            loadSchedaAsCopy(duplicateSchedaId)
         } else if (coachProfileId != null) {
             _state.value = _state.value.copy(
                 formData = _state.value.formData.copy(coachProfileId = coachProfileId)
@@ -139,6 +156,40 @@ class SchedeCreateViewModel(
                 schedeEntity = scheda,
                 esercizi = esercizi,
                 currentStep = if (startAtExercises) SchedeCreateStep.Esercizi else SchedeCreateStep.Form
+            )
+        }
+    }
+
+    /**
+     * Nuova scheda che parte da una esistente: copiamo contenuto ed esercizi ma NON gli id,
+     * cosi il salvataggio finale crea una scheda nuova invece di sovrascrivere l'originale.
+     */
+    private fun loadSchedaAsCopy(schedaId: Int) {
+        viewModelScope.launch {
+            val scheda = withContext(Dispatchers.IO) {
+                schedeRepository.getSchedeById(schedaId)
+            } ?: return@launch
+
+            val esercizi = withContext(Dispatchers.IO) {
+                esserciziRepository.getAllByIdSync(schedaId)
+            }
+
+            _state.value = _state.value.copy(
+                formData = SchedeFormData(
+                    titolo = "Copia di ${scheda.titolo}",
+                    data = scheda.data,
+                    intensita = scheda.intesita,
+                    selectedMuscleGroups = scheda.getAllGruppiMuscolari().toMutableSet(),
+                    notes = scheda.notes ?: "",
+                    coachProfileId = coachProfileId ?: scheda.coachProfileId
+                ),
+                esercizi = esercizi.map { esercizio ->
+                    esercizio.copy(
+                        id = nextDraftId--,
+                        completed = false,
+                        schedaId = DRAFT_SCHEDA_ID
+                    )
+                }
             )
         }
     }
@@ -426,14 +477,9 @@ class SchedeCreateViewModel(
         )
     }
 
-    private suspend fun knownEquipment(): List<String> {
-        val standard = getApplication<Application>().resources
-            .getStringArray(R.array.equipment_options)
-            .toList()
-        val custom = customValueRepository.getAttrezzi()
-        val known = standard.map { it.trim().lowercase() }.toSet()
-        return standard + custom.filterNot { it.trim().lowercase() in known }
-    }
+    private suspend fun knownEquipment(): List<String> = customValueRepository.getAttrezziWith(
+        getApplication<Application>().resources.getStringArray(R.array.equipment_options).toList()
+    )
 
     private fun refreshEquipmentOptions() {
         viewModelScope.launch {
@@ -457,20 +503,27 @@ class SchedeCreateViewModel(
         }
     }
 
+    /**
+     * Il back non chiude mai di sua iniziativa: finche la scheda vive solo in memoria uscire
+     * significa perderla, quindi ai bordi del flusso chiediamo conferma con un dialog.
+     */
     fun navigateBack(): Boolean {
         return when (_state.value.currentStep) {
-            SchedeCreateStep.Form -> false
+            SchedeCreateStep.Form -> {
+                requestExit()
+                true
+            }
             SchedeCreateStep.ImportPreview -> {
                 cancelImport()
                 true
             }
             SchedeCreateStep.Esercizi -> {
                 if (startAtExercises) {
-                    false
+                    requestExit()
                 } else {
                     _state.value = _state.value.copy(currentStep = SchedeCreateStep.Form)
-                    true
                 }
+                true
             }
             SchedeCreateStep.Riepilogo -> {
                 _state.value = _state.value.copy(currentStep = SchedeCreateStep.Esercizi)
@@ -483,9 +536,33 @@ class SchedeCreateViewModel(
         }
     }
 
+    fun requestExit() {
+        if (hasUnsavedContent()) {
+            _state.value = _state.value.copy(showExitDialog = true)
+        } else {
+            _state.value = _state.value.copy(closeRequested = true)
+        }
+    }
+
+    fun dismissExitDialog() {
+        _state.value = _state.value.copy(showExitDialog = false)
+    }
+
+    fun discardAndExit() {
+        _state.value = _state.value.copy(showExitDialog = false, closeRequested = true)
+    }
+
+    /** Un titolo scritto o anche un solo esercizio bastano: e roba che l'utente perderebbe. */
+    private fun hasUnsavedContent(): Boolean {
+        val current = _state.value
+        return current.esercizi.isNotEmpty() ||
+            current.formData.titolo.isNotBlank() ||
+            current.formData.notes.isNotBlank()
+    }
+
     fun saveAndExit(reminderTime: String?) {
         viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true)
+            _state.value = _state.value.copy(isLoading = true, showExitDialog = false)
 
             val drafts = _state.value.esercizi
             val scheda = buildSchedaEntity(_state.value.formData)
@@ -536,6 +613,43 @@ class SchedeCreateViewModel(
                 startDate = meta.startDate.ifBlank { formData.data }
             )
         )
+    }
+
+    private fun loadLogo() {
+        viewModelScope.launch {
+            val context = getApplication<Application>()
+            val bitmap = withContext(Dispatchers.IO) { LogoStore.bitmap(context) }
+            _logo.value = LogoUiState(bitmap = bitmap, placement = LogoStore.placement(context))
+        }
+    }
+
+    fun importLogo(uri: Uri, onResult: (String) -> Unit) {
+        viewModelScope.launch {
+            val context = getApplication<Application>()
+            val imported = withContext(Dispatchers.IO) { LogoStore.import(context, uri) }
+            if (imported) loadLogo()
+            onResult(if (imported) "Logo importato" else "Immagine non valida")
+        }
+    }
+
+    fun removeLogo() {
+        val context = getApplication<Application>()
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) { LogoStore.remove(context) }
+            _logo.value = _logo.value.copy(bitmap = null)
+        }
+    }
+
+    fun updateLogoPlacement(placement: LogoStore.Placement) {
+        _logo.value = _logo.value.copy(placement = placement)
+    }
+
+    /**
+     * Chiamata a fine trascinamento, non a ogni pixel: la posizione resta anche per i PDF
+     * successivi senza scrivere le preferenze decine di volte per gesto.
+     */
+    fun saveLogoPlacement() {
+        LogoStore.savePlacement(getApplication(), _logo.value.placement)
     }
 
     fun updatePdfMeta(meta: ExportMetadata) {

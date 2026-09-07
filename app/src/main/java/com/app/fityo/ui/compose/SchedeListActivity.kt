@@ -36,6 +36,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.CreateNewFolder
@@ -115,7 +116,6 @@ import com.app.fityo.data_layer.db.EsserciziEntity
 import com.app.fityo.data_layer.db.SchedeEntity
 import com.app.fityo.data_layer.db.repos.EsserciziRepository
 import com.app.fityo.dominio.UsesCasesEssercissi
-import com.app.fityo.fragments.filtro.ShedeFragments
 import com.app.fityo.ui.factory.GenericViewModelFactory
 import com.app.fityo.ui.forms.AcitivySheda
 import com.app.fityo.ui.shedeForms.EsserciziViewModel
@@ -128,6 +128,8 @@ import com.app.fityo.utils.FitxImportExport
 import com.app.fityo.ui.wger.WgerExerciseInfoDialog
 import com.app.fityo.import_scheda.ImportSchedaActivity
 import com.app.fityo.ui.schedecreate.SchedeCreateActivity
+import com.app.fityo.ui.schedecreate.compose.EsercizioEditorSheet
+import com.app.fityo.ui.schedecreate.compose.toFormData
 import android.net.Uri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -259,6 +261,7 @@ private fun SchedeListRoute(
     val schede by viewModel.schede.observeAsState(emptyList())
     val coachProfiles by viewModel.coachProfiles.observeAsState(emptyList())
     val selectedProfileName by viewModel.selectedProfileName.observeAsState(null)
+    val equipmentOptions by viewModel.equipmentOptions.observeAsState(emptyList())
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     var selectedScheda by remember { mutableStateOf<SchedeEntity?>(null) }
@@ -404,9 +407,39 @@ private fun SchedeListRoute(
                     }
                 }
             },
-            onAddExercise = { eserciziViewModel.insert(it) },
+            // Modifica e duplicazione riusano il flusso di creazione: e l'unico posto dove si
+            // possono aggiungere esercizi con il form completo.
+            onEditScheda = {
+                currentScheda.id?.let { id ->
+                    context.startActivity(
+                        Intent(context, SchedeCreateActivity::class.java)
+                            .putExtra(SchedeCreateActivity.EXTRA_SCHEDA_ID, id)
+                            .putExtra(SchedeCreateActivity.EXTRA_START_AT_EXERCISES, true)
+                    )
+                }
+            },
+            onDuplicateScheda = {
+                currentScheda.id?.let { id ->
+                    context.startActivity(
+                        Intent(context, SchedeCreateActivity::class.java)
+                            .putExtra(SchedeCreateActivity.EXTRA_DUPLICATE_SCHEDA_ID, id)
+                    )
+                }
+                selectedScheda = null
+            },
             onUpdateExercise = { eserciziViewModel.update(it) },
             onDeleteExercise = { eserciziViewModel.delete(it) },
+            equipmentOptions = equipmentOptions,
+            onSaveAttrezzo = { attrezzo ->
+                viewModel.saveAttrezzo(attrezzo) { message ->
+                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                }
+            },
+            onSaveNomeComeEsercizio = { nome ->
+                viewModel.saveEsercizio(nome) { message ->
+                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                }
+            },
             onSharePdf = { meta ->
                 scope.launch {
                     val result = PdfExporter.exportScheda(context, currentScheda, exercises, meta)
@@ -462,16 +495,18 @@ private fun SchedaDetailDialog(
     onToggleFavorite: (Boolean) -> Unit,
     onCompleteScheda: (Int, Boolean, String?) -> Unit,
     onExportPdf: (ExportMetadata) -> Unit,
-    onAddExercise: (EsserciziEntity) -> Unit,
     onUpdateExercise: (EsserciziEntity) -> Unit,
     onDeleteExercise: (EsserciziEntity) -> Unit,
+    equipmentOptions: List<String>,
+    onSaveAttrezzo: (String) -> Unit,
+    onSaveNomeComeEsercizio: (String) -> Unit,
     onSharePdf: (ExportMetadata) -> Unit,
     onExportFitx: () -> Unit = {},
-    onEditScheda: () -> Unit = {}
+    onEditScheda: () -> Unit = {},
+    onDuplicateScheda: () -> Unit = {}
 ) {
     val accent = Color(0xFF40C4FF)
     val primary = Color(0xFF455A64)
-    var showAddDialog by remember { mutableStateOf(false) }
     var editingExercise by remember { mutableStateOf<EsserciziEntity?>(null) }
     var infoExerciseId by remember { mutableStateOf<Int?>(null) }
     var customTitle by remember(scheda.id) { mutableStateOf(scheda.titolo) }
@@ -668,6 +703,11 @@ private fun SchedaDetailDialog(
                             onClick = onExportFitx
                         )
                         DetailActionIcon(
+                            icon = Icons.Filled.ContentCopy,
+                            label = "Duplica",
+                            onClick = onDuplicateScheda
+                        )
+                        DetailActionIcon(
                             icon = Icons.Filled.Delete,
                             label = stringResource(id = R.string.delete_scheda_action).take(7),
                             tint = Color(0xFFE57373),
@@ -705,32 +745,28 @@ private fun SchedaDetailDialog(
         }
     }
 
-    if (showAddDialog) {
-        ExerciseFormDialog(
-            title = stringResource(id = R.string.exercise_add_title),
-            initialData = ExerciseFormData(schedaId = scheda.id ?: 0),
-            onDismiss = { showAddDialog = false },
-            onConfirm = { data ->
-                data.toEntity(context = ShedeFragments().requireActivity().baseContext)?.let {
-                    onAddExercise(it)
-                    showAddDialog = false
-                }
-            }
-        )
-    }
-
-    val context = LocalContext.current
+    // Stesso bottom sheet della creazione scheda: un solo form esercizio in tutta l'app.
     editingExercise?.let { esercizio ->
-        ExerciseFormDialog(
-            title = stringResource(id = R.string.exercise_edit_title),
-            initialData = ExerciseFormData.from(esercizio),
-            onDismiss = { editingExercise = null },
-            onConfirm = { data ->
-                data.toEntity(context = context)?.let {
-                    onUpdateExercise(it)
-                    editingExercise = null
-                }
-            }
+        EsercizioEditorSheet(
+            initialData = esercizio.toFormData(),
+            equipmentOptions = equipmentOptions,
+            onSaveAttrezzo = onSaveAttrezzo,
+            onSaveNomeComeEsercizio = onSaveNomeComeEsercizio,
+            onSave = { data ->
+                onUpdateExercise(
+                    esercizio.copy(
+                        nome = data.nome.trim(),
+                        attrezzo = data.attrezzo.trim(),
+                        nSerie = data.nSerie,
+                        nRipetizione = data.nRipetizioni,
+                        insometria = data.isometria,
+                        intervallo = data.intervallo,
+                        peso = data.peso,
+                        wgerId = data.wgerId
+                    )
+                )
+            },
+            onDismiss = { editingExercise = null }
         )
     }
 
@@ -1001,108 +1037,6 @@ private fun formatSeconds(seconds: Int): String {
     val mins = seconds / 60
     val secs = seconds % 60
     return String.format("%02d:%02d", mins, secs)
-}
-
-@Composable
-private fun ExerciseFormDialog(
-    title: String,
-    initialData: ExerciseFormData,
-    onDismiss: () -> Unit,
-    onConfirm: (ExerciseFormData) -> Unit
-) {
-    var name by remember { mutableStateOf(initialData.nome) }
-    var attrezzo by remember { mutableStateOf(initialData.attrezzo) }
-    var serie by remember { mutableStateOf(initialData.serie) }
-    var ripetizioni by remember { mutableStateOf(initialData.ripetizioni) }
-    var isometria by remember { mutableStateOf(initialData.isometria) }
-    var recupero by remember { mutableStateOf(initialData.recupero) }
-    val isValid = name.isNotBlank() && serie.toIntOrNull() != null && ripetizioni.toIntOrNull() != null
-    val scrollState = rememberScrollState()
-    val accent = Color(0xFF40C4FF)
-
-    Dialog(onDismissRequest = onDismiss) {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            color = DarkSurface,
-            shape = RoundedCornerShape(20.dp)
-        ) {
-            Column(
-                modifier = Modifier
-                    .padding(24.dp)
-                    .verticalScroll(scrollState),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium.copy(color = TextPrimary)
-                )
-                CustomTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = stringResource(id = R.string.exercise_name_label)
-                )
-                CustomTextField(
-                    value = attrezzo,
-                    onValueChange = { attrezzo = it },
-                    label = stringResource(id = R.string.exercise_attrezzo_label)
-                )
-                CustomTextField(
-                    value = serie,
-                    onValueChange = { serie = it },
-                    label = stringResource(id = R.string.exercise_sets_label),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                )
-                CustomTextField(
-                    value = ripetizioni,
-                    onValueChange = { ripetizioni = it },
-                    label = stringResource(id = R.string.exercise_reps_label),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                )
-                CustomTextField(
-                    value = isometria,
-                    onValueChange = { isometria = it },
-                    label = stringResource(id = R.string.exercise_isometria_label),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                )
-                CustomTextField(
-                    value = recupero,
-                    onValueChange = { recupero = it },
-                    label = stringResource(id = R.string.exercise_recupero_label),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    TextButton(onClick = onDismiss) {
-                        Text(text = stringResource(id = R.string.exercise_cancel), color = TextSecondary)
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Button(
-                        onClick = {
-                            onConfirm(
-                                initialData.copy(
-                                    nome = name,
-                                    attrezzo = attrezzo,
-                                    serie = serie,
-                                    ripetizioni = ripetizioni,
-                                    isometria = isometria,
-                                    recupero = recupero
-                                )
-                            )
-                        },
-                        enabled = isValid,
-                        colors = ButtonDefaults.buttonColors(containerColor = accent)
-                    ) {
-                        Text(text = stringResource(id = R.string.exercise_save))
-                    }
-                }
-            }
-        }
-    }
 }
 
 @Composable
@@ -1621,56 +1555,6 @@ private fun millisToDateString(millis: Long): String {
         .atZone(SYSTEM_ZONE)
         .toLocalDate()
         .format(DISPLAY_DATE_FORMATTER)
-}
-
-private data class ExerciseFormData(
-    val schedaId: Int,
-    val id: Int? = null,
-    val nome: String = "",
-    val attrezzo: String = "",
-    val serie: String = "",
-    val ripetizioni: String = "",
-    val isometria: String = "",
-    val recupero: String = "",
-    val wgerId: Int? = null
-) {
-    fun toEntity(context: android.content.Context): EsserciziEntity? {
-        val serieInt = serie.toIntOrNull()
-        val ripInt = ripetizioni.toIntOrNull()
-        if (nome.isBlank() || serieInt == null || ripInt == null) {
-            Toast.makeText(
-                context,
-                context.getString(R.string.exercise_validation_error),
-                Toast.LENGTH_SHORT
-            ).show()
-            return null
-        }
-        return EsserciziEntity(
-            id = id,
-            nome = nome.trim(),
-            attrezzo = attrezzo.trim(),
-            nSerie = serieInt,
-            nRipetizione = ripInt,
-            insometria = isometria.toIntOrNull(),
-            intervallo = recupero.toIntOrNull(),
-            wgerId = wgerId,
-            schedaId = schedaId
-        )
-    }
-
-    companion object {
-        fun from(entity: EsserciziEntity) = ExerciseFormData(
-            schedaId = entity.schedaId,
-            id = entity.id,
-            nome = entity.nome,
-            attrezzo = entity.attrezzo,
-            serie = entity.nSerie.toString(),
-            ripetizioni = entity.nRipetizione.toString(),
-            isometria = entity.insometria?.toString().orEmpty(),
-            recupero = entity.intervallo?.toString().orEmpty(),
-            wgerId = entity.wgerId
-        )
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)

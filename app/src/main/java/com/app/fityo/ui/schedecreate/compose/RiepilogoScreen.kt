@@ -69,6 +69,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.app.fityo.data_layer.db.EsserciziEntity
@@ -419,7 +420,9 @@ fun RiepilogoScreen(
                                     text = esercizio.nome,
                                     color = TextPrimary,
                                     fontSize = 14.sp,
-                                    fontWeight = FontWeight.Medium
+                                    fontWeight = FontWeight.Medium,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                                 Text(
                                     text = buildString {
@@ -427,7 +430,7 @@ fun RiepilogoScreen(
                                         if (esercizio.attrezzo.isNotBlank()) {
                                             append(" • ${esercizio.attrezzo}")
                                         }
-                                        esercizio.peso?.let { append(" • ${it}kg") }
+                                        esercizio.peso?.let { append(" • ${formatPeso(it)}") }
                                     },
                                     color = TextSecondary,
                                     fontSize = 12.sp

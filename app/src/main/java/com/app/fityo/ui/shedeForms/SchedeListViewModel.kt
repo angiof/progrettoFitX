@@ -5,9 +5,11 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.app.fityo.R
 import com.app.fityo.data_layer.db.CoachProfileEntity
 import com.app.fityo.data_layer.db.DB.DbFit
 import com.app.fityo.data_layer.db.SchedeEntity
+import com.app.fityo.data_layer.db.repos.CustomValueRepository
 import com.app.fityo.data_layer.repository.CoachProfileRepository
 import com.app.fityo.data_layer.repository.SchedeRepository
 import kotlinx.coroutines.Dispatchers
@@ -18,6 +20,8 @@ class SchedeListViewModel(application: Application) : AndroidViewModel(applicati
 
     private val repository = SchedeRepository(DbFit.getDatabase(application).schedeDao())
     private val coachRepository = CoachProfileRepository(DbFit.getDatabase(application).coachProfileDao())
+    private val customValueRepository =
+        CustomValueRepository(DbFit.getDatabase(application).customValueDao())
 
     private val _schede = MutableLiveData<List<SchedeEntity>>()
     val schede: LiveData<List<SchedeEntity>> = _schede
@@ -31,9 +35,32 @@ class SchedeListViewModel(application: Application) : AndroidViewModel(applicati
     private val _selectedProfileName = MutableLiveData<String?>(null)
     val selectedProfileName: LiveData<String?> = _selectedProfileName
 
+    // Serve al form esercizio condiviso con il flusso di creazione.
+    private val _equipmentOptions = MutableLiveData<List<String>>(emptyList())
+    val equipmentOptions: LiveData<List<String>> = _equipmentOptions
+
     init {
         loadCoachProfiles()
         loadSchede()
+        loadEquipmentOptions()
+    }
+
+    private fun loadEquipmentOptions() = viewModelScope.launch(Dispatchers.IO) {
+        val standard = getApplication<Application>().resources
+            .getStringArray(R.array.equipment_options)
+            .toList()
+        _equipmentOptions.postValue(customValueRepository.getAttrezziWith(standard))
+    }
+
+    fun saveAttrezzo(value: String, onResult: (String) -> Unit) = viewModelScope.launch {
+        val added = withContext(Dispatchers.IO) { customValueRepository.addAttrezzo(value) }
+        if (added) loadEquipmentOptions()
+        onResult(if (added) "Attrezzo aggiunto" else "Attrezzo gia presente")
+    }
+
+    fun saveEsercizio(value: String, onResult: (String) -> Unit) = viewModelScope.launch {
+        val added = withContext(Dispatchers.IO) { customValueRepository.addEsercizio(value) }
+        onResult(if (added) "Esercizio aggiunto" else "Esercizio gia presente")
     }
 
     fun loadCoachProfiles() = viewModelScope.launch(Dispatchers.IO) {
