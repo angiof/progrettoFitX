@@ -67,7 +67,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -907,40 +906,6 @@ private fun ProfileRow(
         )
         if (selected) {
             Icon(Icons.Default.Check, contentDescription = null, tint = color)
-        }
-    }
-}
-
-@Composable
-private fun SummaryRow(
-    icon: ImageVector,
-    label: String,
-    value: String,
-    valueColor: Color = TextPrimary
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            icon,
-            contentDescription = null,
-            tint = TextSecondary,
-            modifier = Modifier.size(20.dp)
-        )
-        Spacer(modifier = Modifier.width(12.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = label,
-                color = TextSecondary,
-                fontSize = 12.sp
-            )
-            Text(
-                text = value,
-                color = valueColor,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Medium
-            )
         }
     }
 }

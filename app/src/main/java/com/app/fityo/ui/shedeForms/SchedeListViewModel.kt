@@ -1,6 +1,7 @@
 package com.app.fityo.ui.shedeForms
 
 import android.app.Application
+import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -12,6 +13,8 @@ import com.app.fityo.data_layer.db.SchedeEntity
 import com.app.fityo.data_layer.db.repos.CustomValueRepository
 import com.app.fityo.data_layer.repository.CoachProfileRepository
 import com.app.fityo.data_layer.repository.SchedeRepository
+import com.app.fityo.ui.schedecreate.LogoUiState
+import com.app.fityo.utils.LogoStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -39,10 +42,43 @@ class SchedeListViewModel(application: Application) : AndroidViewModel(applicati
     private val _equipmentOptions = MutableLiveData<List<String>>(emptyList())
     val equipmentOptions: LiveData<List<String>> = _equipmentOptions
 
+    // Stesso logo del flusso di creazione: LogoStore e uno solo per tutta l'app.
+    private val _logo = MutableLiveData(LogoUiState())
+    val logo: LiveData<LogoUiState> = _logo
+
     init {
         loadCoachProfiles()
         loadSchede()
         loadEquipmentOptions()
+        loadLogo()
+    }
+
+    private fun loadLogo() = viewModelScope.launch {
+        val context = getApplication<Application>()
+        val bitmap = withContext(Dispatchers.IO) { LogoStore.bitmap(context) }
+        _logo.value = LogoUiState(bitmap = bitmap, placement = LogoStore.placement(context))
+    }
+
+    fun importLogo(uri: Uri, onResult: (String) -> Unit) = viewModelScope.launch {
+        val context = getApplication<Application>()
+        val imported = withContext(Dispatchers.IO) { LogoStore.import(context, uri) }
+        if (imported) loadLogo()
+        onResult(if (imported) "Logo importato" else "Immagine non valida")
+    }
+
+    fun removeLogo() = viewModelScope.launch {
+        val context = getApplication<Application>()
+        withContext(Dispatchers.IO) { LogoStore.remove(context) }
+        _logo.value = _logo.value?.copy(bitmap = null)
+    }
+
+    fun updateLogoPlacement(placement: LogoStore.Placement) {
+        _logo.value = _logo.value?.copy(placement = placement) ?: LogoUiState(placement = placement)
+    }
+
+    /** Solo a fine trascinamento, per non riscrivere le preferenze a ogni pixel. */
+    fun saveLogoPlacement() {
+        _logo.value?.let { LogoStore.savePlacement(getApplication(), it.placement) }
     }
 
     private fun loadEquipmentOptions() = viewModelScope.launch(Dispatchers.IO) {

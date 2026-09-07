@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.activity.result.contract.ActivityResultContracts
@@ -128,7 +129,11 @@ import com.app.fityo.utils.FitxImportExport
 import com.app.fityo.ui.wger.WgerExerciseInfoDialog
 import com.app.fityo.import_scheda.ImportSchedaActivity
 import com.app.fityo.ui.schedecreate.SchedeCreateActivity
+import android.graphics.Bitmap
 import com.app.fityo.ui.schedecreate.compose.EsercizioEditorSheet
+import com.app.fityo.ui.schedecreate.LogoUiState
+import com.app.fityo.ui.schedecreate.compose.PdfLogoCard
+import com.app.fityo.utils.LogoStore
 import com.app.fityo.ui.schedecreate.compose.toFormData
 import android.net.Uri
 import kotlinx.coroutines.Dispatchers
@@ -262,8 +267,20 @@ private fun SchedeListRoute(
     val coachProfiles by viewModel.coachProfiles.observeAsState(emptyList())
     val selectedProfileName by viewModel.selectedProfileName.observeAsState(null)
     val equipmentOptions by viewModel.equipmentOptions.observeAsState(emptyList())
+    val logoState by viewModel.logo.observeAsState(LogoUiState())
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+
+    val logoPicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            viewModel.importLogo(uri) { message ->
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     var selectedScheda by remember { mutableStateOf<SchedeEntity?>(null) }
     var showProfileDialog by remember { mutableStateOf(false) }
     var infoScheda by remember { mutableStateOf<SchedeEntity?>(null) }
@@ -440,6 +457,12 @@ private fun SchedeListRoute(
                     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                 }
             },
+            logo = logoState.bitmap,
+            logoPlacement = logoState.placement,
+            onPickLogo = { logoPicker.launch(arrayOf("image/*")) },
+            onRemoveLogo = { viewModel.removeLogo() },
+            onLogoPlacementChanged = { viewModel.updateLogoPlacement(it) },
+            onSaveLogoPlacement = { viewModel.saveLogoPlacement() },
             onSharePdf = { meta ->
                 scope.launch {
                     val result = PdfExporter.exportScheda(context, currentScheda, exercises, meta)
@@ -500,6 +523,12 @@ private fun SchedaDetailDialog(
     equipmentOptions: List<String>,
     onSaveAttrezzo: (String) -> Unit,
     onSaveNomeComeEsercizio: (String) -> Unit,
+    logo: Bitmap?,
+    logoPlacement: LogoStore.Placement,
+    onPickLogo: () -> Unit,
+    onRemoveLogo: () -> Unit,
+    onLogoPlacementChanged: (LogoStore.Placement) -> Unit,
+    onSaveLogoPlacement: () -> Unit,
     onSharePdf: (ExportMetadata) -> Unit,
     onExportFitx: () -> Unit = {},
     onEditScheda: () -> Unit = {},
@@ -779,6 +808,12 @@ private fun SchedaDetailDialog(
             onCoachNameChange = { coachName = it },
             athleteName = athleteName,
             onAthleteNameChange = { athleteName = it },
+            logo = logo,
+            logoPlacement = logoPlacement,
+            onPickLogo = onPickLogo,
+            onRemoveLogo = onRemoveLogo,
+            onLogoPlacementChanged = onLogoPlacementChanged,
+            onSaveLogoPlacement = onSaveLogoPlacement,
             startDate = startDate,
             onStartDateChange = { startDate = it },
             endDate = endDate,
@@ -1166,7 +1201,13 @@ private fun MetadataDialog(
     endDate: String,
     onEndDateChange: (String) -> Unit,
     onDismiss: () -> Unit,
-    onConfirm: (ExportMetadata) -> Unit
+    onConfirm: (ExportMetadata) -> Unit,
+    logo: Bitmap?,
+    logoPlacement: LogoStore.Placement,
+    onPickLogo: () -> Unit,
+    onRemoveLogo: () -> Unit,
+    onLogoPlacementChanged: (LogoStore.Placement) -> Unit,
+    onSaveLogoPlacement: () -> Unit
 ) {
     val context = LocalContext.current
     val confirmLabel = when (action) {
@@ -1237,6 +1278,17 @@ private fun MetadataDialog(
                         onClick = { showEndPicker = true }
                     )
                 }
+                Spacer(modifier = Modifier.height(8.dp))
+                // Stessa card dell'anteprima PDF: il logo si importa e si posiziona anche da qui,
+                // non solo passando dalla creazione scheda.
+                PdfLogoCard(
+                    logo = logo,
+                    placement = logoPlacement,
+                    onPick = onPickLogo,
+                    onRemove = onRemoveLogo,
+                    onPlacementChanged = onLogoPlacementChanged,
+                    onCommit = onSaveLogoPlacement
+                )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = stringResource(id = R.string.pdf_format_title),

@@ -1,12 +1,7 @@
 package com.app.fityo.ui.schedecreate.compose
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,186 +16,55 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.BookmarkAdd
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.FitnessCenter
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Timer
-import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.SheetValue
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
-import com.app.fityo.data_layer.network.WgerClient
 import com.app.fityo.data_layer.db.EsserciziEntity
 import com.app.fityo.ui.schedecreate.Progressione
-import com.app.fityo.data_layer.repository.WgerRepository
-import com.app.fityo.dominio.WgerSuggestion
-import com.app.fityo.ui.wger.WgerExerciseInfoDialog
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 import java.util.Locale
 
-data class EsercizioFormData(
-    val id: Int? = null,
-    val nome: String = "",
-    val attrezzo: String = "",
-    val nSerie: Int = 3,
-    val nRipetizioni: Int = 10,
-    val isometria: Int? = null,
-    val intervallo: Int? = null,
-    val peso: Float? = null,
-    val wgerId: Int? = null,
-    // Campi avanzati: restano nascosti finche l'utente non apre la sezione.
-    val note: String = "",
-    val rpe: String = "",
-    val tempo: String = "",
-    val percentuale: Float? = null,
-    val legaAlPrecedente: Boolean = false
-)
-
-fun EsserciziEntity.toFormData(legaAlPrecedente: Boolean = false) = EsercizioFormData(
-    id = id,
-    nome = nome,
-    attrezzo = attrezzo,
-    nSerie = nSerie,
-    nRipetizioni = nRipetizione,
-    isometria = insometria,
-    intervallo = intervallo,
-    peso = peso,
-    wgerId = wgerId,
-    note = notes.orEmpty(),
-    rpe = rpe.orEmpty(),
-    tempo = tempo.orEmpty(),
-    percentuale = percentuale,
-    legaAlPrecedente = legaAlPrecedente
-)
-
 /**
- * Il form esercizio del flusso di creazione, con la sua chrome da bottom sheet. Esposto perche
- * anche il dettaglio scheda deve modificare gli esercizi con questo, non con un form diverso.
+ * Secondo passo della creazione scheda: la lista degli esercizi del giorno aperto.
  */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun EsercizioEditorSheet(
-    initialData: EsercizioFormData?,
-    equipmentOptions: List<String>,
-    onSaveAttrezzo: (String) -> Unit,
-    onSaveNomeComeEsercizio: (String) -> Unit,
-    onSave: (EsercizioFormData) -> Unit,
-    onDismiss: () -> Unit,
-    canLinkPrevious: Boolean = false
-) {
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true,
-        confirmValueChange = { it != SheetValue.Hidden }
-    )
-    val scope = rememberCoroutineScope()
-
-    ModalBottomSheet(
-        onDismissRequest = { /* Swipe bloccato, chiusura solo con X */ },
-        sheetState = sheetState,
-        containerColor = DarkCard,
-        dragHandle = {
-            Box(
-                modifier = Modifier
-                    .padding(vertical = 12.dp)
-                    .width(40.dp)
-                    .height(4.dp)
-                    .clip(RoundedCornerShape(2.dp))
-                    .background(TextSecondary.copy(alpha = 0.5f))
-            )
-        }
-    ) {
-        EsercizioFormSheet(
-            initialData = initialData,
-            equipmentOptions = equipmentOptions,
-            canLinkPrevious = canLinkPrevious,
-            onSaveAttrezzo = onSaveAttrezzo,
-            onSaveNomeComeEsercizio = onSaveNomeComeEsercizio,
-            onSave = { formData ->
-                onSave(formData)
-                scope.launch {
-                    sheetState.hide()
-                    onDismiss()
-                }
-            },
-            onCancel = {
-                scope.launch {
-                    sheetState.hide()
-                    onDismiss()
-                }
-            }
-        )
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -227,7 +91,8 @@ fun EsercissiListScreen(
     onAddDay: () -> Unit = {},
     onDeleteWeek: (Int) -> Unit = {},
     onDeleteDay: (Int) -> Unit = {},
-    onProgressione: (Progressione) -> Unit = {}
+    onProgressione: (Progressione) -> Unit = {},
+    totalEsercizi: Int = esercizi.size
 ) {
     var showAddSheet by remember { mutableStateOf(false) }
     var editingEsercizio by remember { mutableStateOf<EsserciziEntity?>(null) }
@@ -264,7 +129,10 @@ fun EsercissiListScreen(
                 )
                 Spacer(modifier = Modifier.weight(1f))
                 Text(
-                    text = "${esercizi.size} esercizi",
+                    // In avanzata la lista mostra un giorno solo: qui diciamo il totale della
+                    // scheda, altrimenti "2 esercizi" sembrerebbe tutto quello che c'e.
+                    text = if (advancedMode) "$totalEsercizi in totale"
+                    else "${esercizi.size} esercizi",
                     color = TextSecondary,
                     fontSize = 14.sp
                 )
@@ -277,50 +145,14 @@ fun EsercissiListScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // L'interruttore fa comparire settimane, giorni e superset: finche resta spento
-            // la schermata e identica a prima.
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(DarkCard)
-                    .padding(horizontal = 12.dp, vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Scheda avanzata",
-                        color = TextPrimary,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Text(
-                        text = if (advancedMode) "Settimane, giorni e superset"
-                        else "Attivala per settimane e giorni",
-                        color = TextSecondary,
-                        fontSize = 12.sp
-                    )
-                }
-                Switch(
-                    checked = advancedMode,
-                    onCheckedChange = onToggleAdvanced,
-                    enabled = !advancedMode || canDisableAdvanced,
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = Color.White,
-                        checkedTrackColor = AccentBlue,
-                        uncheckedThumbColor = TextSecondary,
-                        uncheckedTrackColor = DarkSurface
-                    )
-                )
-            }
-
             if (advancedMode) {
-                Spacer(modifier = Modifier.height(12.dp))
-                StructureTabs(
+                StructureBar(
+                    canDisableAdvanced = canDisableAdvanced,
                     weekCount = weekCount,
                     dayCount = dayCount,
                     selectedWeek = selectedWeek,
                     selectedDay = selectedDay,
+                    onToggleAdvanced = onToggleAdvanced,
                     onSelectWeek = onSelectWeek,
                     onSelectDay = onSelectDay,
                     onAddWeek = onAddWeek,
@@ -329,9 +161,17 @@ fun EsercissiListScreen(
                     onDeleteDay = onDeleteDay,
                     onProgressione = onProgressione
                 )
+                Spacer(modifier = Modifier.height(14.dp))
+                DayHeader(
+                    settimana = selectedWeek,
+                    giorno = selectedDay,
+                    conteggio = esercizi.size
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+            } else {
+                SimpleModeRow(onToggleAdvanced = onToggleAdvanced)
+                Spacer(modifier = Modifier.height(16.dp))
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
 
             // Exercises List
             if (esercizi.isEmpty()) {
@@ -353,13 +193,16 @@ fun EsercissiListScreen(
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = "Nessun esercizio",
+                            text = if (advancedMode) "Giorno $selectedDay vuoto"
+                            else "Nessun esercizio",
                             color = TextSecondary,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Medium
                         )
                         Text(
-                            text = "Premi + per aggiungere esercizi",
+                            text = if (advancedMode)
+                                "Premi + per aggiungere alla Settimana $selectedWeek"
+                            else "Premi + per aggiungere esercizi",
                             color = TextSecondary.copy(alpha = 0.7f),
                             fontSize = 14.sp
                         )
@@ -385,6 +228,7 @@ fun EsercissiListScreen(
                         SwipeableEsercizioCard(
                             esercizio = esercizio,
                             index = index,
+                            mostraCollocazione = advancedMode,
                             inSuperset = group != null,
                             supersetStart = group != null && !linkedToPrevious,
                             onEdit = {
@@ -470,151 +314,12 @@ fun EsercissiListScreen(
     }
 }
 
-/**
- * Tab settimane e giorni. Il "+" della settimana non apre niente: duplica quella corrente e ci
- * si sposta dentro, cosi la scheda a 4 settimane si costruisce in tre tocchi.
- */
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun StructureTabs(
-    weekCount: Int,
-    dayCount: Int,
-    selectedWeek: Int,
-    selectedDay: Int,
-    onSelectWeek: (Int) -> Unit,
-    onSelectDay: (Int) -> Unit,
-    onAddWeek: () -> Unit,
-    onAddDay: () -> Unit,
-    onDeleteWeek: (Int) -> Unit,
-    onDeleteDay: (Int) -> Unit,
-    onProgressione: (Progressione) -> Unit
-) {
-    var showProgressione by remember { mutableStateOf(false) }
-
-    Column(modifier = Modifier.fillMaxWidth()) {
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            (1..weekCount).forEach { week ->
-                StructureChip(
-                    label = "Settimana $week",
-                    selected = week == selectedWeek,
-                    color = AccentBlue,
-                    onClick = { onSelectWeek(week) }
-                )
-            }
-            StructureChip(label = "+", selected = false, color = AccentBlue, onClick = onAddWeek)
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            (1..dayCount).forEach { day ->
-                StructureChip(
-                    label = "Giorno $day",
-                    selected = day == selectedDay,
-                    color = AccentGreen,
-                    onClick = { onSelectDay(day) }
-                )
-            }
-            StructureChip(label = "+", selected = false, color = AccentGreen, onClick = onAddDay)
-        }
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            TextButton(onClick = { showProgressione = !showProgressione }) {
-                Text("Progressione settimana", color = AccentOrange, fontSize = 13.sp)
-            }
-            Spacer(modifier = Modifier.weight(1f))
-            if (weekCount > 1) {
-                IconButton(onClick = { onDeleteWeek(selectedWeek) }) {
-                    Icon(
-                        Icons.Default.Delete,
-                        contentDescription = "Elimina settimana $selectedWeek",
-                        tint = AccentRed,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-            }
-            if (dayCount > 1) {
-                IconButton(onClick = { onDeleteDay(selectedDay) }) {
-                    Icon(
-                        Icons.Default.DeleteSweep,
-                        contentDescription = "Elimina giorno $selectedDay",
-                        tint = AccentRed,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-            }
-        }
-
-        AnimatedVisibility(
-            visible = showProgressione,
-            enter = fadeIn(),
-            exit = fadeOut()
-        ) {
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                StructureChip(
-                    label = "+2,5 kg",
-                    selected = false,
-                    color = AccentOrange,
-                    onClick = { onProgressione(Progressione.PESO) }
-                )
-                StructureChip(
-                    label = "+1 ripetizione",
-                    selected = false,
-                    color = AccentOrange,
-                    onClick = { onProgressione(Progressione.RIPETIZIONI) }
-                )
-                StructureChip(
-                    label = "+5% carico",
-                    selected = false,
-                    color = AccentOrange,
-                    onClick = { onProgressione(Progressione.PERCENTUALE) }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun StructureChip(
-    label: String,
-    selected: Boolean,
-    color: Color,
-    onClick: () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(10.dp))
-            .background(if (selected) color.copy(alpha = 0.22f) else DarkCard)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 8.dp)
-    ) {
-        Text(
-            text = label,
-            color = if (selected) color else TextSecondary,
-            fontSize = 13.sp,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
-        )
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SwipeableEsercizioCard(
     esercizio: EsserciziEntity,
     index: Int,
+    mostraCollocazione: Boolean,
     inSuperset: Boolean,
     supersetStart: Boolean,
     onEdit: () -> Unit,
@@ -667,6 +372,7 @@ private fun SwipeableEsercizioCard(
         EsercizioCard(
             esercizio = esercizio,
             index = index,
+            mostraCollocazione = mostraCollocazione,
             inSuperset = inSuperset,
             supersetStart = supersetStart,
             onEdit = onEdit
@@ -679,6 +385,7 @@ private fun SwipeableEsercizioCard(
 private fun EsercizioCard(
     esercizio: EsserciziEntity,
     index: Int,
+    mostraCollocazione: Boolean = false,
     inSuperset: Boolean = false,
     supersetStart: Boolean = false,
     onEdit: () -> Unit
@@ -737,6 +444,22 @@ private fun EsercizioCard(
             Spacer(modifier = Modifier.width(12.dp))
 
             Column(modifier = Modifier.weight(1f)) {
+                // Scorrendo la lista il contesto della barra non si vede piu: ogni esercizio
+                // dice a quale settimana e giorno appartiene.
+                if (mostraCollocazione) {
+                    Text(
+                        text = "S${esercizio.settimana} - G${esercizio.giorno}",
+                        color = AccentBlue,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(AccentBlue.copy(alpha = 0.15f))
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                }
+
                 Text(
                     text = esercizio.nome,
                     color = TextPrimary,
@@ -820,677 +543,6 @@ private fun EsercizioCard(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun EsercizioFormSheet(
-    initialData: EsercizioFormData?,
-    equipmentOptions: List<String>,
-    canLinkPrevious: Boolean,
-    onSaveAttrezzo: (String) -> Unit,
-    onSaveNomeComeEsercizio: (String) -> Unit,
-    onSave: (EsercizioFormData) -> Unit,
-    onCancel: () -> Unit
-) {
-    var formData by remember {
-        mutableStateOf(initialData ?: EsercizioFormData())
-    }
-    var showEquipmentDropdown by remember { mutableStateOf(false) }
-    var showAdvanced by remember { mutableStateOf(false) }
-    var showIsometriaPicker by remember { mutableStateOf(false) }
-    var showRecuperoPicker by remember { mutableStateOf(false) }
-    // val wgerRepository = remember { WgerRepository(WgerClient.service) }
-    var wgerSuggestionsEnabled by remember { mutableStateOf(false) }
-    var wgerSuggestions by remember { mutableStateOf<List<WgerSuggestion>>(emptyList()) }
-    var wgerSearchError by remember { mutableStateOf<String?>(null) }
-    var isSearching by remember { mutableStateOf(false) }
-    var pendingSuggestion by remember { mutableStateOf<WgerSuggestion?>(null) }
-    var showWgerDialog by remember { mutableStateOf(false) }
-
-    // Focus management
-    val focusManager = LocalFocusManager.current
-    val focusSerie = remember { FocusRequester() }
-    val focusRipetizioni = remember { FocusRequester() }
-    val focusPeso = remember { FocusRequester() }
-
-    val isValid = formData.nome.isNotBlank() && formData.nSerie > 0 && formData.nRipetizioni > 0
-
-    // Con la sezione chiusa serve comunque sapere che li dentro c'e qualcosa.
-    val advancedCount = listOf(
-        formData.rpe.isNotBlank(),
-        formData.tempo.isNotBlank(),
-        formData.percentuale != null,
-        formData.note.isNotBlank(),
-        formData.legaAlPrecedente
-    ).count { it }
-
-    // Suggerimenti esercizi da Wger disabilitati: chiamata di rete sospesa per il momento.
-    // androidx.compose.runtime.LaunchedEffect(wgerSuggestionsEnabled, formData.nome) {
-    //     if (!wgerSuggestionsEnabled) {
-    //         wgerSuggestions = emptyList()
-    //         wgerSearchError = null
-    //         isSearching = false
-    //         return@LaunchedEffect
-    //     }
-    //     val query = formData.nome.trim()
-    //     if (query.length < 2) {
-    //         wgerSuggestions = emptyList()
-    //         wgerSearchError = null
-    //         isSearching = false
-    //         return@LaunchedEffect
-    //     }
-    //     isSearching = true
-    //     delay(350)
-    //     val result = wgerRepository.searchExercises(query)
-    //     result.onSuccess {
-    //         wgerSuggestions = it
-    //         wgerSearchError = null
-    //     }.onFailure {
-    //         wgerSuggestions = emptyList()
-    //         wgerSearchError = "Errore di rete."
-    //     }
-    //     isSearching = false
-    // }
-
-    // Il contenuto puo superare l'altezza del bottom sheet quando si apre un DurationPicker:
-    // senza scroll il pulsante di conferma finisce fuori schermo e diventa impossibile premerlo.
-    val formScrollState = rememberScrollState()
-
-    // Il picker entra con un'animazione, quindi l'altezza cresce nel tempo: seguiamo il fondo
-    // finche non si stabilizza, altrimenti lo scroll si ferma prima di rivelare i pulsanti.
-    LaunchedEffect(showIsometriaPicker, showRecuperoPicker) {
-        if (showIsometriaPicker || showRecuperoPicker) {
-            snapshotFlow { formScrollState.maxValue }
-                .collectLatest { max -> formScrollState.animateScrollTo(max) }
-        }
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .verticalScroll(formScrollState)
-            .imePadding()
-            .navigationBarsPadding()
-            .padding(horizontal = 16.dp)
-            .padding(bottom = 32.dp)
-    ) {
-        // Header
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = if (initialData != null) "Modifica Esercizio" else "Nuovo Esercizio",
-                color = TextPrimary,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
-            IconButton(onClick = onCancel) {
-                Icon(
-                    Icons.Default.Close,
-                    contentDescription = "Chiudi",
-                    tint = TextSecondary
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // Nome
-        OutlinedTextField(
-            value = formData.nome,
-            onValueChange = { nuovoNome ->
-                // Se l'attrezzo non e ancora stato scelto proviamo a ricavarlo dal nome.
-                val attrezzo = formData.attrezzo.ifBlank {
-                    attrezzoDaNome(nuovoNome, equipmentOptions).orEmpty()
-                }
-                formData = formData.copy(nome = nuovoNome, attrezzo = attrezzo)
-            },
-            label = { Text("Nome esercizio") },
-            placeholder = { Text("Es. Panca piana, Squat...") },
-            modifier = Modifier.fillMaxWidth(),
-            colors = textFieldColors(),
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-            keyboardActions = KeyboardActions(onNext = { focusSerie.requestFocus() }),
-            shape = RoundedCornerShape(12.dp),
-            trailingIcon = {
-                IconButton(
-                    onClick = { onSaveNomeComeEsercizio(formData.nome) },
-                    enabled = formData.nome.isNotBlank()
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.BookmarkAdd,
-                        contentDescription = "Salva tra i tuoi esercizi",
-                        tint = if (formData.nome.isNotBlank()) AccentGreen else TextSecondary
-                    )
-                }
-            }
-            // Toggle dei suggerimenti Wger nascosto finche la chiamata di rete resta disabilitata.
-            // trailingIcon = {
-            //     IconButton(
-            //         onClick = {
-            //             val newState = !wgerSuggestionsEnabled
-            //             wgerSuggestionsEnabled = newState
-            //             if (!newState) {
-            //                 wgerSuggestions = emptyList()
-            //                 wgerSearchError = null
-            //             }
-            //         }
-            //     ) {
-            //         Icon(
-            //             imageVector = if (wgerSuggestionsEnabled) Icons.Filled.Info else Icons.Outlined.Info,
-            //             contentDescription = "Suggerimenti Wger",
-            //             tint = if (wgerSuggestionsEnabled) AccentBlue else TextSecondary
-            //         )
-            //     }
-            // }
-        )
-
-        if (wgerSuggestionsEnabled) {
-            Spacer(modifier = Modifier.height(8.dp))
-            WgerSuggestionsDropdown(
-                query = formData.nome,
-                isSearching = isSearching,
-                errorMessage = wgerSearchError,
-                suggestions = wgerSuggestions,
-                onSuggestionClick = { suggestion ->
-                    pendingSuggestion = suggestion
-                    showWgerDialog = true
-                }
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Serie e Ripetizioni
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            OutlinedTextField(
-                value = if (formData.nSerie > 0) formData.nSerie.toString() else "",
-                onValueChange = {
-                    formData = formData.copy(nSerie = it.toIntOrNull() ?: 0)
-                },
-                label = { Text("Serie") },
-                modifier = Modifier
-                    .weight(1f)
-                    .focusRequester(focusSerie),
-                colors = textFieldColors(),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(onNext = { focusRipetizioni.requestFocus() }),
-                shape = RoundedCornerShape(12.dp)
-            )
-
-            OutlinedTextField(
-                value = if (formData.nRipetizioni > 0) formData.nRipetizioni.toString() else "",
-                onValueChange = {
-                    formData = formData.copy(nRipetizioni = it.toIntOrNull() ?: 0)
-                },
-                label = { Text("Ripetizioni") },
-                modifier = Modifier
-                    .weight(1f)
-                    .focusRequester(focusRipetizioni),
-                colors = textFieldColors(),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(onNext = { focusPeso.requestFocus() }),
-                shape = RoundedCornerShape(12.dp)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Attrezzo
-        ExposedDropdownMenuBox(
-            expanded = showEquipmentDropdown,
-            onExpandedChange = { showEquipmentDropdown = it }
-        ) {
-            OutlinedTextField(
-                value = formData.attrezzo,
-                onValueChange = { formData = formData.copy(attrezzo = it) },
-                label = { Text("Attrezzo") },
-                placeholder = { Text("Seleziona o digita") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .menuAnchor(),
-                colors = textFieldColors(),
-                singleLine = true,
-                shape = RoundedCornerShape(12.dp),
-                trailingIcon = {
-                    val nuovo = formData.attrezzo.isNotBlank() &&
-                        equipmentOptions.none { it.equals(formData.attrezzo.trim(), ignoreCase = true) }
-                    IconButton(
-                        onClick = { onSaveAttrezzo(formData.attrezzo) },
-                        enabled = nuovo
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.FitnessCenter,
-                            contentDescription = "Salva tra i tuoi attrezzi",
-                            tint = if (nuovo) AccentBlue else TextSecondary
-                        )
-                    }
-                }
-            )
-            ExposedDropdownMenu(
-                expanded = showEquipmentDropdown,
-                onDismissRequest = { showEquipmentDropdown = false },
-                modifier = Modifier.background(DarkSurface)
-            ) {
-                equipmentOptions.forEach { option ->
-                    DropdownMenuItem(
-                        text = { Text(option, color = TextPrimary) },
-                        onClick = {
-                            formData = formData.copy(attrezzo = option)
-                            showEquipmentDropdown = false
-                        }
-                    )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Peso
-        OutlinedTextField(
-            value = formData.peso?.toString() ?: "",
-            onValueChange = {
-                formData = formData.copy(peso = it.toFloatOrNull())
-            },
-            label = { Text("Peso (kg)") },
-            placeholder = { Text("Opzionale") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .focusRequester(focusPeso),
-            colors = textFieldColors(),
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Decimal,
-                imeAction = ImeAction.Done
-            ),
-            keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
-            shape = RoundedCornerShape(12.dp)
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Isometria e Recupero
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            OutlinedTextField(
-                value = formatDuration(formData.isometria),
-                onValueChange = {},
-                label = { Text("Isometria") },
-                placeholder = { Text("00:00") },
-                modifier = Modifier
-                    .weight(1f)
-                    .clickable {
-                        focusManager.clearFocus()
-                        showRecuperoPicker = false
-                        showIsometriaPicker = true
-                    },
-                colors = textFieldColors(),
-                readOnly = true,
-                enabled = false,
-                shape = RoundedCornerShape(12.dp)
-            )
-
-            OutlinedTextField(
-                value = formatDuration(formData.intervallo),
-                onValueChange = {},
-                label = { Text("Recupero") },
-                placeholder = { Text("00:00") },
-                modifier = Modifier
-                    .weight(1f)
-                    .clickable {
-                        focusManager.clearFocus()
-                        showIsometriaPicker = false
-                        showRecuperoPicker = true
-                    },
-                colors = textFieldColors(),
-                readOnly = true,
-                enabled = false,
-                shape = RoundedCornerShape(12.dp)
-            )
-        }
-
-        // Duration pickers
-        AnimatedVisibility(
-            visible = showIsometriaPicker,
-            enter = slideInVertically() + fadeIn(),
-            exit = slideOutVertically() + fadeOut()
-        ) {
-            DurationPicker(
-                title = "Isometria",
-                initialSeconds = formData.isometria ?: 0,
-                onValueChange = {
-                    formData = formData.copy(isometria = if (it > 0) it else null)
-                },
-                onDismiss = { showIsometriaPicker = false }
-            )
-        }
-
-        AnimatedVisibility(
-            visible = showRecuperoPicker,
-            enter = slideInVertically() + fadeIn(),
-            exit = slideOutVertically() + fadeOut()
-        ) {
-            DurationPicker(
-                title = "Recupero",
-                initialSeconds = formData.intervallo ?: 0,
-                onValueChange = {
-                    formData = formData.copy(intervallo = if (it > 0) it else null)
-                },
-                onDismiss = { showRecuperoPicker = false }
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Sezione avanzata: chiusa di default, cosi chi vuole solo serie e ripetizioni
-        // non la vede nemmeno.
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { showAdvanced = !showAdvanced }
-                .padding(vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Avanzate",
-                color = TextSecondary,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.weight(1f)
-            )
-            if (advancedCount > 0 && !showAdvanced) {
-                Text(
-                    text = "$advancedCount compilati",
-                    color = AccentBlue,
-                    fontSize = 12.sp
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-            }
-            Icon(
-                imageVector = if (showAdvanced) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                contentDescription = null,
-                tint = TextSecondary
-            )
-        }
-
-        AnimatedVisibility(
-            visible = showAdvanced,
-            enter = slideInVertically() + fadeIn(),
-            exit = slideOutVertically() + fadeOut()
-        ) {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    OutlinedTextField(
-                        value = formData.rpe,
-                        onValueChange = { formData = formData.copy(rpe = it) },
-                        label = { Text("RPE / RIR") },
-                        placeholder = { Text("Es. 8 o RIR 2") },
-                        modifier = Modifier.weight(1f),
-                        colors = textFieldColors(),
-                        singleLine = true,
-                        shape = RoundedCornerShape(12.dp)
-                    )
-                    OutlinedTextField(
-                        value = formData.tempo,
-                        onValueChange = { formData = formData.copy(tempo = it) },
-                        label = { Text("Tempo") },
-                        placeholder = { Text("3-1-1-0") },
-                        modifier = Modifier.weight(1f),
-                        colors = textFieldColors(),
-                        singleLine = true,
-                        shape = RoundedCornerShape(12.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                OutlinedTextField(
-                    value = formData.percentuale?.toString() ?: "",
-                    onValueChange = { formData = formData.copy(percentuale = it.toFloatOrNull()) },
-                    label = { Text("% del massimale") },
-                    placeholder = { Text("Opzionale") },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = textFieldColors(),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    shape = RoundedCornerShape(12.dp)
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                OutlinedTextField(
-                    value = formData.note,
-                    onValueChange = { formData = formData.copy(note = it) },
-                    label = { Text("Note esercizio") },
-                    placeholder = { Text("Indicazioni, varianti, sensazioni") },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = textFieldColors(),
-                    minLines = 2,
-                    shape = RoundedCornerShape(12.dp)
-                )
-
-                if (canLinkPrevious) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Lega all'esercizio precedente",
-                                color = TextPrimary,
-                                fontSize = 14.sp
-                            )
-                            Text(
-                                text = "I due esercizi diventano un superset",
-                                color = TextSecondary,
-                                fontSize = 12.sp
-                            )
-                        }
-                        Switch(
-                            checked = formData.legaAlPrecedente,
-                            onCheckedChange = { formData = formData.copy(legaAlPrecedente = it) },
-                            colors = SwitchDefaults.colors(
-                                checkedThumbColor = Color.White,
-                                checkedTrackColor = AccentOrange,
-                                uncheckedThumbColor = TextSecondary,
-                                uncheckedTrackColor = DarkSurface
-                            )
-                        )
-                    }
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Save Button
-        Button(
-            onClick = { onSave(formData) },
-            enabled = isValid,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(52.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = AccentGreen,
-                disabledContainerColor = DarkSurface
-            ),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Text(
-                text = if (initialData != null) "Salva Modifiche" else "Aggiungi Esercizio",
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp
-            )
-        }
-    }
-
-    if (showWgerDialog && pendingSuggestion != null) {
-        val suggestion = pendingSuggestion!!
-        WgerExerciseInfoDialog(
-            exerciseId = suggestion.baseId,
-            onDismiss = {
-                showWgerDialog = false
-                pendingSuggestion = null
-            },
-            onConfirm = {
-                formData = formData.copy(
-                    nome = suggestion.value,
-                    wgerId = suggestion.baseId
-                )
-                wgerSuggestions = emptyList()
-                wgerSuggestionsEnabled = false
-                showWgerDialog = false
-                pendingSuggestion = null
-            }
-        )
-    }
-}
-
-@Composable
-private fun DurationPicker(
-    title: String,
-    initialSeconds: Int,
-    onValueChange: (Int) -> Unit,
-    onDismiss: () -> Unit
-) {
-    var minutes by remember { mutableStateOf(initialSeconds / 60) }
-    var seconds by remember { mutableStateOf(initialSeconds % 60) }
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 12.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(DarkSurface)
-            .padding(16.dp)
-    ) {
-        Text(
-            text = title,
-            color = TextPrimary,
-            fontWeight = FontWeight.Bold,
-            fontSize = 14.sp
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Minutes
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                IconButton(onClick = { if (minutes < 59) minutes++ }) {
-                    Text("+", color = AccentBlue, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                }
-                Text(
-                    text = String.format(Locale.getDefault(), "%02d", minutes),
-                    color = TextPrimary,
-                    fontSize = 32.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text("min", color = TextSecondary, fontSize = 12.sp)
-                IconButton(onClick = { if (minutes > 0) minutes-- }) {
-                    Text("-", color = AccentBlue, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                }
-            }
-
-            Text(
-                text = ":",
-                color = TextPrimary,
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-
-            // Seconds
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                IconButton(onClick = { if (seconds < 59) seconds++ else { seconds = 0; if (minutes < 59) minutes++ } }) {
-                    Text("+", color = AccentBlue, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                }
-                Text(
-                    text = String.format(Locale.getDefault(), "%02d", seconds),
-                    color = TextPrimary,
-                    fontSize = 32.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text("sec", color = TextSecondary, fontSize = 12.sp)
-                IconButton(onClick = { if (seconds > 0) seconds-- else if (minutes > 0) { minutes--; seconds = 59 } }) {
-                    Text("-", color = AccentBlue, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End
-        ) {
-            TextButton(onClick = onDismiss) {
-                Text("Annulla", color = TextSecondary)
-            }
-            Spacer(modifier = Modifier.width(8.dp))
-            TextButton(
-                onClick = {
-                    onValueChange(minutes * 60 + seconds)
-                    onDismiss()
-                }
-            ) {
-                Text("OK", color = AccentBlue, fontWeight = FontWeight.Bold)
-            }
-        }
-    }
-}
-
-/**
- * Il nome dell'esercizio contiene quasi sempre l'attrezzo ("Curl con manubri", "Panca piana"):
- * se riconosciamo una voce della lista attrezzi la proponiamo gia compilata.
- * La corrispondenza per contenuto parte da 4 caratteri, altrimenti sigle come "bw" darebbero falsi positivi.
- */
-private fun attrezzoDaNome(nome: String, opzioni: List<String>): String? {
-    val cercato = nome.trim().lowercase()
-    if (cercato.isEmpty()) return null
-
-    return opzioni.firstOrNull { it.trim().lowercase() == cercato }
-        ?: opzioni
-            .filter { it.trim().length >= 4 && cercato.contains(it.trim().lowercase()) }
-            .maxByOrNull { it.trim().length }
-}
-
-@Composable
-private fun textFieldColors() = OutlinedTextFieldDefaults.colors(
-    focusedBorderColor = AccentBlue,
-    unfocusedBorderColor = DarkSurface,
-    focusedTextColor = TextPrimary,
-    unfocusedTextColor = TextPrimary,
-    disabledTextColor = TextPrimary,
-    disabledBorderColor = DarkSurface,
-    cursorColor = AccentBlue,
-    focusedLabelColor = AccentBlue,
-    unfocusedLabelColor = TextSecondary,
-    disabledLabelColor = TextSecondary
-)
-
 /** Un peso intero si scrive "20 kg", non "20.0 kg". */
 internal fun formatPeso(value: Float?): String {
     if (value == null) return ""
@@ -1502,136 +554,15 @@ internal fun formatPeso(value: Float?): String {
     return "$text kg"
 }
 
-internal fun formatPercentuale(value: Float): String {
+private fun formatPercentuale(value: Float): String {
     val text = if (value % 1f == 0f) value.toInt().toString()
     else String.format(Locale.getDefault(), "%.1f", value)
     return "$text%"
 }
 
-private fun formatDuration(value: Int?): String {
+internal fun formatDuration(value: Int?): String {
     if (value == null || value <= 0) return ""
     val minutes = value / 60
     val seconds = value % 60
     return String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
-}
-
-@Composable
-private fun WgerSuggestionsDropdown(
-    query: String,
-    isSearching: Boolean,
-    errorMessage: String?,
-    suggestions: List<WgerSuggestion>,
-    onSuggestionClick: (WgerSuggestion) -> Unit
-) {
-    val trimmedQuery = query.trim()
-    if (trimmedQuery.length < 2) {
-        return
-    }
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(180.dp),
-        colors = CardDefaults.cardColors(containerColor = DarkSurface),
-        shape = RoundedCornerShape(12.dp)
-    ) {
-        when {
-            isSearching -> {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    CircularProgressIndicator(color = AccentBlue, modifier = Modifier.size(20.dp))
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "Ricerca in corso...", color = TextSecondary, fontSize = 12.sp)
-                }
-            }
-            errorMessage != null -> {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(text = errorMessage, color = TextSecondary, fontSize = 12.sp)
-                }
-            }
-            suggestions.isEmpty() -> {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(text = "Nessun risultato", color = TextSecondary, fontSize = 12.sp)
-                }
-            }
-            else -> {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                ) {
-                    itemsIndexed(suggestions) { _, suggestion ->
-                        WgerSuggestionRow(
-                            suggestion = suggestion,
-                            onClick = { onSuggestionClick(suggestion) }
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun WgerSuggestionRow(
-    suggestion: WgerSuggestion,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        val imageUrl = suggestion.imageUrl
-        if (imageUrl != null) {
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(imageUrl)
-                    .crossfade(true)
-                    .build(),
-                contentDescription = suggestion.value,
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(DarkBackground, CircleShape)
-            )
-            Spacer(modifier = Modifier.width(10.dp))
-        }
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = suggestion.value,
-                color = TextPrimary,
-                fontWeight = FontWeight.Medium,
-                fontSize = 14.sp
-            )
-            suggestion.category?.let {
-                Text(
-                    text = it,
-                    color = TextSecondary,
-                    fontSize = 12.sp
-                )
-            }
-        }
-        Icon(
-            imageVector = Icons.Filled.Info,
-            contentDescription = null,
-            tint = AccentBlue,
-            modifier = Modifier.size(18.dp)
-        )
-    }
 }

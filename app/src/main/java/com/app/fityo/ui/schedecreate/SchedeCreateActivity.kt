@@ -246,6 +246,7 @@ private fun SchedeCreateNavHost(
                     onDeleteWeek = { viewModel.deleteWeek(it) },
                     onDeleteDay = { viewModel.deleteDay(it) },
                     onProgressione = { viewModel.applyProgressione(it) },
+                    totalEsercizi = state.esercizi.size,
                     onAddEsercizio = { viewModel.addEsercizio(it) },
                     onEditEsercizio = { viewModel.updateEsercizio(it) },
                     onDeleteEsercizio = { viewModel.deleteEsercizio(it) },
