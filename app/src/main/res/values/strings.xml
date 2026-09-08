@@ -74,7 +74,7 @@
     <string name="exercise_save">Salva</string>
     <string name="exercise_cancel">Annulla</string>
     <string name="exercise_validation_error">Compila i campi obbligatori con numeri validi</string>
-    <string name="dashboard_stats_title">Overview powerlifting</string>
+    <string name="dashboard_stats_title">Overview</string>
     <string name="dashboard_total_schede">Totale schede</string>
     <string name="dashboard_total_esercizi">Totale esercizi</string>
     <string name="dashboard_favorite_schede">Preferite</string>

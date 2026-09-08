@@ -24,12 +24,11 @@ import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.filled.IosShare
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -40,7 +39,6 @@ import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SelectableDates
@@ -72,7 +70,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.app.fityo.data_layer.db.EsserciziEntity
-import com.app.fityo.data_layer.db.SchedeEntity
+import com.app.fityo.utils.MuscleVolume
 import ir.ehsannarmani.compose_charts.PieChart
 import ir.ehsannarmani.compose_charts.models.Pie
 import java.time.Instant
@@ -80,6 +78,7 @@ import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -92,7 +91,7 @@ fun RiepilogoScreen(
     sourceLabel: String? = null,
     onFormDataChanged: (SchedeFormData) -> Unit,
     onSaveAndExit: (reminderTime: String?) -> Unit,
-    onExportPdf: () -> Unit,
+    onEsporta: () -> Unit,
     onBack: () -> Unit
 ) {
     var enableReminder by remember { mutableStateOf(false) }
@@ -320,6 +319,44 @@ fun RiepilogoScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
+                    // Assegnare la scheda e una proprieta come il titolo o la data: sta qui
+                    // dentro, non fra i pulsanti di fondo pagina.
+                    FieldLabel("Assegnata a")
+                    val assegnato = profileOptions.firstOrNull { it.id == formData.coachProfileId }
+                    val coloreProfilo = assegnato?.let { Color(it.avatarColor) } ?: TextSecondary
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(coloreProfilo.copy(alpha = 0.12f))
+                            .clickable { showProfileSheet = true }
+                            .padding(horizontal = 12.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(24.dp)
+                                .clip(CircleShape)
+                                .background(coloreProfilo)
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = assegnato?.name ?: "Scheda personale",
+                            color = TextPrimary,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Icon(
+                            Icons.Default.Person,
+                            contentDescription = "Cambia profilo",
+                            tint = coloreProfilo,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
                     // Il file di origine resta legato alla scheda: e da li che si potra
                     // riaprire o riscrivere il foglio.
                     sourceLabel?.let { label ->
@@ -411,9 +448,15 @@ fun RiepilogoScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Muscle Balance Chart
-            if (formData.selectedMuscleGroups.isNotEmpty()) {
-                MuscleBalanceCard(muscleGroups = formData.selectedMuscleGroups.toList())
+            // Il grafico compare anche quando la scheda non dichiara gruppi, purche siano
+            // gli esercizi a dirlo: prima in quel caso non si vedeva niente.
+            if (formData.selectedMuscleGroups.isNotEmpty() ||
+                esercizi.any { !it.gruppiMuscolari.isNullOrEmpty() }
+            ) {
+                MuscleBalanceCard(
+                    esercizi = esercizi,
+                    gruppiScheda = formData.selectedMuscleGroups.toList()
+                )
                 Spacer(modifier = Modifier.height(20.dp))
             }
 
@@ -665,7 +708,7 @@ fun RiepilogoScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedButton(
-                onClick = onExportPdf,
+                onClick = onEsporta,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -674,46 +717,13 @@ fun RiepilogoScreen(
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Icon(
-                    Icons.Default.PictureAsPdf,
+                    Icons.Default.IosShare,
                     contentDescription = null,
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Esporta PDF",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Il pulsante prende il colore del profilo scelto, cosi si vede a colpo d'occhio
-            // a chi finira la scheda.
-            val assignedProfile = profileOptions.firstOrNull { it.id == formData.coachProfileId }
-            val profileColor = assignedProfile?.let { Color(it.avatarColor) } ?: TextSecondary
-
-            OutlinedButton(
-                onClick = { showProfileSheet = true },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                border = BorderStroke(1.dp, profileColor),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = profileColor,
-                    containerColor = profileColor.copy(alpha = 0.12f)
-                ),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Icon(
-                    Icons.Default.Person,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = assignedProfile?.let { "Assegnata a ${it.name}" }
-                        ?: "Assegna a un profilo",
+                    text = "Esporta e condividi",
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp
                 )
@@ -912,14 +922,28 @@ private fun ProfileRow(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun MuscleBalanceCard(muscleGroups: List<String>) {
-    val pieData = remember(muscleGroups) {
-        muscleGroups.mapIndexed { index, group ->
+private fun MuscleBalanceCard(
+    esercizi: List<EsserciziEntity>,
+    gruppiScheda: List<String>
+) {
+    // Con le zone sui singoli esercizi le fette pesano il volume vero; senza, resta la
+    // ripartizione uniforme di prima, ma dichiarata come stima invece che spacciata per misura.
+    val percentuali = remember(esercizi) { MuscleVolume.percentuali(esercizi) }
+    val mappati = remember(esercizi) { MuscleVolume.eserciziMappati(esercizi) }
+    val suVolume = percentuali.isNotEmpty()
+
+    val dati = if (suVolume) percentuali
+    else gruppiScheda.map { it to 100f / gruppiScheda.size }
+
+    if (dati.isEmpty()) return
+
+    val pieData = remember(dati) {
+        dati.map { (gruppo, valore) ->
             Pie(
-                label = group,
-                data = 100.0 / muscleGroups.size,
-                color = getMuscleGroupColor(group),
-                selectedColor = getMuscleGroupColor(group).copy(alpha = 0.8f)
+                label = gruppo,
+                data = valore.toDouble(),
+                color = getMuscleGroupColor(gruppo),
+                selectedColor = getMuscleGroupColor(gruppo).copy(alpha = 0.8f)
             )
         }
     }
@@ -932,54 +956,66 @@ private fun MuscleBalanceCard(muscleGroups: List<String>) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(16.dp)
         ) {
             Text(
-                text = "Bilanciamento Muscolare",
+                text = "Bilanciamento muscolare",
                 color = TextPrimary,
                 fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.align(Alignment.Start)
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = if (suVolume) "Su volume reale - $mappati esercizi su ${esercizi.size}"
+                else "Stima sui gruppi della scheda: assegna le zone agli esercizi per il dato reale",
+                color = TextSecondary,
+                fontSize = 11.sp
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Pie Chart
-            PieChart(
-                modifier = Modifier.size(180.dp),
-                data = pieData,
-                selectedScale = 1.1f,
-                spaceDegree = 4f,
-                selectedPaddingDegree = 3f,
-                style = Pie.Style.Stroke(width = 50.dp)
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Legend
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxWidth()
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
             ) {
-                muscleGroups.forEach { group ->
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(10.dp)
-                                .clip(CircleShape)
-                                .background(getMuscleGroupColor(group))
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = group,
-                            color = TextSecondary,
-                            fontSize = 12.sp
-                        )
-                    }
+                PieChart(
+                    modifier = Modifier.size(170.dp),
+                    data = pieData,
+                    selectedScale = 1.1f,
+                    spaceDegree = 4f,
+                    selectedPaddingDegree = 3f,
+                    style = Pie.Style.Stroke(width = 42.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Legenda con la percentuale accanto: il colore da solo non dice quanto pesa.
+            dati.forEach { (gruppo, valore) ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 3.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(10.dp)
+                            .clip(CircleShape)
+                            .background(getMuscleGroupColor(gruppo))
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = gruppo,
+                        color = TextSecondary,
+                        fontSize = 12.sp,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Text(
+                        text = "${valore.roundToInt()}%",
+                        color = TextPrimary,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium
+                    )
                 }
             }
         }

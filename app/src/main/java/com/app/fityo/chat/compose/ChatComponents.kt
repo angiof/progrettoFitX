@@ -49,7 +49,7 @@ fun ChatTopBar(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = "Fitness AI",
+                        text = "Personal Bot",
                         style = MaterialTheme.typography.titleLarge
                     )
                     // Indicatore stato Gemma

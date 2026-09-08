@@ -10,10 +10,12 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import com.app.fityo.analytics.AnalyticsActivity
 import com.app.fityo.chat.ChatActivity
 import com.app.fityo.R
 import com.app.fityo.data_layer.db.DB.DbFit
+import com.app.fityo.ui.coach.CoachActivity
 import com.app.fityo.ui.dashboard.compose.DashboardScreen
 import com.app.fityo.utils.convertTimestampsToFormattedDates
 import com.google.android.material.datepicker.MaterialDatePicker
@@ -53,6 +55,12 @@ class DashFrag : Fragment() {
                     },
                     onSelectDateRange = {
                         showDateRangePickerDialog()
+                    },
+                    onBack = {
+                        findNavController().popBackStack()
+                    },
+                    onManageProfiles = {
+                        startActivity(Intent(requireContext(), CoachActivity::class.java))
                     },
                     onOpenChat = {
                         val intent = Intent(requireContext(), ChatActivity::class.java).apply {

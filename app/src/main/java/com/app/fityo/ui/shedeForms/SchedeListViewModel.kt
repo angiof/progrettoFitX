@@ -9,10 +9,12 @@ import androidx.lifecycle.viewModelScope
 import com.app.fityo.R
 import com.app.fityo.data_layer.db.CoachProfileEntity
 import com.app.fityo.data_layer.db.DB.DbFit
+import com.app.fityo.data_layer.db.EsserciziEntity
 import com.app.fityo.data_layer.db.SchedeEntity
 import com.app.fityo.data_layer.db.repos.CustomValueRepository
 import com.app.fityo.data_layer.repository.CoachProfileRepository
 import com.app.fityo.data_layer.repository.SchedeRepository
+import com.app.fityo.ui.schedecreate.LibraryPrompt
 import com.app.fityo.ui.schedecreate.LogoUiState
 import com.app.fityo.utils.LogoStore
 import kotlinx.coroutines.Dispatchers
@@ -42,6 +44,11 @@ class SchedeListViewModel(application: Application) : AndroidViewModel(applicati
     private val _equipmentOptions = MutableLiveData<List<String>>(emptyList())
     val equipmentOptions: LiveData<List<String>> = _equipmentOptions
 
+    // Qui non c'e un "fine scheda" come nella creazione: il momento in cui ha senso chiedere
+    // e il salvataggio dell'esercizio, che e l'unico salvataggio esplicito di questa schermata.
+    private val _libraryPrompt = MutableLiveData<LibraryPrompt?>(null)
+    val libraryPrompt: LiveData<LibraryPrompt?> = _libraryPrompt
+
     // Stesso logo del flusso di creazione: LogoStore e uno solo per tutta l'app.
     private val _logo = MutableLiveData(LogoUiState())
     val logo: LiveData<LogoUiState> = _logo
@@ -53,7 +60,8 @@ class SchedeListViewModel(application: Application) : AndroidViewModel(applicati
         loadLogo()
     }
 
-    private fun loadLogo() = viewModelScope.launch {
+    /** Pubblica: il logo puo essere cambiato dal flusso di creazione mentre questa vive. */
+    fun loadLogo() = viewModelScope.launch {
         val context = getApplication<Application>()
         val bitmap = withContext(Dispatchers.IO) { LogoStore.bitmap(context) }
         _logo.value = LogoUiState(bitmap = bitmap, placement = LogoStore.placement(context))
@@ -88,15 +96,45 @@ class SchedeListViewModel(application: Application) : AndroidViewModel(applicati
         _equipmentOptions.postValue(customValueRepository.getAttrezziWith(standard))
     }
 
-    fun saveAttrezzo(value: String, onResult: (String) -> Unit) = viewModelScope.launch {
-        val added = withContext(Dispatchers.IO) { customValueRepository.addAttrezzo(value) }
-        if (added) loadEquipmentOptions()
-        onResult(if (added) "Attrezzo aggiunto" else "Attrezzo gia presente")
+    /** Dopo aver salvato un esercizio: se ha portato voci nuove le offriamo alla libreria. */
+    fun checkLibrary(esercizio: EsserciziEntity) = viewModelScope.launch {
+        val attrezzo = esercizio.attrezzo.trim()
+        val nome = esercizio.nome.trim()
+
+        val prompt = withContext(Dispatchers.IO) {
+            val standard = getApplication<Application>().resources
+                .getStringArray(R.array.equipment_options)
+                .toList()
+            val attrezziNoti = customValueRepository.getAttrezziWith(standard)
+                .map { it.trim().lowercase() }.toSet()
+            val eserciziNoti = customValueRepository.getEsercizi()
+                .map { it.trim().lowercase() }.toSet()
+
+            LibraryPrompt(
+                attrezzi = listOf(attrezzo)
+                    .filter { it.isNotEmpty() && it.lowercase() !in attrezziNoti },
+                esercizi = listOf(nome)
+                    .filter { it.isNotEmpty() && it.lowercase() !in eserciziNoti },
+                reminderTime = null
+            )
+        }
+
+        if (prompt.attrezzi.isNotEmpty() || prompt.esercizi.isNotEmpty()) {
+            _libraryPrompt.value = prompt
+        }
     }
 
-    fun saveEsercizio(value: String, onResult: (String) -> Unit) = viewModelScope.launch {
-        val added = withContext(Dispatchers.IO) { customValueRepository.addEsercizio(value) }
-        onResult(if (added) "Esercizio aggiunto" else "Esercizio gia presente")
+    fun confirmLibrary(attrezzi: List<String>, esercizi: List<String>) = viewModelScope.launch {
+        withContext(Dispatchers.IO) {
+            attrezzi.forEach { customValueRepository.addAttrezzo(it) }
+            esercizi.forEach { customValueRepository.addEsercizio(it) }
+        }
+        if (attrezzi.isNotEmpty()) loadEquipmentOptions()
+        _libraryPrompt.value = null
+    }
+
+    fun dismissLibraryPrompt() {
+        _libraryPrompt.value = null
     }
 
     fun loadCoachProfiles() = viewModelScope.launch(Dispatchers.IO) {

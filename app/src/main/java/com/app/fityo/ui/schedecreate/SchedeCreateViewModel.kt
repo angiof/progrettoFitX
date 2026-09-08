@@ -28,6 +28,7 @@ import com.app.fityo.schede.ai.WorkoutPlanRequest
 import com.app.fityo.ui.schedecreate.compose.EsercizioFormData
 import com.app.fityo.ui.schedecreate.compose.SchedeFormData
 import com.app.fityo.utils.ExportMetadata
+import com.app.fityo.utils.FitxImportExport
 import com.app.fityo.utils.LogoStore
 import com.app.fityo.utils.PdfExporter
 import kotlinx.coroutines.Dispatchers
@@ -90,7 +91,9 @@ data class SchedeCreateState(
     val source: SchedaSource? = null,
 
     // Un'altra scheda nata dallo stesso file: lo diciamo prima che l'utente ne crei un doppione.
-    val duplicateSourceWarning: String? = null
+    val duplicateSourceWarning: String? = null,
+    val esportazione: EsportazioneState = EsportazioneState(),
+    val libraryPrompt: LibraryPrompt? = null
 ) {
     /** Gli esercizi del giorno aperto; in modalita semplice sono tutti. */
     val visibleEsercizi: List<EsserciziEntity>
@@ -103,8 +106,34 @@ data class SchedeCreateState(
         }
 }
 
+/** Una settimana ha sette giorni: il resto e un errore di battitura, non una scheda. */
+const val MAX_GIORNI_SETTIMANA = 7
+
 /** Ritocchi rapidi applicati a tutta la settimana appena copiata. */
 enum class Progressione { PESO, RIPETIZIONI, PERCENTUALE }
+
+/** Le uscite possibili della scheda: tutte passano dallo stesso pannello. */
+enum class EsportazioneTipo { PDF, PDF_CONDIVISO, FITX }
+
+/**
+ * Una esportazione alla volta, con l'esito che resta visibile nel pannello: un Toast che
+ * scompare non basta quando l'operazione puo fallire per permessi o spazio.
+ */
+data class EsportazioneState(
+    val inCorso: EsportazioneTipo? = null,
+    val esito: String? = null,
+    val errore: Boolean = false
+)
+
+/**
+ * Nomi e attrezzi comparsi nella scheda che non sono ancora nella libreria dell'utente.
+ * Si chiede una volta sola alla fine, invece di salvare di nascosto mentre si compila.
+ */
+data class LibraryPrompt(
+    val attrezzi: List<String>,
+    val esercizi: List<String>,
+    val reminderTime: String?
+)
 
 /** Da dove arriva la scheda, quando arriva da un foglio Excel. */
 data class SchedaSource(
@@ -246,7 +275,7 @@ class SchedeCreateViewModel(
      */
     private fun SchedeCreateState.withStructureFrom(esercizi: List<EsserciziEntity>): SchedeCreateState {
         val weeks = esercizi.maxOfOrNull { it.settimana } ?: 1
-        val days = esercizi.maxOfOrNull { it.giorno } ?: 1
+        val days = (esercizi.maxOfOrNull { it.giorno } ?: 1).coerceAtMost(MAX_GIORNI_SETTIMANA)
         return copy(
             weekCount = weeks,
             dayCount = days,
@@ -397,10 +426,23 @@ class SchedeCreateViewModel(
 
     fun addDay() {
         val current = _state.value
+        if (current.dayCount >= MAX_GIORNI_SETTIMANA) return
+
         val newDay = current.dayCount + 1
         _state.value = current.copy(
             dayCount = newDay,
             selectedDay = newDay,
+            advancedMode = true
+        )
+    }
+
+    /** Settimana nuova senza esercizi, per chi non vuole partire da una copia. */
+    fun addEmptyWeek() {
+        val current = _state.value
+        val newWeek = current.weekCount + 1
+        _state.value = current.copy(
+            weekCount = newWeek,
+            selectedWeek = newWeek,
             advancedMode = true
         )
     }
@@ -784,22 +826,6 @@ class SchedeCreateViewModel(
         }
     }
 
-    /** Promuove il nome dell'esercizio ad attrezzo riutilizzabile; il messaggio finisce in un Toast. */
-    fun saveAttrezzo(nome: String, onResult: (String) -> Unit) {
-        viewModelScope.launch {
-            val added = withContext(Dispatchers.IO) { customValueRepository.addAttrezzo(nome) }
-            if (added) refreshEquipmentOptions()
-            onResult(if (added) "Attrezzo aggiunto" else "Attrezzo gia presente")
-        }
-    }
-
-    fun saveNomeComeEsercizio(nome: String, onResult: (String) -> Unit) {
-        viewModelScope.launch {
-            val added = withContext(Dispatchers.IO) { customValueRepository.addEsercizio(nome) }
-            onResult(if (added) "Esercizio aggiunto" else "Esercizio gia presente")
-        }
-    }
-
     /**
      * Il back non chiude mai di sua iniziativa: finche la scheda vive solo in memoria uscire
      * significa perderla, quindi ai bordi del flusso chiediamo conferma con un dialog.
@@ -855,6 +881,63 @@ class SchedeCreateViewModel(
         return current.esercizi.isNotEmpty() ||
             current.formData.titolo.isNotBlank() ||
             current.formData.notes.isNotBlank()
+    }
+
+    /**
+     * Passaggio obbligato del salvataggio: se la scheda ha introdotto attrezzi o esercizi nuovi
+     * lo chiediamo prima di uscire, altrimenti si salva e basta.
+     */
+    fun requestSave(reminderTime: String?) {
+        viewModelScope.launch {
+            val esercizi = _state.value.esercizi
+
+            val (nuoviAttrezzi, nuoviEsercizi) = withContext(Dispatchers.IO) {
+                val attrezziNoti = knownEquipment().map { it.trim().lowercase() }.toSet()
+                val eserciziNoti = customValueRepository.getEsercizi()
+                    .map { it.trim().lowercase() }.toSet()
+
+                val attrezzi = esercizi.map { it.attrezzo.trim() }
+                    .filter { it.isNotEmpty() }
+                    .distinctBy { it.lowercase() }
+                    .filterNot { it.lowercase() in attrezziNoti }
+
+                val nomi = esercizi.map { it.nome.trim() }
+                    .filter { it.isNotEmpty() }
+                    .distinctBy { it.lowercase() }
+                    .filterNot { it.lowercase() in eserciziNoti }
+
+                attrezzi to nomi
+            }
+
+            if (nuoviAttrezzi.isEmpty() && nuoviEsercizi.isEmpty()) {
+                saveAndExit(reminderTime)
+            } else {
+                _state.value = _state.value.copy(
+                    libraryPrompt = LibraryPrompt(nuoviAttrezzi, nuoviEsercizi, reminderTime)
+                )
+            }
+        }
+    }
+
+    /** Salva in libreria solo le voci spuntate, poi prosegue con il salvataggio della scheda. */
+    fun confirmLibrary(attrezzi: List<String>, esercizi: List<String>) {
+        val prompt = _state.value.libraryPrompt ?: return
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                attrezzi.forEach { customValueRepository.addAttrezzo(it) }
+                esercizi.forEach { customValueRepository.addEsercizio(it) }
+            }
+            if (attrezzi.isNotEmpty()) refreshEquipmentOptions()
+            _state.value = _state.value.copy(libraryPrompt = null)
+            saveAndExit(prompt.reminderTime)
+        }
+    }
+
+    /** Niente in libreria, ma la scheda si salva lo stesso: l'utente aveva premuto Salva. */
+    fun skipLibrary() {
+        val prompt = _state.value.libraryPrompt ?: return
+        _state.value = _state.value.copy(libraryPrompt = null)
+        saveAndExit(prompt.reminderTime)
     }
 
     fun saveAndExit(reminderTime: String?) {
@@ -962,22 +1045,54 @@ class SchedeCreateViewModel(
         )
     }
 
-    fun exportPdf(onResult: (String) -> Unit) {
+    /**
+     * Unico punto di uscita per PDF e .fitx. Blocca i doppi tap, perche generare due volte
+     * lo stesso file e il modo piu semplice per riempire i Download di duplicati.
+     */
+    fun esporta(tipo: EsportazioneTipo, onFilePronto: (java.io.File, String) -> Unit = { _, _ -> }) {
+        if (_state.value.esportazione.inCorso != null) return
+
         viewModelScope.launch {
+            _state.value = _state.value.copy(esportazione = EsportazioneState(inCorso = tipo))
+
+            val context = getApplication<Application>()
             val scheda = buildSchedaEntity(_state.value.formData)
-            val result = PdfExporter.exportScheda(
-                context = getApplication(),
-                scheda = scheda,
-                esercizi = _state.value.esercizi,
-                meta = _state.value.pdfMeta
-            )
-            onResult(
-                result.fold(
-                    onSuccess = { "PDF salvato in Documenti: ${it.name}" },
-                    onFailure = { "Errore nell'export PDF: ${it.message}" }
+            val esercizi = _state.value.esercizi
+
+            val result = when (tipo) {
+                EsportazioneTipo.FITX -> FitxImportExport.exportScheda(context, scheda, esercizi)
+                else -> PdfExporter.exportScheda(context, scheda, esercizi, _state.value.pdfMeta)
+            }
+
+            _state.value = _state.value.copy(
+                esportazione = result.fold(
+                    onSuccess = { file ->
+                        when (tipo) {
+                            EsportazioneTipo.PDF ->
+                                EsportazioneState(esito = "PDF salvato in Documenti: ${file.name}")
+                            EsportazioneTipo.PDF_CONDIVISO -> {
+                                onFilePronto(file, "application/pdf")
+                                EsportazioneState(esito = "PDF pronto: ${file.name}")
+                            }
+                            EsportazioneTipo.FITX -> {
+                                onFilePronto(file, "application/json")
+                                EsportazioneState(esito = "Backup pronto: ${file.name}")
+                            }
+                        }
+                    },
+                    onFailure = {
+                        EsportazioneState(
+                            esito = "Esportazione non riuscita: ${it.message ?: "errore sconosciuto"}",
+                            errore = true
+                        )
+                    }
                 )
             )
         }
+    }
+
+    fun clearEsportazione() {
+        _state.value = _state.value.copy(esportazione = EsportazioneState())
     }
 
     fun clearError() {
@@ -1023,7 +1138,8 @@ class SchedeCreateViewModel(
         supersetGroup = existing?.supersetGroup,
         rpe = rpe.ifBlank { null },
         tempo = tempo.ifBlank { null },
-        percentuale = percentuale
+        percentuale = percentuale,
+        gruppiMuscolari = gruppiMuscolari.toList().takeIf { it.isNotEmpty() }
     )
 
     private fun applyAutoDefaults(formData: SchedeFormData, options: AutoCompileOptions): SchedeFormData {

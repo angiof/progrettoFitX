@@ -51,7 +51,7 @@ import com.app.fityo.data_layer.db.dao.DaoDailyNutritionItem
         ChatMessageEntity::class,
         CustomValueEntity::class
     ],
-    version = 20
+    version = 21
 )
 @TypeConverters(Converters::class)
 
@@ -397,6 +397,17 @@ abstract class DbFit : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_20_21 = object : Migration(20, 21) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Anagrafica facoltativa dell'atleta e zone muscolari per esercizio.
+                database.execSQL("ALTER TABLE coach_profiles ADD COLUMN telefono TEXT")
+                database.execSQL("ALTER TABLE coach_profiles ADD COLUMN email TEXT")
+                database.execSQL("ALTER TABLE coach_profiles ADD COLUMN disciplina TEXT")
+                database.execSQL("ALTER TABLE coach_profiles ADD COLUMN livello TEXT")
+                database.execSQL("ALTER TABLE essercissi ADD COLUMN gruppiMuscolari TEXT")
+            }
+        }
+
         fun getDatabase(context: Context): DbFit {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -406,7 +417,12 @@ abstract class DbFit : RoomDatabase() {
                 )
                     // Le migration precedenti non sono mai state registrate: aggiungiamo almeno
                     // questa cosi chi e gia alla 17 non perde le schede passando alla 18.
-                    .addMigrations(MIGRATION_17_18, MIGRATION_18_19, MIGRATION_19_20)
+                    .addMigrations(
+                        MIGRATION_17_18,
+                        MIGRATION_18_19,
+                        MIGRATION_19_20,
+                        MIGRATION_20_21
+                    )
                     .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance

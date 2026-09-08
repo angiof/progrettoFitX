@@ -24,6 +24,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.app.fityo.data_layer.db.CoachProfileEntity
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,6 +40,10 @@ fun CoachProfileFormScreen(
 
     var name by remember { mutableStateOf(existingProfile?.name ?: "") }
     var notes by remember { mutableStateOf(existingProfile?.notes ?: "") }
+    var telefono by remember { mutableStateOf(existingProfile?.telefono ?: "") }
+    var email by remember { mutableStateOf(existingProfile?.email ?: "") }
+    var disciplina by remember { mutableStateOf(existingProfile?.disciplina ?: "") }
+    var livello by remember { mutableStateOf(existingProfile?.livello ?: "") }
     var selectedColor by remember {
         mutableIntStateOf(existingProfile?.avatarColor ?: AvatarColors.first().toArgb())
     }
@@ -70,6 +78,10 @@ fun CoachProfileFormScreen(
                                     name = name.trim(),
                                     avatarColor = selectedColor,
                                     notes = notes.takeIf { it.isNotBlank() },
+                            telefono = telefono.trim().takeIf { it.isNotBlank() },
+                            email = email.trim().takeIf { it.isNotBlank() },
+                            disciplina = disciplina.takeIf { it.isNotBlank() },
+                            livello = livello.takeIf { it.isNotBlank() },
                                     createdAt = existingProfile?.createdAt ?: now,
                                     updatedAt = now
                                 )
@@ -138,6 +150,38 @@ fun CoachProfileFormScreen(
                     focusedTextColor = TextPrimary,
                     unfocusedTextColor = TextPrimary
                 )
+            )
+
+            // Contatti: facoltativi, ma e l'informazione che il coach cerca piu spesso.
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                ProfileField(
+                    value = telefono,
+                    onValueChange = { telefono = it },
+                    label = "Telefono",
+                    modifier = Modifier.weight(1f),
+                    keyboardType = KeyboardType.Phone
+                )
+                ProfileField(
+                    value = email,
+                    onValueChange = { email = it },
+                    label = "Email",
+                    modifier = Modifier.weight(1f),
+                    keyboardType = KeyboardType.Email
+                )
+            }
+
+            ChipGroup(
+                titolo = "Disciplina",
+                voci = DISCIPLINE,
+                selezionata = disciplina,
+                onSelect = { disciplina = if (disciplina == it) "" else it }
+            )
+
+            ChipGroup(
+                titolo = "Livello",
+                voci = LIVELLI,
+                selezionata = livello,
+                onSelect = { livello = if (livello == it) "" else it }
             )
 
             // Note
@@ -248,6 +292,84 @@ private fun ColorOption(
                 tint = Color.White,
                 modifier = Modifier.size(24.dp)
             )
+        }
+    }
+}
+
+private val DISCIPLINE = listOf(
+    "Powerlifting", "Bodybuilding", "Functional", "CrossFit", "Endurance", "Riabilitazione"
+)
+
+private val LIVELLI = listOf("Principiante", "Intermedio", "Avanzato")
+
+@Composable
+private fun ProfileField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    modifier: Modifier = Modifier,
+    keyboardType: KeyboardType = KeyboardType.Text
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        singleLine = true,
+        modifier = modifier,
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = AccentPurple,
+            unfocusedBorderColor = TextSecondary.copy(alpha = 0.5f),
+            focusedLabelColor = AccentPurple,
+            unfocusedLabelColor = TextSecondary,
+            cursorColor = AccentPurple,
+            focusedTextColor = TextPrimary,
+            unfocusedTextColor = TextPrimary
+        )
+    )
+}
+
+/** Scelta singola facoltativa: ritoccando la stessa voce si deseleziona. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ChipGroup(
+    titolo: String,
+    voci: List<String>,
+    selezionata: String,
+    onSelect: (String) -> Unit
+) {
+    Column {
+        Text(
+            text = titolo,
+            color = TextSecondary,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            voci.forEach { voce ->
+                val attiva = voce == selezionata
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(
+                            if (attiva) AccentPurple.copy(alpha = 0.25f)
+                            else TextSecondary.copy(alpha = 0.12f)
+                        )
+                        .clickable { onSelect(voce) }
+                        .padding(horizontal = 14.dp, vertical = 8.dp)
+                ) {
+                    Text(
+                        text = voce,
+                        color = if (attiva) AccentPurple else TextSecondary,
+                        fontSize = 13.sp,
+                        fontWeight = if (attiva) FontWeight.Bold else FontWeight.Normal
+                    )
+                }
+            }
         }
     }
 }

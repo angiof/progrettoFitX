@@ -45,29 +45,31 @@ class HomeFragment : Fragment() {
             adapter = adapters
             setHasFixedSize(true)
         }
-        adapters.submitList(createHomeMenu())
+        // Fuori dalle sezioni attive il codice resta com'e: cambiare questa lista basta
+        // per rimetterle in home.
+        adapters.submitList(createHomeMenu().filter { it.action in SEZIONI_ATTIVE })
     }
 
     private fun createHomeMenu(): List<ModelHomemenu> = listOf(
-        ModelHomemenu(
-            copertina = R.drawable.powerlifting,
-            titolo = getString(R.string.crea_scheda),
-            action = HomeMenuAction.CREATE_SCHEDE
-        ),
-        ModelHomemenu(
-            copertina = R.drawable.scheda_ia_fitnes,
-            titolo = getString(R.string.apri_schede),
-            action = HomeMenuAction.OPEN_SCHEDE
-        ),
         ModelHomemenu(
             copertina = R.drawable.ic_calendario2,
             titolo = getString(R.string.title_dashboard),
             action = HomeMenuAction.VIEW_STATS
         ),
         ModelHomemenu(
+            copertina = R.drawable.powerlifting,
+            titolo = getString(R.string.crea_scheda),
+            action = HomeMenuAction.CREATE_SCHEDE
+        ),
+        ModelHomemenu(
             copertina = R.drawable.faa,
             titolo = getString(R.string.diet_intelligence_title),
             action = HomeMenuAction.DIET_INTELLIGENCE
+        ),
+        ModelHomemenu(
+            copertina = R.drawable.scheda_ia_fitnes,
+            titolo = getString(R.string.apri_schede),
+            action = HomeMenuAction.OPEN_SCHEDE
         ),
         ModelHomemenu(
             copertina = R.drawable.donna_spalle,
@@ -121,6 +123,19 @@ class HomeFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         Log.d("MyFragmentTag", "${this::class.java.simpleName} is resumed")
+    }
+
+    private companion object {
+        /**
+         * Sezioni visibili in home in questa fase. Muscle compare, tutor e coach restano
+         * nel progetto ma fuori dalla schermata iniziale.
+         */
+        val SEZIONI_ATTIVE = setOf(
+            HomeMenuAction.VIEW_STATS,
+            HomeMenuAction.CREATE_SCHEDE,
+            HomeMenuAction.DIET_INTELLIGENCE,
+            HomeMenuAction.OPEN_SCHEDE
+        )
     }
 
     override fun onDestroyView() {

@@ -43,6 +43,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -71,11 +72,10 @@ import java.util.Locale
 fun EsercissiListScreen(
     esercizi: List<EsserciziEntity>,
     equipmentOptions: List<String>,
+    muscleGroupOptions: List<String> = emptyList(),
     onAddEsercizio: (EsercizioFormData) -> Unit,
     onEditEsercizio: (EsercizioFormData) -> Unit,
     onDeleteEsercizio: (EsserciziEntity) -> Unit,
-    onSaveAttrezzo: (String) -> Unit,
-    onSaveNomeComeEsercizio: (String) -> Unit,
     onNext: () -> Unit,
     onBack: () -> Unit,
     advancedMode: Boolean = false,
@@ -92,6 +92,9 @@ fun EsercissiListScreen(
     onDeleteWeek: (Int) -> Unit = {},
     onDeleteDay: (Int) -> Unit = {},
     onProgressione: (Progressione) -> Unit = {},
+    onAddEmptyWeek: () -> Unit = {},
+    eserciziPerSettimana: Map<Int, Int> = emptyMap(),
+    eserciziPerGiorno: Map<Int, Int> = emptyMap(),
     totalEsercizi: Int = esercizi.size
 ) {
     var showAddSheet by remember { mutableStateOf(false) }
@@ -147,30 +150,44 @@ fun EsercissiListScreen(
 
             if (advancedMode) {
                 StructureBar(
-                    canDisableAdvanced = canDisableAdvanced,
                     weekCount = weekCount,
                     dayCount = dayCount,
                     selectedWeek = selectedWeek,
                     selectedDay = selectedDay,
+                    eserciziPerSettimana = eserciziPerSettimana,
                     onToggleAdvanced = onToggleAdvanced,
                     onSelectWeek = onSelectWeek,
                     onSelectDay = onSelectDay,
                     onAddWeek = onAddWeek,
+                    onAddEmptyWeek = onAddEmptyWeek,
                     onAddDay = onAddDay,
                     onDeleteWeek = onDeleteWeek,
-                    onDeleteDay = onDeleteDay,
                     onProgressione = onProgressione
                 )
                 Spacer(modifier = Modifier.height(14.dp))
                 DayHeader(
                     settimana = selectedWeek,
                     giorno = selectedDay,
-                    conteggio = esercizi.size
+                    conteggio = esercizi.size,
+                    dayCount = dayCount,
+                    eserciziPerGiorno = eserciziPerGiorno,
+                    onSelectDay = onSelectDay,
+                    onAddDay = onAddDay,
+                    onDeleteDay = onDeleteDay
                 )
                 Spacer(modifier = Modifier.height(10.dp))
             } else {
                 SimpleModeRow(onToggleAdvanced = onToggleAdvanced)
                 Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            // In avanzata l'interruttore riappare solo quando tornare indietro e possibile,
+            // cioe con una sola settimana e un solo giorno: altrimenti sarebbe un tasto morto.
+            if (advancedMode && canDisableAdvanced) {
+                Spacer(modifier = Modifier.height(10.dp))
+                TextButton(onClick = { onToggleAdvanced(false) }) {
+                    Text("Torna a scheda semplice", color = TextSecondary, fontSize = 12.sp)
+                }
             }
 
             // Exercises List
@@ -295,9 +312,8 @@ fun EsercissiListScreen(
             EsercizioEditorSheet(
                 initialData = editingEsercizio?.toFormData(editingLinked),
                 equipmentOptions = equipmentOptions,
+                muscleGroupOptions = muscleGroupOptions,
                 canLinkPrevious = editingIndex > 0,
-                onSaveAttrezzo = onSaveAttrezzo,
-                onSaveNomeComeEsercizio = onSaveNomeComeEsercizio,
                 onSave = { formData ->
                     if (editingEsercizio != null) {
                         onEditEsercizio(formData)

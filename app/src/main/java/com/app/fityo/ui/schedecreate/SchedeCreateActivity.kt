@@ -24,6 +24,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -34,8 +37,11 @@ import com.app.fityo.data_layer.db.repos.EsserciziRepository
 import com.app.fityo.data_layer.repository.CoachProfileRepository
 import com.app.fityo.data_layer.repository.SchedeRepository
 import com.app.fityo.ui.factory.GenericViewModelFactory
+import com.app.fityo.utils.ShareUtils
 import com.app.fityo.ui.schedecreate.compose.EsercissiListScreen
+import com.app.fityo.ui.schedecreate.compose.ExportSheet
 import com.app.fityo.ui.schedecreate.compose.ImportPreviewScreen
+import com.app.fityo.ui.schedecreate.compose.LibrarySaveDialog
 import com.app.fityo.ui.schedecreate.compose.PdfPreviewScreen
 import com.app.fityo.ui.schedecreate.compose.ProfileOption
 import com.app.fityo.ui.schedecreate.compose.RiepilogoScreen
@@ -156,6 +162,7 @@ private fun SchedeCreateNavHost(
     val logo by viewModel.logo.collectAsState()
     val esercizi = state.esercizi
     val context = LocalContext.current
+    var showExportSheet by remember { mutableStateOf(false) }
 
     val excelPicker = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument()
@@ -232,6 +239,7 @@ private fun SchedeCreateNavHost(
                 EsercissiListScreen(
                     esercizi = state.visibleEsercizi,
                     equipmentOptions = equipmentOptions,
+                    muscleGroupOptions = muscleGroupOptions,
                     advancedMode = state.advancedMode,
                     canDisableAdvanced = state.weekCount == 1 && state.dayCount == 1,
                     weekCount = state.weekCount,
@@ -246,20 +254,16 @@ private fun SchedeCreateNavHost(
                     onDeleteWeek = { viewModel.deleteWeek(it) },
                     onDeleteDay = { viewModel.deleteDay(it) },
                     onProgressione = { viewModel.applyProgressione(it) },
+                    onAddEmptyWeek = { viewModel.addEmptyWeek() },
+                    eserciziPerSettimana = state.esercizi.groupingBy { it.settimana }.eachCount(),
+                    eserciziPerGiorno = state.esercizi
+                        .filter { it.settimana == state.selectedWeek }
+                        .groupingBy { it.giorno }
+                        .eachCount(),
                     totalEsercizi = state.esercizi.size,
                     onAddEsercizio = { viewModel.addEsercizio(it) },
                     onEditEsercizio = { viewModel.updateEsercizio(it) },
                     onDeleteEsercizio = { viewModel.deleteEsercizio(it) },
-                    onSaveAttrezzo = { nome ->
-                        viewModel.saveAttrezzo(nome) { message ->
-                            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                        }
-                    },
-                    onSaveNomeComeEsercizio = { nome ->
-                        viewModel.saveNomeComeEsercizio(nome) { message ->
-                            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                        }
-                    },
                     onNext = { viewModel.navigateToRiepilogo() },
                     onBack = { viewModel.navigateBack() }
                 )
@@ -275,9 +279,9 @@ private fun SchedeCreateNavHost(
                     sourceLabel = state.source?.fileName?.takeIf { it.isNotBlank() },
                     onFormDataChanged = { viewModel.updateFormData(it) },
                     onSaveAndExit = { reminderTime ->
-                        viewModel.saveAndExit(reminderTime)
+                        viewModel.requestSave(reminderTime)
                     },
-                    onExportPdf = { viewModel.openPdfPreview() },
+                    onEsporta = { showExportSheet = true },
                     onBack = { viewModel.navigateBack() }
                 )
             }
@@ -297,13 +301,46 @@ private fun SchedeCreateNavHost(
                     onLogoPlacementChanged = { viewModel.updateLogoPlacement(it) },
                     onSaveLogoPlacement = { viewModel.saveLogoPlacement() },
                     onGenerate = {
-                        viewModel.exportPdf { message ->
-                            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
-                        }
+                        viewModel.esporta(EsportazioneTipo.PDF)
+                        Toast.makeText(context, "Generazione PDF avviata", Toast.LENGTH_SHORT).show()
                     },
                     onBack = { viewModel.navigateBack() }
                 )
             }
+        }
+
+        state.libraryPrompt?.let { prompt ->
+            LibrarySaveDialog(
+                prompt = prompt,
+                onConfirm = { attrezzi, esercizi -> viewModel.confirmLibrary(attrezzi, esercizi) },
+                onSkip = { viewModel.skipLibrary() }
+            )
+        }
+
+        if (showExportSheet) {
+            ExportSheet(
+                stato = state.esportazione,
+                onAnteprimaPdf = {
+                    showExportSheet = false
+                    viewModel.clearEsportazione()
+                    viewModel.openPdfPreview()
+                },
+                onEsportaPdf = { viewModel.esporta(EsportazioneTipo.PDF) },
+                onCondividiPdf = {
+                    viewModel.esporta(EsportazioneTipo.PDF_CONDIVISO) { file, mime ->
+                        ShareUtils.shareFile(context, file, mime)
+                    }
+                },
+                onEsportaFitx = {
+                    viewModel.esporta(EsportazioneTipo.FITX) { file, mime ->
+                        ShareUtils.shareFile(context, file, mime)
+                    }
+                },
+                onDismiss = {
+                    showExportSheet = false
+                    viewModel.clearEsportazione()
+                }
+            )
         }
 
         if (state.showExitDialog) {

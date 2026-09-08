@@ -131,6 +131,7 @@ import com.app.fityo.import_scheda.ImportSchedaActivity
 import com.app.fityo.ui.schedecreate.SchedeCreateActivity
 import android.graphics.Bitmap
 import com.app.fityo.ui.schedecreate.compose.EsercizioEditorSheet
+import com.app.fityo.ui.schedecreate.compose.LibrarySaveDialog
 import com.app.fityo.ui.schedecreate.LogoUiState
 import com.app.fityo.ui.schedecreate.compose.PdfLogoCard
 import com.app.fityo.utils.LogoStore
@@ -247,6 +248,8 @@ class SchedeListActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         schedeViewModel.loadSchede()
+        // Il logo puo essere stato importato dal flusso di creazione mentre eravamo in pausa.
+        schedeViewModel.loadLogo()
     }
 
     companion object {
@@ -268,6 +271,9 @@ private fun SchedeListRoute(
     val selectedProfileName by viewModel.selectedProfileName.observeAsState(null)
     val equipmentOptions by viewModel.equipmentOptions.observeAsState(emptyList())
     val logoState by viewModel.logo.observeAsState(LogoUiState())
+    val libraryPrompt by viewModel.libraryPrompt.observeAsState(null)
+    val muscleGroupOptions = LocalContext.current.resources
+        .getStringArray(R.array.muscle_group_options).toList()
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
@@ -379,6 +385,14 @@ private fun SchedeListRoute(
         )
     }
 
+    libraryPrompt?.let { prompt ->
+        LibrarySaveDialog(
+            prompt = prompt,
+            onConfirm = { attrezzi, esercizi -> viewModel.confirmLibrary(attrezzi, esercizi) },
+            onSkip = { viewModel.dismissLibraryPrompt() }
+        )
+    }
+
     val currentScheda = selectedScheda
     if (currentScheda != null) {
         val exercises =
@@ -445,18 +459,12 @@ private fun SchedeListRoute(
                 selectedScheda = null
             },
             onUpdateExercise = { eserciziViewModel.update(it) },
+            // Salvato l'esercizio, e il momento buono per offrire attrezzo e nome nuovi:
+            // qui non esiste un "fine scheda" come nella creazione.
+            onExerciseSaved = { viewModel.checkLibrary(it) },
+            muscleGroupOptions = muscleGroupOptions,
             onDeleteExercise = { eserciziViewModel.delete(it) },
             equipmentOptions = equipmentOptions,
-            onSaveAttrezzo = { attrezzo ->
-                viewModel.saveAttrezzo(attrezzo) { message ->
-                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                }
-            },
-            onSaveNomeComeEsercizio = { nome ->
-                viewModel.saveEsercizio(nome) { message ->
-                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                }
-            },
             logo = logoState.bitmap,
             logoPlacement = logoState.placement,
             onPickLogo = { logoPicker.launch(arrayOf("image/*")) },
@@ -520,9 +528,9 @@ private fun SchedaDetailDialog(
     onExportPdf: (ExportMetadata) -> Unit,
     onUpdateExercise: (EsserciziEntity) -> Unit,
     onDeleteExercise: (EsserciziEntity) -> Unit,
+    onExerciseSaved: (EsserciziEntity) -> Unit,
+    muscleGroupOptions: List<String>,
     equipmentOptions: List<String>,
-    onSaveAttrezzo: (String) -> Unit,
-    onSaveNomeComeEsercizio: (String) -> Unit,
     logo: Bitmap?,
     logoPlacement: LogoStore.Placement,
     onPickLogo: () -> Unit,
@@ -779,21 +787,27 @@ private fun SchedaDetailDialog(
         EsercizioEditorSheet(
             initialData = esercizio.toFormData(),
             equipmentOptions = equipmentOptions,
-            onSaveAttrezzo = onSaveAttrezzo,
-            onSaveNomeComeEsercizio = onSaveNomeComeEsercizio,
+            muscleGroupOptions = muscleGroupOptions,
             onSave = { data ->
-                onUpdateExercise(
-                    esercizio.copy(
-                        nome = data.nome.trim(),
-                        attrezzo = data.attrezzo.trim(),
-                        nSerie = data.nSerie,
-                        nRipetizione = data.nRipetizioni,
-                        insometria = data.isometria,
-                        intervallo = data.intervallo,
-                        peso = data.peso,
-                        wgerId = data.wgerId
-                    )
+                val aggiornato = esercizio.copy(
+                    nome = data.nome.trim(),
+                    attrezzo = data.attrezzo.trim(),
+                    nSerie = data.nSerie,
+                    nRipetizione = data.nRipetizioni,
+                    insometria = data.isometria,
+                    intervallo = data.intervallo,
+                    peso = data.peso,
+                    wgerId = data.wgerId,
+                    // Il form condiviso raccoglie anche questi: senza riportarli, aprire e
+                    // salvare un esercizio ne cancellava le note.
+                    notes = data.note.ifBlank { null },
+                    rpe = data.rpe.ifBlank { null },
+                    tempo = data.tempo.ifBlank { null },
+                    percentuale = data.percentuale,
+                    gruppiMuscolari = data.gruppiMuscolari.toList().takeIf { it.isNotEmpty() }
                 )
+                onUpdateExercise(aggiornato)
+                onExerciseSaved(aggiornato)
             },
             onDismiss = { editingExercise = null }
         )

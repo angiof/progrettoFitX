@@ -15,6 +15,14 @@ data class CoachProfileEntity(
     val name: String,
     val avatarColor: Int,
     val notes: String? = null,
+
+    // Anagrafica facoltativa: serve al coach per avere il contatto sottomano, non e mai
+    // richiesta per creare il profilo.
+    val telefono: String? = null,
+    val email: String? = null,
+    val disciplina: String? = null,
+    val livello: String? = null,
+
     val createdAt: Long,
     val updatedAt: Long
 )

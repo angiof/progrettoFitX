@@ -234,11 +234,11 @@ fun DietScreenContent(
                         isLoading = isLoading
                     )
 
-                    AdviceCard(
-                        advice = advice,
-                        isLoading = isAdviceLoading,
-                        onGenerateAdvice = onGenerateAdvice
-                    )
+//                    AdviceCard(
+//                        advice = advice,
+//                        isLoading = isAdviceLoading,
+//                        onGenerateAdvice = onGenerateAdvice
+//                    )
 
                     HistorySection(items = items, onDelete = onDeleteItem)
 

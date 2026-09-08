@@ -58,6 +58,10 @@ data class EsserciziEntity(
     // Il numero di riga e quello vero di Excel: XlsxReader ricostruisce le righe vuote saltate
     // leggendo l'attributo r, quindi il riferimento resta valido.
     @ColumnInfo(name = "sourceRow") val sourceRow: Int? = null,
-    @ColumnInfo(name = "sourceVariant") val sourceVariant: Int? = null
+    @ColumnInfo(name = "sourceVariant") val sourceVariant: Int? = null,
+
+    // Zone muscolari lavorate: facoltative, ma quando ci sono il grafico della scheda smette
+    // di essere una stima e diventa un conto sul volume vero.
+    @ColumnInfo(name = "gruppiMuscolari") val gruppiMuscolari: List<String>? = null
 ) : Serializable
 

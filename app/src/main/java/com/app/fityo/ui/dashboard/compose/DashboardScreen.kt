@@ -24,7 +24,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -57,7 +59,9 @@ fun DashboardScreen(
     viewModel: DashViewModel,
     onOpenAnalytics: () -> Unit,
     onSelectDateRange: () -> Unit,
-    onOpenChat: () -> Unit = {}
+    onOpenChat: () -> Unit = {},
+    onManageProfiles: () -> Unit = {},
+    onBack: (() -> Unit)? = null
 ) {
     val scrollState = rememberScrollState()
     val percentuali by viewModel.percentualiGruppiMuscolari.observeAsState(emptyList())
@@ -85,6 +89,30 @@ fun DashboardScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // Alla dashboard si arriva anche dalla home: senza freccia l'unico modo di
+            // tornare indietro era la barra di sistema.
+            onBack?.let { back ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = back) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Indietro",
+                            tint = DashboardTextPrimary
+                        )
+                    }
+                    Text(
+                        text = stringResource(R.string.title_dashboard),
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            color = DashboardTextPrimary,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                }
+            }
+
             // Top buttons row
             TopButtonsRow(
                 onSelectDateRange = onSelectDateRange,
@@ -138,6 +166,10 @@ fun DashboardScreen(
             onSelectAll = {
                 viewModel.setSelectedProfile(null, null)
                 showProfileDialog = false
+            },
+            onManageProfiles = {
+                showProfileDialog = false
+                onManageProfiles()
             },
             onSelectProfile = { profile ->
                 viewModel.setSelectedProfile(profile.id, profile.name)
@@ -694,7 +726,8 @@ private fun ProfileSelectionDialog(
     profiles: List<CoachProfileEntity>,
     onDismiss: () -> Unit,
     onSelectAll: () -> Unit,
-    onSelectProfile: (CoachProfileEntity) -> Unit
+    onSelectProfile: (CoachProfileEntity) -> Unit,
+    onManageProfiles: () -> Unit
 ) {
     val scrollState = rememberScrollState()
 
@@ -772,6 +805,46 @@ private fun ProfileSelectionDialog(
                         color = DashboardTextSecondary,
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
+                }
+
+                // Creare un profilo si poteva solo dalla home, che ora non ha piu la voce
+                // Coach: senza questa riga non ci sarebbe piu modo di crearne uno.
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onManageProfiles() },
+                    colors = CardDefaults.cardColors(
+                        containerColor = DashboardAccentBlue.copy(alpha = 0.18f)
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.PersonAdd,
+                            contentDescription = null,
+                            tint = DashboardAccentBlue,
+                            modifier = Modifier.size(22.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = "Crea e gestisci profili",
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    color = DashboardTextPrimary,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            )
+                            Text(
+                                text = "Aggiungi un atleta, modifica o elimina i profili",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = DashboardTextSecondary
+                            )
+                        }
+                    }
                 }
             }
         },
