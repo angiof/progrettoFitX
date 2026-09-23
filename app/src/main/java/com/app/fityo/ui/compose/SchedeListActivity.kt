@@ -471,7 +471,7 @@ private fun SchedeListRoute(
             equipmentOptions = equipmentOptions,
             logo = logoState.bitmap,
             logoPlacement = logoState.placement,
-            onPickLogo = { logoPicker.launch(arrayOf("image/*")) },
+            onPickLogo = { logoPicker.launch(LogoStore.SUPPORTED_MIME_TYPES) },
             onRemoveLogo = { viewModel.removeLogo() },
             onLogoPlacementChanged = { viewModel.updateLogoPlacement(it) },
             onSaveLogoPlacement = { viewModel.saveLogoPlacement() },

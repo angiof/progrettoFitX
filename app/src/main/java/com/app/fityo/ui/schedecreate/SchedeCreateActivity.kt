@@ -47,6 +47,7 @@ import com.app.fityo.ui.schedecreate.compose.ProfileOption
 import com.app.fityo.ui.schedecreate.compose.RiepilogoScreen
 import com.app.fityo.ui.schedecreate.compose.SchedeCreateTheme
 import com.app.fityo.ui.schedecreate.compose.SchedeFormScreen
+import com.app.fityo.utils.LogoStore
 
 class SchedeCreateActivity : ComponentActivity() {
 
@@ -296,7 +297,7 @@ private fun SchedeCreateNavHost(
                     onMetaChanged = { viewModel.updatePdfMeta(it) },
                     onNotesChanged = { viewModel.updateFormData(state.formData.copy(notes = it)) },
                     onEsercizioChanged = { viewModel.updateEsercizioEntity(it) },
-                    onPickLogo = { logoPicker.launch(arrayOf("image/*")) },
+                    onPickLogo = { logoPicker.launch(LogoStore.SUPPORTED_MIME_TYPES) },
                     onRemoveLogo = { viewModel.removeLogo() },
                     onLogoPlacementChanged = { viewModel.updateLogoPlacement(it) },
                     onSaveLogoPlacement = { viewModel.saveLogoPlacement() },

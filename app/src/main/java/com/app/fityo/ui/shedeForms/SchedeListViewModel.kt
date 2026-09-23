@@ -69,9 +69,9 @@ class SchedeListViewModel(application: Application) : AndroidViewModel(applicati
 
     fun importLogo(uri: Uri, onResult: (String) -> Unit) = viewModelScope.launch {
         val context = getApplication<Application>()
-        val imported = withContext(Dispatchers.IO) { LogoStore.import(context, uri) }
-        if (imported) loadLogo()
-        onResult(if (imported) "Logo importato" else "Immagine non valida")
+        val outcome = withContext(Dispatchers.IO) { LogoStore.import(context, uri) }
+        if (outcome is LogoStore.ImportOutcome.Imported) loadLogo()
+        onResult(LogoStore.message(outcome))
     }
 
     fun removeLogo() = viewModelScope.launch {
