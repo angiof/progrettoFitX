@@ -24,7 +24,7 @@ kapt {
 
 android {
     namespace 'com.app.fityo'
-    compileSdk 35
+    compileSdk 36
 
     defaultConfig {
         applicationId "com.app.fityo"
@@ -61,15 +61,15 @@ android {
 
     kotlinOptions {
         jvmTarget = '21'
+        // Room/kapt leggono i metadata Kotlin fino alla 2.2: restiamo su quel
+        // formato anche compilando con il compilatore 2.4 richiesto da Grafima.
+        languageVersion = '2.2'
+        apiVersion = '2.2'
     }
 
     buildFeatures {
         viewBinding true
         compose true
-    }
-
-    composeOptions {
-        kotlinCompilerExtensionVersion '1.7.3'
     }
 
     packagingOptions {
@@ -84,9 +84,8 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.compose.runtime:runtime-livedata:1.9.5'
-    implementation 'androidx.compose.ui:ui:1.9.5'
-    def composeBom = platform('androidx.compose:compose-bom:2024.10.01')
+    def composeBom = platform('androidx.compose:compose-bom:2026.06.01')
+    implementation 'androidx.compose.runtime:runtime-livedata'
 
     // Core
     implementation 'androidx.core:core-ktx:1.10.1'
@@ -110,6 +109,9 @@ dependencies {
     implementation "androidx.room:room-runtime:$room_version"
     implementation "androidx.room:room-ktx:$room_version"
     kapt "androidx.room:room-compiler:$room_version"
+    // Room 2.x porta kotlin-metadata-jvm 2.2: senza questo aggiornamento kapt non
+    // riesce a leggere i metadata Kotlin 2.4 della stdlib tirata da Grafima.
+    kapt 'org.jetbrains.kotlin:kotlin-metadata-jvm:2.4.10'
 
     // WorkManager
     implementation "androidx.work:work-runtime-ktx:2.10.2"
@@ -123,6 +125,9 @@ dependencies {
 
     // Compose Charts (nuova libreria per grafici Compose)
     implementation 'io.github.ehsannarmani:compose-charts:0.1.1'
+
+    // Grafima - grafici Compose della dashboard (bar, line, pie, radar, gauge)
+    implementation 'io.grafima:grafima:1.2.0'
 
     implementation 'com.flaviofaria:kenburnsview:1.0.7'
 

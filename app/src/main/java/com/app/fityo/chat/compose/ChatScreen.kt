@@ -25,8 +25,9 @@ import com.app.fityo.chat.data.PredefinedQuestion
 import com.app.fityo.chat.data.QuestionCategory
 
 /**
- * Schermata principale della chat AI fitness.
- * L'utente puo SOLO selezionare domande predefinite - niente input libero.
+ * Schermata principale del chatbot.
+ * L'utente puo SOLO selezionare domande predefinite: ogni risposta arriva da una
+ * query sul database, non da un modello.
  */
 @Composable
 fun ChatScreen(
@@ -35,7 +36,6 @@ fun ChatScreen(
 ) {
     val messages by viewModel.messages.collectAsState()
     val isProcessing by viewModel.isProcessing.collectAsState()
-    val gemmaAvailable by viewModel.gemmaAvailable.collectAsState()
     val profileName by viewModel.profileName.collectAsState()
     val isCoachMode = viewModel.isCoachMode
 
@@ -62,7 +62,6 @@ fun ChatScreen(
                 ChatTopBar(
                     onBack = onBack,
                     onClearHistory = { viewModel.clearHistory() },
-                    gemmaAvailable = gemmaAvailable,
                     profileName = profileName
                 )
             },

@@ -8,8 +8,6 @@ import com.app.fityo.data_layer.db.EsserciziEntity
 import com.app.fityo.data_layer.db.SchedeEntity
 import com.app.fityo.data_layer.db.UserProfileEntity
 import com.app.fityo.dominio.GruppoMuscolarePercentuale
-import com.app.fityo.import_scheda.GemmaEngineType
-import com.app.fityo.import_scheda.GemmaLlmHelper
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -29,44 +27,22 @@ sealed class AnalyticsUiState {
         val volumes: List<Float>,
         val intensities: List<Float>,
         val sessionStats: SessionStats,
-        val gemmaInsights: GemmaLiveInsights? = null,
-        val gemmaState: GemmaInsightsState = GemmaInsightsState.Idle
+        val muscleDistribution: List<GruppoMuscolarePercentuale> = emptyList(),
+        val profileName: String? = null
     ) : AnalyticsUiState()
-}
-
-sealed class GemmaInsightsState {
-    object Idle : GemmaInsightsState()
-    object Loading : GemmaInsightsState()
-    object NotAvailable : GemmaInsightsState()
-    data class Success(val insights: GemmaLiveInsights) : GemmaInsightsState()
-    data class Error(val message: String) : GemmaInsightsState()
 }
 
 class AnalyticsViewModel(application: Application) : AndroidViewModel(application) {
 
     private val db = DbFit.getDatabase(application)
     private val analyzer: WorkoutAnalyticsEngine = AnalyticsEngineProvider.create(application)
-    private val gemmaHelper = GemmaAnalyticsHelper(application)
 
     private val _uiState = MutableStateFlow<AnalyticsUiState>(AnalyticsUiState.Loading)
     val uiState: StateFlow<AnalyticsUiState> = _uiState.asStateFlow()
 
-    // Stato Gemma
-    private val _gemmaState = MutableStateFlow<GemmaInsightsState>(GemmaInsightsState.Idle)
-    val gemmaState: StateFlow<GemmaInsightsState> = _gemmaState.asStateFlow()
-
-    // Engine type corrente
-    private val _currentEngineType = MutableStateFlow(GemmaLlmHelper.getEngineType())
-    val currentEngineType: StateFlow<GemmaEngineType> = _currentEngineType.asStateFlow()
-
     // Profilo selezionato per filtro
     private var selectedProfileId: Int? = null
     private var selectedProfileName: String? = null
-
-    // Cache per Gemma
-    private var cachedSchede: List<SchedeEntity> = emptyList()
-    private var cachedEsercizi: List<EsserciziEntity> = emptyList()
-    private var cachedMuscleDistribution: List<GruppoMuscolarePercentuale> = emptyList()
 
     init {
         loadAnalytics()
@@ -116,11 +92,6 @@ class AnalyticsViewModel(application: Application) : AndroidViewModel(applicatio
                         db.schedeDao().getPercentualePerGruppoMuscolare()
                     }
 
-                    // Cache per Gemma
-                    cachedSchede = schede
-                    cachedEsercizi = esercizi.toList()
-                    cachedMuscleDistribution = muscleDistribution
-
                     val insights = analyzer.analyze(orderedSchede, esercizi, profile, muscleDistribution)
                     val volumes = calculateVolumes(orderedSchede, esercizi)
                     val intensities = calculateIntensities(orderedSchede)
@@ -131,127 +102,13 @@ class AnalyticsViewModel(application: Application) : AndroidViewModel(applicatio
                         volumes = volumes,
                         intensities = intensities,
                         sessionStats = sessionStats,
-                        gemmaInsights = null,
-                        gemmaState = GemmaInsightsState.Idle
+                        muscleDistribution = muscleDistribution,
+                        profileName = selectedProfileName
                     )
                 }
-
-                // Carica Gemma insights in background
-                loadGemmaInsights()
-
             } catch (e: Exception) {
                 _uiState.value = AnalyticsUiState.Error(e.message ?: "Errore sconosciuto")
             }
-        }
-    }
-
-    fun loadGemmaInsights() {
-        viewModelScope.launch {
-            _gemmaState.value = GemmaInsightsState.Loading
-            updateUiWithGemmaState(GemmaInsightsState.Loading)
-
-            if (!gemmaHelper.isGemmaAvailable()) {
-                // Gemma non disponibile - usa smart fallback
-                val smartInsights = gemmaHelper.generateSmartInsightsWithoutGemma(
-                    schede = cachedSchede,
-                    esercizi = cachedEsercizi,
-                    muscleDistribution = cachedMuscleDistribution,
-                    profileId = selectedProfileId,
-                    profileName = selectedProfileName
-                )
-                _gemmaState.value = GemmaInsightsState.Success(smartInsights)
-                updateUiWithGemmaState(GemmaInsightsState.Success(smartInsights), smartInsights)
-                return@launch
-            }
-
-            val result = gemmaHelper.generateInsights(
-                schede = cachedSchede,
-                esercizi = cachedEsercizi,
-                muscleDistribution = cachedMuscleDistribution,
-                profileId = selectedProfileId,
-                profileName = selectedProfileName
-            )
-
-            result.onSuccess { insights ->
-                _gemmaState.value = GemmaInsightsState.Success(insights)
-                updateUiWithGemmaState(GemmaInsightsState.Success(insights), insights)
-                _currentEngineType.value = GemmaLlmHelper.getEngineType()
-            }.onFailure { error ->
-                // Fallback to smart insights on error
-                val smartInsights = gemmaHelper.generateSmartInsightsWithoutGemma(
-                    schede = cachedSchede,
-                    esercizi = cachedEsercizi,
-                    muscleDistribution = cachedMuscleDistribution,
-                    profileId = selectedProfileId,
-                    profileName = selectedProfileName
-                )
-                _gemmaState.value = GemmaInsightsState.Success(smartInsights)
-                updateUiWithGemmaState(GemmaInsightsState.Success(smartInsights), smartInsights)
-            }
-        }
-    }
-
-    fun refreshGemmaInsights() {
-        viewModelScope.launch {
-            _gemmaState.value = GemmaInsightsState.Loading
-            updateUiWithGemmaState(GemmaInsightsState.Loading)
-
-            if (!gemmaHelper.isGemmaAvailable()) {
-                // Gemma non disponibile - usa smart fallback
-                val smartInsights = gemmaHelper.generateSmartInsightsWithoutGemma(
-                    schede = cachedSchede,
-                    esercizi = cachedEsercizi,
-                    muscleDistribution = cachedMuscleDistribution,
-                    profileId = selectedProfileId,
-                    profileName = selectedProfileName
-                )
-                _gemmaState.value = GemmaInsightsState.Success(smartInsights)
-                updateUiWithGemmaState(GemmaInsightsState.Success(smartInsights), smartInsights)
-                return@launch
-            }
-
-            val result = gemmaHelper.refreshInsights(
-                schede = cachedSchede,
-                esercizi = cachedEsercizi,
-                muscleDistribution = cachedMuscleDistribution,
-                profileId = selectedProfileId,
-                profileName = selectedProfileName
-            )
-
-            result.onSuccess { insights ->
-                _gemmaState.value = GemmaInsightsState.Success(insights)
-                updateUiWithGemmaState(GemmaInsightsState.Success(insights), insights)
-                _currentEngineType.value = GemmaLlmHelper.getEngineType()
-            }.onFailure { error ->
-                // Fallback to smart insights on error
-                val smartInsights = gemmaHelper.generateSmartInsightsWithoutGemma(
-                    schede = cachedSchede,
-                    esercizi = cachedEsercizi,
-                    muscleDistribution = cachedMuscleDistribution,
-                    profileId = selectedProfileId,
-                    profileName = selectedProfileName
-                )
-                _gemmaState.value = GemmaInsightsState.Success(smartInsights)
-                updateUiWithGemmaState(GemmaInsightsState.Success(smartInsights), smartInsights)
-            }
-        }
-    }
-
-    fun setGemmaEngine(engineType: GemmaEngineType) {
-        GemmaLlmHelper.setEngineType(engineType)
-        _currentEngineType.value = engineType
-    }
-
-    private fun updateUiWithGemmaState(
-        gemmaState: GemmaInsightsState,
-        insights: GemmaLiveInsights? = null
-    ) {
-        val current = _uiState.value
-        if (current is AnalyticsUiState.Success) {
-            _uiState.value = current.copy(
-                gemmaInsights = insights ?: current.gemmaInsights,
-                gemmaState = gemmaState
-            )
         }
     }
 

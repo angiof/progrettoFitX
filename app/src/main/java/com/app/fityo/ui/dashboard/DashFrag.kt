@@ -12,15 +12,14 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.app.fityo.analytics.AnalyticsActivity
-import com.app.fityo.chat.ChatActivity
 import com.app.fityo.R
 import com.app.fityo.data_layer.db.DB.DbFit
 import com.app.fityo.ui.coach.CoachActivity
 import com.app.fityo.ui.dashboard.compose.DashboardScreen
-import com.app.fityo.utils.convertTimestampsToFormattedDates
 import com.google.android.material.datepicker.MaterialDatePicker
-import java.text.SimpleDateFormat
-import java.util.Locale
+import java.time.Instant
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 
 
 class DashFrag : Fragment() {
@@ -61,14 +60,6 @@ class DashFrag : Fragment() {
                     },
                     onManageProfiles = {
                         startActivity(Intent(requireContext(), CoachActivity::class.java))
-                    },
-                    onOpenChat = {
-                        val intent = Intent(requireContext(), ChatActivity::class.java).apply {
-                            viewModel.selectedProfileId.value?.let { profileId ->
-                                putExtra(ChatActivity.EXTRA_PROFILE_ID, profileId)
-                            }
-                        }
-                        startActivity(intent)
                     }
                 )
             }
@@ -78,10 +69,7 @@ class DashFrag : Fragment() {
     override fun onResume() {
         super.onResume()
         viewModel.loadCoachProfiles()
-        viewModel.refreshStats()
-        viewModel.refreshPercentuali()
-        viewModel.loadMediaIntensitaAll()
-        viewModel.loadWeekFrequencyAll()
+        viewModel.refresh()
     }
 
     private fun showDateRangePickerDialog() {
@@ -101,25 +89,13 @@ class DashFrag : Fragment() {
             val startDate = selection.first
             val endDate = selection.second
 
-            val formattedStartDateString =
-                SimpleDateFormat(getString(R.string.dd_mm_yyyy), Locale.getDefault()).format(
-                    startDate
-                )
-            val formattedEndDateString =
-                SimpleDateFormat(
-                    getString(R.string.dd_mm_yyyy_simplea_daat_format),
-                    Locale.getDefault()
-                ).format(endDate)
-
-            val dateRange = "$formattedStartDateString - $formattedEndDateString"
-
-            val (queryStartDateString, queryEndDateString) = convertTimestampsToFormattedDates(
-                startDate,
-                endDate
-            )
-            viewModel.refreshChartsForRange(queryStartDateString, queryEndDateString)
-            viewModel.setStatusData(dateRange)
-            viewModel.refreshStats()
+            // MaterialDatePicker exposes UTC midnights, independent of the device timezone.
+            val from = Instant.ofEpochMilli(startDate).atZone(ZoneOffset.UTC).toLocalDate()
+            val to = Instant.ofEpochMilli(endDate).atZone(ZoneOffset.UTC).toLocalDate()
+            val format = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+            val formattedStartDateString = from.format(format)
+            val formattedEndDateString = to.format(format)
+            viewModel.refreshChartsForRange(from.toString(), to.toString())
 
             Toast.makeText(
                 requireContext(),

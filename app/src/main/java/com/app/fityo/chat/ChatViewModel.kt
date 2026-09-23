@@ -23,7 +23,7 @@ class ChatViewModel(
     private val profileId: Int?
 ) : AndroidViewModel(application) {
 
-    private val chatHelper = GemmaChatHelper(application, db)
+    private val chatHelper = QueryChatHelper(application, db)
     private val sessionId = UUID.randomUUID().toString()
 
     companion object {
@@ -38,12 +38,6 @@ class ChatViewModel(
     private val _isProcessing = MutableStateFlow(false)
     val isProcessing: StateFlow<Boolean> = _isProcessing.asStateFlow()
 
-    private val _gemmaAvailable = MutableStateFlow(false)
-    val gemmaAvailable: StateFlow<Boolean> = _gemmaAvailable.asStateFlow()
-
-    private val _gemmaReady = MutableStateFlow(false)
-    val gemmaReady: StateFlow<Boolean> = _gemmaReady.asStateFlow()
-
     // Profile state
     private val _profileName = MutableStateFlow<String?>(null)
     val profileName: StateFlow<String?> = _profileName.asStateFlow()
@@ -53,15 +47,8 @@ class ChatViewModel(
     // ==================== INIT ====================
 
     init {
-        checkGemmaAvailability()
         loadProfileName()
         loadChatHistory()
-    }
-
-    private fun checkGemmaAvailability() {
-        _gemmaAvailable.value = chatHelper.isGemmaAvailable()
-        _gemmaReady.value = chatHelper.isGemmaReady()
-        Log.d(TAG, "Gemma available: ${_gemmaAvailable.value}, ready: ${_gemmaReady.value}")
     }
 
     private fun loadProfileName() {

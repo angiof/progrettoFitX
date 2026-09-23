@@ -1,5 +1,6 @@
 package com.app.fityo.analytics
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -8,17 +9,18 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.app.fityo.analytics.ui.AnalyticsDashboard
-
-private val DarkBackground = Color(0xFF0D0D0D)
-private val TextPrimary = Color(0xFFE8E8E8)
+import com.app.fityo.chat.ChatActivity
+import com.app.fityo.ui.dashboard.compose.DashboardAccentBlue
+import com.app.fityo.ui.dashboard.compose.DashboardAccentGreen
+import com.app.fityo.ui.dashboard.compose.DashboardBackground
+import com.app.fityo.ui.dashboard.compose.DashboardTextPrimary
 
 class AnalyticsActivity : ComponentActivity() {
 
@@ -43,7 +45,14 @@ class AnalyticsActivity : ComponentActivity() {
             AnalyticsScreen(
                 viewModel = viewModel,
                 profileName = profileName,
-                onBackClick = { finish() }
+                onBackClick = { finish() },
+                onOpenChat = {
+                    startActivity(
+                        Intent(this, ChatActivity::class.java).apply {
+                            profileId?.let { putExtra(ChatActivity.EXTRA_PROFILE_ID, it) }
+                        }
+                    )
+                }
             )
         }
     }
@@ -54,7 +63,8 @@ class AnalyticsActivity : ComponentActivity() {
 private fun AnalyticsScreen(
     viewModel: AnalyticsViewModel,
     profileName: String?,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onOpenChat: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -63,14 +73,14 @@ private fun AnalyticsScreen(
                     Column {
                         Text(
                             "Analytics Avanzate",
-                            color = TextPrimary,
+                            color = DashboardTextPrimary,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold
                         )
                         profileName?.let { name ->
                             Text(
                                 text = name,
-                                color = Color(0xFF8B5CF6),
+                                color = DashboardAccentBlue,
                                 fontSize = 12.sp
                             )
                         }
@@ -81,23 +91,33 @@ private fun AnalyticsScreen(
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Indietro",
-                            tint = TextPrimary
+                            tint = DashboardTextPrimary
+                        )
+                    }
+                },
+                actions = {
+                    // Il bot risponde con query sul database: sta qui perche' e' il
+                    // posto dove ci si fanno domande sui propri numeri.
+                    IconButton(onClick = onOpenChat) {
+                        Icon(
+                            Icons.Default.Chat,
+                            contentDescription = "Apri il bot delle domande",
+                            tint = DashboardAccentGreen
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = DarkBackground
+                    containerColor = DashboardBackground
                 )
             )
         },
-        containerColor = DarkBackground
+        containerColor = DashboardBackground
     ) { paddingValues ->
         AnalyticsDashboard(
             viewModel = viewModel,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(DarkBackground)
         )
     }
 }

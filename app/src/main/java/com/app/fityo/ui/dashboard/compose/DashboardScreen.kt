@@ -1,6 +1,10 @@
 package com.app.fityo.ui.dashboard.compose
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,10 +25,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Analytics
-import androidx.compose.material.icons.filled.Chat
-import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Analytics
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.*
@@ -33,135 +36,127 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.app.fityo.R
 import com.app.fityo.data_layer.db.CoachProfileEntity
-import com.app.fityo.data_layer.db.dao.GruppoMuscolareIntensitaMedia
-import com.app.fityo.dominio.GruppoMuscolarePercentuale
-import com.app.fityo.dominio.WeekdayWorkoutCount
 import com.app.fityo.ui.dashboard.DashViewModel
-import com.app.fityo.ui.dashboard.DashboardStats
-import androidx.compose.animation.core.tween
-import androidx.compose.ui.graphics.SolidColor
-import ir.ehsannarmani.compose_charts.ColumnChart
-import ir.ehsannarmani.compose_charts.PieChart
-import ir.ehsannarmani.compose_charts.models.BarProperties
-import ir.ehsannarmani.compose_charts.models.Bars
-import ir.ehsannarmani.compose_charts.models.Pie
+import com.app.fityo.ui.dashboard.DashboardSummary
+import io.grafima.charts.bar.AxisConfig
+import io.grafima.charts.bar.BarChart
+import io.grafima.charts.bar.BarDataSet
+import io.grafima.charts.bar.BarEntry
+import io.grafima.charts.bar.BarOrientation
+import io.grafima.charts.bar.ChartStyle
+import io.grafima.charts.bar.TooltipSelectionRenderer
+import io.grafima.charts.gauge.GaugeChart
+import io.grafima.charts.gauge.GaugeChartStyle
+import io.grafima.charts.gauge.GaugeNeedleConfig
+import io.grafima.charts.gauge.GaugeNeedleStyle
+import io.grafima.charts.gauge.GaugeTickConfig
+import io.grafima.charts.gauge.GaugeZone
+import io.grafima.charts.line.LineAxisConfig
+import io.grafima.charts.line.LineChart
+import io.grafima.charts.line.LineChartStyle
+import io.grafima.charts.line.LineCrosshairConfig
+import io.grafima.charts.line.LineCurveType
+import io.grafima.charts.line.LineDataPoint
+import io.grafima.charts.line.LineDataSet
+import io.grafima.charts.line.LineSeries
+import io.grafima.charts.pie.PieChart
+import io.grafima.charts.pie.PieChartStyle
+import io.grafima.charts.pie.PieDataSet
+import io.grafima.charts.pie.PieEntry
+import io.grafima.charts.pie.SliceBrush
+import io.grafima.charts.pie.TooltipPieSelectionRenderer
+import io.grafima.charts.radar.RadarAxis
+import io.grafima.charts.radar.RadarChart
+import io.grafima.charts.radar.RadarChartStyle
+import io.grafima.charts.radar.RadarDataSet
+import io.grafima.charts.radar.RadarGridStyle
+import io.grafima.charts.radar.RadarSeries
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
+import java.util.Locale
 
 @Composable
 fun DashboardScreen(
     viewModel: DashViewModel,
     onOpenAnalytics: () -> Unit,
     onSelectDateRange: () -> Unit,
-    onOpenChat: () -> Unit = {},
     onManageProfiles: () -> Unit = {},
     onBack: (() -> Unit)? = null
 ) {
     val scrollState = rememberScrollState()
-    val percentuali by viewModel.percentualiGruppiMuscolari.observeAsState(emptyList())
-    val mediaIntensita by viewModel.mediaIntensita.observeAsState(emptyList())
-    val weekFrequency by viewModel.weekFrequency.observeAsState(emptyList())
-    val dashboardStats by viewModel.dashboardStats.observeAsState(
-        DashboardStats(0, 0, 0, null, null, null, null)
-    )
+    val summary by viewModel.summary.observeAsState(DashboardSummary())
+    val loading by viewModel.loading.observeAsState(false)
+    val error by viewModel.error.observeAsState(null)
+    val periodLabel by viewModel.periodLabel.observeAsState("")
+    val selectedDays by viewModel.selectedDays.observeAsState(30)
     val coachProfiles by viewModel.coachProfiles.observeAsState(emptyList())
     val selectedProfileName by viewModel.selectedProfileName.observeAsState(null)
 
     var showProfileDialog by remember { mutableStateOf(false) }
-    var startDateDisplay by remember { mutableStateOf("") }
-    var endDateDisplay by remember { mutableStateOf("") }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(DashboardBackground)
+            .background(DashboardBackgroundBrush)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState)
-                .padding(16.dp),
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Alla dashboard si arriva anche dalla home: senza freccia l'unico modo di
             // tornare indietro era la barra di sistema.
-            onBack?.let { back ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(onClick = back) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Indietro",
-                            tint = DashboardTextPrimary
-                        )
-                    }
-                    Text(
-                        text = stringResource(R.string.title_dashboard),
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            color = DashboardTextPrimary,
-                            fontWeight = FontWeight.Bold
-                        )
-                    )
-                }
+            DashboardTopBar(
+                onBack = onBack,
+                selectedProfileName = selectedProfileName,
+                onSelectProfile = { showProfileDialog = true },
+                onOpenAnalytics = onOpenAnalytics
+            )
+
+            HeroCard(summary = summary, periodLabel = periodLabel, loading = loading)
+
+            PeriodSelector(
+                selectedDays = selectedDays,
+                onSelectPeriod = viewModel::selectPeriod,
+                onCustomRange = onSelectDateRange
+            )
+
+            error?.let { message -> ErrorCard(message = message) }
+
+            ConsistencyGaugeCard(weeklyAverage = summary.weeklyAverage)
+
+            MuscleDonutCard(muscles = summary.muscles)
+
+            // Il radar ha bisogno di almeno tre assi per disegnare una forma.
+            if (summary.muscles.size >= 3) {
+                MuscleRadarCard(muscles = summary.muscles)
             }
 
-            // Top buttons row
-            TopButtonsRow(
-                onSelectDateRange = onSelectDateRange,
-                onOpenAnalytics = onOpenAnalytics,
-                selectedProfileName = selectedProfileName,
-                onSelectProfile = { showProfileDialog = true }
-            )
+            WeekdayBarCard(weekdays = summary.weekdays)
 
-            // Date range card
-            DateRangeCard(
-                startDate = startDateDisplay,
-                endDate = endDateDisplay
-            )
+            TrendLineCard(trend = summary.trend)
 
-            // Pie Chart - Muscle group distribution
-            PieChartCard(percentuali = percentuali)
+            IntensityBarCard(intensities = summary.intensities)
 
-            // Bar Chart - Intensity by muscle group
-            IntensityBarChartCard(mediaIntensita = mediaIntensita)
-
-            // Weekly frequency chart
-            WeeklyChartCard(weekFrequency = weekFrequency)
-
-            // Stats card
-            StatsCard(stats = dashboardStats)
+            StatsCard(summary = summary)
 
             Spacer(modifier = Modifier.height(80.dp))
         }
-
-        // === IA temporaneamente disabilitata ===
-        // Chat FAB (riabilitare quando la chat IA sarà pronta)
-        /*
-        FloatingActionButton(
-            onClick = onOpenChat,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(16.dp),
-            containerColor = DashboardAccentPurple,
-            contentColor = DashboardTextPrimary
-        ) {
-            Icon(
-                imageVector = Icons.Default.Chat,
-                contentDescription = "AI Chat"
-            )
-        }
-        */
     }
 
-    // Profile selection dialog
     if (showProfileDialog) {
         ProfileSelectionDialog(
             profiles = coachProfiles,
@@ -183,323 +178,423 @@ fun DashboardScreen(
 }
 
 @Composable
-private fun TopButtonsRow(
-    onSelectDateRange: () -> Unit,
-    onOpenAnalytics: () -> Unit,
+private fun DashboardTopBar(
+    onBack: (() -> Unit)?,
     selectedProfileName: String?,
-    onSelectProfile: () -> Unit
+    onSelectProfile: () -> Unit,
+    onOpenAnalytics: () -> Unit
 ) {
-    Column(
+    Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            // Date range button
-            Button(
-                onClick = onSelectDateRange,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = DashboardCard,
-                    contentColor = DashboardTextPrimary
-                ),
-                shape = RoundedCornerShape(24.dp)
-            ) {
+        onBack?.let { back ->
+            IconButton(onClick = back) {
                 Icon(
-                    Icons.Default.FilterList,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Indietro",
+                    tint = DashboardTextPrimary
                 )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(stringResource(R.string.seleziona_un_periodo))
-            }
-
-            // Analytics button
-            Button(
-                onClick = onOpenAnalytics,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = DashboardAccentBlue,
-                    contentColor = DashboardTextPrimary
-                ),
-                shape = RoundedCornerShape(24.dp)
-            ) {
-                Icon(
-                    Icons.Default.Analytics,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(stringResource(R.string.analytics_advanced))
             }
         }
-
-        // Profile button
-        Button(
-            onClick = onSelectProfile,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = DashboardSurface,
-                contentColor = DashboardTextPrimary
-            ),
-            shape = RoundedCornerShape(24.dp)
-        ) {
+        Text(
+            text = stringResource(R.string.title_dashboard),
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.titleLarge.copy(
+                color = DashboardTextPrimary,
+                fontWeight = FontWeight.Bold
+            )
+        )
+        IconButton(onClick = onOpenAnalytics) {
+            Icon(
+                Icons.Default.Analytics,
+                contentDescription = stringResource(R.string.analytics_advanced),
+                tint = DashboardAccentBlue
+            )
+        }
+        IconButton(onClick = onSelectProfile) {
             Icon(
                 Icons.Default.Person,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = selectedProfileName?.let {
-                    stringResource(R.string.dashboard_showing_profile, it)
-                } ?: stringResource(R.string.dashboard_profile_all)
+                contentDescription = selectedProfileName
+                    ?: stringResource(R.string.dashboard_profile_all),
+                tint = DashboardAccentGreen
             )
         }
     }
 }
 
 @Composable
-private fun DateRangeCard(
-    startDate: String,
-    endDate: String
+private fun HeroCard(
+    summary: DashboardSummary,
+    periodLabel: String,
+    loading: Boolean
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = DashboardCard),
-        shape = RoundedCornerShape(24.dp)
+    // Il numero sale invece di comparire: si vede che il periodo e' cambiato.
+    val completed by animateIntAsState(
+        targetValue = summary.completed,
+        animationSpec = tween(durationMillis = 700),
+        label = "completed"
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(28.dp))
+            .background(DashboardHeroBrush)
+            .border(1.dp, DashboardCardBorder, RoundedCornerShape(28.dp))
+            .padding(24.dp)
     ) {
-        Column(
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(
+                text = periodLabel,
+                style = MaterialTheme.typography.labelLarge.copy(
+                    color = DashboardAccentBlue,
+                    fontWeight = FontWeight.SemiBold
+                )
+            )
+            Text(
+                text = completed.toString(),
+                style = MaterialTheme.typography.displayMedium.copy(
+                    color = DashboardTextPrimary,
+                    fontWeight = FontWeight.Black
+                )
+            )
+            Text(
+                text = stringResource(R.string.dashboard_hero_completed),
+                style = MaterialTheme.typography.titleSmall.copy(color = DashboardTextSecondary)
+            )
+            Text(
+                text = stringResource(R.string.dashboard_hero_of, summary.total),
+                style = MaterialTheme.typography.bodySmall.copy(color = DashboardTextMuted)
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                HeroMetric(
+                    value = summary.activeDays.toString(),
+                    label = stringResource(R.string.dashboard_active_days)
+                )
+                HeroMetric(
+                    value = String.format(Locale.getDefault(), "%.1f", summary.weeklyAverage),
+                    label = stringResource(R.string.dashboard_avg_per_week)
+                )
+                HeroMetric(
+                    value = summary.favorites.toString(),
+                    label = stringResource(R.string.dashboard_favorite_schede)
+                )
+            }
+
+            if (loading) {
+                Spacer(modifier = Modifier.height(12.dp))
+                LinearProgressIndicator(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(CircleShape),
+                    color = DashboardAccentBlue,
+                    trackColor = DashboardCardBorder
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun HeroMetric(value: String, label: String) {
+    Column(horizontalAlignment = Alignment.Start) {
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleLarge.copy(
+                color = DashboardTextPrimary,
+                fontWeight = FontWeight.Bold
+            )
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall.copy(color = DashboardTextMuted)
+        )
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun PeriodSelector(
+    selectedDays: Int?,
+    onSelectPeriod: (Int?) -> Unit,
+    onCustomRange: () -> Unit
+) {
+    val periods = listOf(
+        7 to stringResource(R.string.dashboard_period_7),
+        30 to stringResource(R.string.dashboard_period_30),
+        90 to stringResource(R.string.dashboard_period_90),
+        null to stringResource(R.string.dashboard_period_all)
+    )
+
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        periods.forEach { (days, label) ->
+            PeriodChip(
+                label = label,
+                selected = selectedDays == days,
+                onClick = { onSelectPeriod(days) }
+            )
+        }
+        // -1 e' il periodo scelto a mano dal date picker: nessun chip lo rappresenta.
+        PeriodChip(
+            label = stringResource(R.string.seleziona_un_periodo),
+            selected = selectedDays == -1,
+            onClick = onCustomRange,
+            leadingIcon = {
+                Icon(
+                    Icons.Default.DateRange,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+        )
+    }
+}
+
+@Composable
+private fun PeriodChip(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    leadingIcon: (@Composable () -> Unit)? = null
+) {
+    val background by animateColorAsState(
+        targetValue = if (selected) DashboardAccentBlue.copy(alpha = 0.22f) else DashboardCard,
+        label = "chipBackground"
+    )
+    val content = if (selected) DashboardAccentBlue else DashboardTextSecondary
+
+    Row(
+        modifier = Modifier
+            .clip(CircleShape)
+            .background(background)
+            .border(
+                width = 1.dp,
+                color = if (selected) DashboardAccentBlue.copy(alpha = 0.6f) else DashboardCardBorder,
+                shape = CircleShape
+            )
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        leadingIcon?.let {
+            CompositionLocalProvider(LocalContentColor provides content) { it() }
+        }
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelLarge.copy(
+                color = content,
+                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
+            )
+        )
+    }
+}
+
+@Composable
+private fun ErrorCard(message: String) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(DashboardError.copy(alpha = 0.14f))
+            .border(1.dp, DashboardError.copy(alpha = 0.4f), RoundedCornerShape(16.dp))
+            .padding(16.dp)
+    ) {
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyMedium,
+            color = DashboardTextPrimary
+        )
+    }
+}
+
+@Composable
+private fun ConsistencyGaugeCard(weeklyAverage: Double) {
+    val zones = listOf(
+        GaugeZone(
+            id = "low",
+            label = stringResource(R.string.dashboard_zone_low),
+            range = 0f..2f,
+            color = DashboardError
+        ),
+        GaugeZone(
+            id = "steady",
+            label = stringResource(R.string.dashboard_zone_steady),
+            range = 2f..4f,
+            color = DashboardAccentBlue
+        ),
+        GaugeZone(
+            id = "high",
+            label = stringResource(R.string.dashboard_zone_high),
+            range = 4f..7f,
+            color = DashboardAccentGreen
+        )
+    )
+
+    ChartCard(
+        title = stringResource(R.string.dashboard_consistency_title),
+        subtitle = stringResource(R.string.dashboard_consistency_subtitle),
+        accent = DashboardAccentGreen
+    ) {
+        GaugeChart(
+            value = weeklyAverage.toFloat(),
+            minValue = 0f,
+            maxValue = 7f,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .height(250.dp),
+            zones = zones,
+            style = GaugeChartStyle(
+                startAngle = 135f,
+                sweepAngle = 270f,
+                arcWidth = 18.dp,
+                trackColor = DashboardGrid,
+                fillFraction = 0.9f,
+                centerContentOffset = 64.dp
+            ),
+            tickConfig = GaugeTickConfig(
+                majorTickCount = 7,
+                minorTicksPerMajor = 1,
+                majorTickColor = DashboardTextMuted,
+                minorTickColor = DashboardGrid,
+                labelColor = DashboardTextMuted,
+                labelFontSize = 10.sp
+            ),
+            needleConfig = GaugeNeedleConfig(
+                style = GaugeNeedleStyle.Tapered,
+                color = DashboardTextPrimary,
+                baseColor = DashboardTextMuted,
+                lengthFraction = 0.78f
+            )
         ) {
-            Text(
-                text = startDate.ifEmpty { "Data inizio" },
-                style = MaterialTheme.typography.headlineSmall.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = DashboardTextPrimary
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = String.format(Locale.getDefault(), "%.1f", weeklyAverage),
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                        color = DashboardTextPrimary,
+                        fontWeight = FontWeight.Black
+                    )
                 )
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = endDate.ifEmpty { "Data fine" },
-                style = MaterialTheme.typography.titleMedium.copy(
-                    color = DashboardTextSecondary
+                Text(
+                    text = stringResource(R.string.dashboard_consistency_unit),
+                    style = MaterialTheme.typography.labelSmall.copy(color = DashboardTextMuted)
                 )
-            )
+            }
         }
     }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun PieChartCard(
-    percentuali: List<GruppoMuscolarePercentuale>
-) {
-    val pieColors = listOf(
-        Color(0xFF4777C0),
-        Color(0xFFA374C6),
-        Color(0xFF4FB3E8),
-        Color(0xFF99CF43),
-        Color(0xFFFDC135),
-        Color(0xFFFD9A47),
-        Color(0xFFEB6E7A),
-        Color(0xFF6785C2)
-    )
+private fun MuscleDonutCard(muscles: List<Pair<String, Int>>) {
+    val description = stringResource(R.string.dashboard_chart_muscle_a11y)
+    val completedLabel = stringResource(R.string.dashboard_completed_schede)
+    val top = remember(muscles) { muscles.take(DashboardChartGradients.size) }
+    var selected by remember { mutableStateOf<PieEntry?>(null) }
 
-    val pieData = remember(percentuali) {
-        percentuali.mapIndexed { index, p ->
-            Pie(
-                label = p.gruppoMuscolare,
-                data = p.percentuale.toDouble(),
-                color = pieColors[index % pieColors.size],
-                selectedColor = pieColors[index % pieColors.size].copy(alpha = 0.8f)
-            )
-        }
-    }
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(420.dp),
-        colors = CardDefaults.cardColors(containerColor = DashboardCard),
-        shape = RoundedCornerShape(16.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-        ) {
-            Text(
-                text = stringResource(R.string.dashboard_total_esercizi),
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = DashboardTextPrimary
+    val dataSet = remember(top, description) {
+        PieDataSet(
+            entries = top.mapIndexed { index, (gruppo, count) ->
+                PieEntry(
+                    id = gruppo,
+                    label = gruppo,
+                    value = count.toFloat(),
+                    brush = SliceBrush.Linear(
+                        colors = DashboardChartGradients[index % DashboardChartGradients.size],
+                        angleDegrees = 45f
+                    )
                 )
-            )
-            Spacer(modifier = Modifier.height(8.dp))
+            },
+            contentDescription = description
+        )
+    }
+    val total = remember(top) { top.sumOf { it.second } }
 
-            if (percentuali.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = stringResource(R.string.no_data_chart),
-                        color = DashboardTextSecondary,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            } else {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    contentAlignment = Alignment.Center
-                ) {
-                    PieChart(
-                        modifier = Modifier.size(200.dp),
-                        data = pieData,
-                        style = Pie.Style.Stroke(width = 60.dp),
-                        scaleAnimEnterSpec = tween(durationMillis = 1200),
-                        spaceDegreeAnimEnterSpec = tween(durationMillis = 1200)
-                    )
-                }
+    ChartCard(
+        title = stringResource(R.string.dashboard_muscle_distribution),
+        subtitle = stringResource(R.string.dashboard_muscle_subtitle)
+    ) {
+        if (top.isEmpty()) {
+            EmptyChart(height = 220.dp)
+            return@ChartCard
+        }
 
-                // Legenda
-                Spacer(modifier = Modifier.height(16.dp))
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    pieData.forEach { pie ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(horizontal = 8.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(12.dp)
-                                    .clip(CircleShape)
-                                    .background(pie.color)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = "${pie.label} (${pie.data.toInt()}%)",
-                                color = DashboardTextSecondary,
-                                fontSize = 11.sp
-                            )
-                        }
-                    }
-                }
+        PieChart(
+            dataSet = dataSet,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(260.dp),
+            style = PieChartStyle(
+                donutRatio = 0.58f,
+                selectedScale = 1.06f,
+                fillFraction = 0.78f,
+                sliceSpacingAngle = 1.5f,
+                minSliceAngle = 6f
+            ),
+            selectionRenderer = TooltipPieSelectionRenderer(
+                backgroundColor = DashboardTooltip,
+                textStyle = TextStyle(color = DashboardTextPrimary, fontSize = 12.sp)
+            ),
+            selectedEntry = selected,
+            onSliceSelected = { selected = it }
+        ) {
+            val slice = selected
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = if (slice == null) total.toString()
+                    else "${(slice.value * 100 / total.coerceAtLeast(1)).toInt()}%",
+                    style = MaterialTheme.typography.headlineSmall.copy(
+                        color = DashboardTextPrimary,
+                        fontWeight = FontWeight.Black
+                    )
+                )
+                Text(
+                    text = slice?.label ?: completedLabel,
+                    style = MaterialTheme.typography.labelSmall.copy(color = DashboardTextMuted),
+                    textAlign = TextAlign.Center
+                )
             }
         }
-    }
-}
 
-@Composable
-private fun IntensityBarChartCard(
-    mediaIntensita: List<GruppoMuscolareIntensitaMedia>
-) {
-    val chartLabel = stringResource(R.string.bar_label_intensity)
+        Spacer(modifier = Modifier.height(12.dp))
 
-    val barColors = listOf(
-        Color(0xFFFF6F61),
-        Color(0xFF4DD0E1),
-        Color(0xFF9575CD),
-        Color(0xFF81C784),
-        Color(0xFFFFD54F)
-    )
-
-    val barsData = remember(mediaIntensita) {
-        mediaIntensita.mapIndexed { index, item ->
-            Bars(
-                label = item.gruppoMuscolare,
-                values = listOf(
-                    Bars.Data(
-                        value = item.mediaIntensita.toDouble(),
-                        color = SolidColor(barColors[index % barColors.size])
-                    )
-                )
-            )
-        }
-    }
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(350.dp),
-        colors = CardDefaults.cardColors(containerColor = DashboardCard),
-        shape = RoundedCornerShape(16.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text(
-                text = chartLabel,
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = DashboardTextPrimary
-                )
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-
-            if (mediaIntensita.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = stringResource(R.string.no_data_chart),
-                        color = DashboardTextSecondary,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            } else {
-                ColumnChart(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .padding(bottom = 8.dp),
-                    data = barsData,
-                    barProperties = BarProperties(
-                        cornerRadius = Bars.Data.Radius.Rectangle(topRight = 6.dp, topLeft = 6.dp),
-                        spacing = 4.dp,
-                        thickness = 24.dp
-                    ),
-                    animationSpec = tween(durationMillis = 2000)
-                )
-
-                // Legenda etichette
+            top.forEachIndexed { index, (gruppo, count) ->
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(horizontal = 8.dp)
                 ) {
-                    mediaIntensita.forEachIndexed { index, item ->
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Box(
-                                modifier = Modifier
-                                    .size(12.dp)
-                                    .clip(CircleShape)
-                                    .background(barColors[index % barColors.size])
+                    Box(
+                        modifier = Modifier
+                            .size(10.dp)
+                            .clip(CircleShape)
+                            .background(
+                                Brush.linearGradient(
+                                    DashboardChartGradients[index % DashboardChartGradients.size]
+                                )
                             )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = item.gruppoMuscolare.take(8),
-                                color = DashboardTextSecondary,
-                                fontSize = 9.sp,
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                    }
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "$gruppo ($count)",
+                        color = DashboardTextSecondary,
+                        fontSize = 11.sp
+                    )
                 }
             }
         }
@@ -507,146 +602,298 @@ private fun IntensityBarChartCard(
 }
 
 @Composable
-private fun WeeklyChartCard(
-    weekFrequency: List<WeekdayWorkoutCount>
-) {
+private fun MuscleRadarCard(muscles: List<Pair<String, Int>>) {
+    val description = stringResource(R.string.dashboard_chart_radar_a11y)
+    val seriesLabel = stringResource(R.string.dashboard_radar_title)
+    var selected by remember { mutableStateOf<RadarSeries?>(null) }
+
+    // Sei assi sono il massimo leggibile: oltre, le etichette si accavallano.
+    val top = remember(muscles) { muscles.take(6) }
+    val dataSet = remember(top, description, seriesLabel) {
+        val scale = top.maxOf { it.second }.toFloat()
+        RadarDataSet(
+            axes = top.map { (gruppo, _) ->
+                RadarAxis(id = gruppo, label = gruppo, maxValue = scale)
+            },
+            series = listOf(
+                RadarSeries(
+                    id = "volume",
+                    label = seriesLabel,
+                    values = top.associate { (gruppo, count) -> gruppo to count.toFloat() },
+                    color = DashboardAccentBlue,
+                    fillAlpha = 0.28f
+                )
+            ),
+            contentDescription = description
+        )
+    }
+
+    ChartCard(
+        title = stringResource(R.string.dashboard_radar_title),
+        subtitle = stringResource(R.string.dashboard_radar_subtitle),
+        accent = DashboardAccentPurple
+    ) {
+        RadarChart(
+            dataSet = dataSet,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(300.dp),
+            style = RadarChartStyle(
+                gridColor = DashboardGrid,
+                axisColor = DashboardGrid,
+                labelColor = DashboardTextSecondary,
+                gridStyle = RadarGridStyle.Polygon,
+                gridLevels = 4,
+                fillFraction = 0.72f,
+                dotRadius = 4.dp
+            ),
+            selectedSeries = selected,
+            onSeriesSelected = { selected = it }
+        )
+    }
+}
+
+@Composable
+private fun WeekdayBarCard(weekdays: List<Int>) {
+    val description = stringResource(R.string.dashboard_chart_week_a11y)
+    // summary.weekdays parte dal lunedi (DayOfWeek.value 1..7).
     val dayLabels = listOf(
-        stringResource(R.string.day_sun_short),
         stringResource(R.string.day_mon_short),
         stringResource(R.string.day_tue_short),
         stringResource(R.string.day_wed_short),
         stringResource(R.string.day_thu_short),
         stringResource(R.string.day_fri_short),
-        stringResource(R.string.day_sat_short)
+        stringResource(R.string.day_sat_short),
+        stringResource(R.string.day_sun_short)
     )
+    var selected by remember { mutableStateOf<BarEntry?>(null) }
 
-    val weekColor = Color(0xFF4DD0E1)
-
-    val barsData = remember(weekFrequency, dayLabels) {
-        val map = weekFrequency.associate { it.dayOfWeek to it.count }
-        dayLabels.mapIndexed { index, label ->
-            Bars(
-                label = label,
-                values = listOf(
-                    Bars.Data(
-                        value = (map[index] ?: 0).toDouble(),
-                        color = SolidColor(weekColor)
-                    )
+    val dataSet = remember(weekdays, dayLabels, description) {
+        val best = weekdays.withIndex().filter { it.value > 0 }.maxByOrNull { it.value }?.index
+        BarDataSet(
+            entries = dayLabels.mapIndexed { index, label ->
+                BarEntry(
+                    id = "day$index",
+                    xLabel = label,
+                    y = (weekdays.getOrNull(index) ?: 0).toFloat(),
+                    // Il giorno migliore si stacca senza bisogno di leggere l'asse.
+                    gradientColors = if (index == best) DashboardChartGradients[1]
+                    else DashboardChartGradients[0]
                 )
-            )
-        }
+            },
+            contentDescription = description
+        )
     }
 
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(280.dp),
-        colors = CardDefaults.cardColors(containerColor = DashboardCard),
-        shape = RoundedCornerShape(16.dp)
+    ChartCard(
+        title = stringResource(R.string.week_chart_title),
+        subtitle = stringResource(R.string.dashboard_week_subtitle)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-        ) {
-            Text(
-                text = stringResource(R.string.week_chart_title),
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = DashboardTextPrimary
-                )
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = stringResource(R.string.week_chart_description),
-                style = MaterialTheme.typography.bodySmall.copy(
-                    color = DashboardTextSecondary
-                )
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-
-            if (weekFrequency.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = stringResource(R.string.no_data_chart),
-                        color = DashboardTextSecondary,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            } else {
-                ColumnChart(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .padding(bottom = 8.dp),
-                    data = barsData,
-                    barProperties = BarProperties(
-                        cornerRadius = Bars.Data.Radius.Rectangle(topRight = 4.dp, topLeft = 4.dp),
-                        spacing = 2.dp,
-                        thickness = 20.dp
-                    ),
-                    animationSpec = tween(durationMillis = 1500)
-                )
-
-                // Etichette giorni
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    dayLabels.forEach { label ->
-                        Text(
-                            text = label,
-                            color = DashboardTextSecondary,
-                            fontSize = 10.sp,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-            }
+        if (weekdays.none { it > 0 }) {
+            EmptyChart(height = 200.dp)
+            return@ChartCard
         }
+        BarChart(
+            dataSet = dataSet,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(240.dp),
+            style = dashboardBarStyle(),
+            axisConfig = dashboardBarAxis(),
+            selectionRenderer = dashboardBarTooltip(),
+            selectedEntry = selected,
+            onBarSelected = { selected = it }
+        )
     }
 }
 
 @Composable
-private fun StatsCard(
-    stats: DashboardStats
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = DashboardCard),
-        shape = RoundedCornerShape(16.dp)
+private fun IntensityBarCard(intensities: List<Pair<String, Int>>) {
+    val description = stringResource(R.string.dashboard_chart_intensity_a11y)
+    var selected by remember { mutableStateOf<BarEntry?>(null) }
+
+    val dataSet = remember(intensities, description) {
+        BarDataSet(
+            entries = intensities.mapIndexed { index, (label, count) ->
+                BarEntry(
+                    id = "intensity$index",
+                    xLabel = label,
+                    y = count.toFloat(),
+                    gradientColors = IntensityGradients.getOrElse(index) {
+                        DashboardChartGradients[index % DashboardChartGradients.size]
+                    }
+                )
+            },
+            contentDescription = description
+        )
+    }
+
+    ChartCard(
+        title = stringResource(R.string.dashboard_intensity_distribution),
+        subtitle = stringResource(R.string.dashboard_intensity_subtitle),
+        accent = DashboardChartColors[3]
     ) {
-        Column(
+        if (intensities.none { it.second > 0 }) {
+            EmptyChart(height = 180.dp)
+            return@ChartCard
+        }
+        BarChart(
+            dataSet = dataSet,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Text(
-                text = stringResource(R.string.dashboard_stats_title),
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = DashboardTextPrimary
-                )
-            )
+                .height(220.dp),
+            orientation = BarOrientation.Horizontal,
+            style = dashboardBarStyle(),
+            axisConfig = dashboardBarAxis(steps = 3),
+            selectionRenderer = dashboardBarTooltip(),
+            selectedEntry = selected,
+            onBarSelected = { selected = it }
+        )
+    }
+}
 
+@Composable
+private fun TrendLineCard(trend: List<Pair<LocalDate, Int>>) {
+    val description = stringResource(R.string.dashboard_chart_trend_a11y)
+    val seriesLabel = stringResource(R.string.dashboard_trend_title)
+    var selectedPoint by remember { mutableStateOf<Int?>(null) }
+
+    val dataSet = remember(trend, description, seriesLabel) {
+        val format = DateTimeFormatter.ofPattern("d MMM", Locale.getDefault())
+        LineDataSet(
+            series = listOf(
+                LineSeries(
+                    id = "trend",
+                    label = seriesLabel,
+                    points = trend.mapIndexed { index, (week, count) ->
+                        LineDataPoint(
+                            x = index.toFloat(),
+                            y = count.toFloat(),
+                            label = week.format(format)
+                        )
+                    },
+                    color = DashboardAccentBlue,
+                    fillAlpha = 0.28f,
+                    fillGradientColors = listOf(DashboardAccentBlue, Color.Transparent),
+                    dotRadius = 5.dp
+                )
+            ),
+            contentDescription = description
+        )
+    }
+
+    ChartCard(
+        title = stringResource(R.string.dashboard_trend_title),
+        subtitle = stringResource(R.string.dashboard_trend_subtitle),
+        accent = DashboardChartColors[5]
+    ) {
+        // Una settimana sola non e' un andamento, e' un punto.
+        if (trend.size < 2) {
+            EmptyChart(height = 200.dp)
+            return@ChartCard
+        }
+        LineChart(
+            dataSet = dataSet,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(250.dp),
+            style = LineChartStyle(
+                curveType = LineCurveType.MonotoneCubic,
+                showDots = true
+            ),
+            axisConfig = LineAxisConfig(
+                yTickCount = 4,
+                includeZeroInYRange = true,
+                gridColor = DashboardGrid,
+                axisColor = DashboardGrid,
+                labelColor = DashboardTextMuted
+            ),
+            crosshairConfig = LineCrosshairConfig(
+                lineColor = DashboardTextMuted,
+                dotBorderColor = DashboardCard,
+                tooltipBackground = DashboardTooltip,
+                tooltipTextColor = DashboardTextPrimary
+            ),
+            selectedPointIndex = selectedPoint,
+            onPointSelected = { selectedPoint = it }
+        )
+    }
+}
+
+/** Bassa, Media, Alta, Non indicata: la scala di colore segue lo sforzo. */
+private val IntensityGradients = listOf(
+    DashboardChartGradients[1],
+    DashboardChartGradients[0],
+    DashboardChartGradients[4],
+    listOf(Color(0xFF7A8CA0), Color(0xFF5A6C80))
+)
+
+@Composable
+private fun dashboardBarStyle(): ChartStyle = remember {
+    ChartStyle(
+        labelTextStyle = TextStyle(
+            color = DashboardTextSecondary,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Medium
+        ),
+        valueTextStyle = TextStyle(
+            color = DashboardTextPrimary,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold
+        )
+    )
+}
+
+@Composable
+private fun dashboardBarAxis(steps: Int = 4): AxisConfig = remember(steps) {
+    AxisConfig(
+        yAxisSteps = steps,
+        axisColor = DashboardGrid,
+        axisLabelTextStyle = TextStyle(
+            color = DashboardTextMuted,
+            fontSize = 10.sp,
+            fontWeight = FontWeight.SemiBold
+        )
+    )
+}
+
+@Composable
+private fun dashboardBarTooltip(): TooltipSelectionRenderer = remember {
+    TooltipSelectionRenderer(
+        backgroundColor = DashboardTooltip,
+        textStyle = TextStyle(color = DashboardTextPrimary, fontSize = 12.sp)
+    )
+}
+
+@Composable
+private fun StatsCard(
+    summary: DashboardSummary
+) {
+    val lastWorkoutDate = remember(summary.lastDate) {
+        summary.lastDate?.format(DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.getDefault()))
+    }
+    val daysSinceLastWorkout = remember(summary.lastDate) {
+        summary.lastDate?.let { ChronoUnit.DAYS.between(it, LocalDate.now()).toInt() }
+    }
+    val mostTrainedMuscle = summary.muscles.firstOrNull()?.first
+
+    ChartCard(
+        title = stringResource(R.string.dashboard_stats_title),
+        accent = DashboardChartColors[2]
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 StatItem(
                     label = stringResource(R.string.dashboard_total_schede),
-                    value = stats.totalSchede.toString(),
+                    value = summary.total.toString(),
                     modifier = Modifier.weight(1f)
                 )
                 StatItem(
-                    label = stringResource(R.string.dashboard_favorite_schede),
-                    value = stats.favoriteSchede.toString(),
+                    label = stringResource(R.string.dashboard_completed_schede),
+                    value = summary.completed.toString(),
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -655,43 +902,65 @@ private fun StatsCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                StatItem(
-                    label = stringResource(R.string.dashboard_total_esercizi),
-                    value = stats.totalExercises.toString(),
-                    modifier = Modifier.weight(1f)
-                )
                 StatItem(
                     label = stringResource(R.string.dashboard_last_session),
-                    value = stats.lastWorkoutDate ?: stringResource(R.string.dashboard_last_session_none),
+                    value = lastWorkoutDate ?: stringResource(R.string.dashboard_last_session_none),
                     modifier = Modifier.weight(1f)
                 )
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
                 StatItem(
                     label = stringResource(R.string.dashboard_days_since),
-                    value = stats.daysSinceLastWorkout?.let {
+                    value = daysSinceLastWorkout?.let {
                         stringResource(R.string.dashboard_days_format, it)
                     } ?: stringResource(R.string.dashboard_no_data),
                     modifier = Modifier.weight(1f)
                 )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
                 StatItem(
                     label = stringResource(R.string.dashboard_most_trained),
-                    value = stats.mostTrainedMuscle ?: stringResource(R.string.dashboard_no_data),
+                    value = mostTrainedMuscle ?: stringResource(R.string.dashboard_no_data),
+                    modifier = Modifier.weight(1f)
+                )
+                StatItem(
+                    label = stringResource(R.string.dashboard_favorite_schede),
+                    value = summary.favorites.toString(),
                     modifier = Modifier.weight(1f)
                 )
             }
 
-            StatItem(
-                label = stringResource(R.string.dashboard_avg_per_week),
-                value = stats.avgWorkoutsPerWeek?.let {
-                    stringResource(R.string.dashboard_avg_format, it)
-                } ?: stringResource(R.string.dashboard_no_data),
-                modifier = Modifier.fillMaxWidth()
-            )
+            // Passi e battito arrivano dal wear: mostrati solo quando ci sono davvero.
+            if (summary.steps != null || summary.heartRate != null) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    StatItem(
+                        label = stringResource(R.string.dashboard_total_steps),
+                        value = summary.steps?.toString()
+                            ?: stringResource(R.string.dashboard_no_data),
+                        modifier = Modifier.weight(1f)
+                    )
+                    StatItem(
+                        label = stringResource(R.string.dashboard_avg_heart_rate),
+                        value = summary.heartRate?.let {
+                            String.format(Locale.getDefault(), "%.0f", it)
+                        } ?: stringResource(R.string.dashboard_no_data),
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+
+            if (summary.undated > 0) {
+                Text(
+                    text = stringResource(R.string.dashboard_undated_note, summary.undated),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = DashboardTextMuted
+                )
+            }
         }
     }
 }
@@ -748,7 +1017,6 @@ private fun ProfileSelectionDialog(
                 modifier = Modifier.verticalScroll(scrollState),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Individual profiles (rimosso "tutti i profili")
                 profiles.forEach { profile ->
                     Card(
                         modifier = Modifier
@@ -765,7 +1033,7 @@ private fun ProfileSelectionDialog(
                             Surface(
                                 modifier = Modifier.size(40.dp),
                                 shape = RoundedCornerShape(20.dp),
-                                color = androidx.compose.ui.graphics.Color(profile.avatarColor)
+                                color = Color(profile.avatarColor)
                             ) {
                                 Text(
                                     text = profile.name.take(2).uppercase(),
@@ -807,6 +1075,25 @@ private fun ProfileSelectionDialog(
                         style = MaterialTheme.typography.bodyMedium,
                         color = DashboardTextSecondary,
                         modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
+
+                // Senza questa voce un profilo scelto per sbaglio non si potrebbe piu togliere.
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onSelectAll() },
+                    colors = CardDefaults.cardColors(containerColor = DashboardCard)
+                ) {
+                    Text(
+                        text = stringResource(R.string.dashboard_profile_all),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            color = DashboardTextPrimary,
+                            fontWeight = FontWeight.Medium
+                        )
                     )
                 }
 

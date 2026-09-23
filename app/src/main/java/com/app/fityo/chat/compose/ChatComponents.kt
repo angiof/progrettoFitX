@@ -37,7 +37,6 @@ import com.app.fityo.chat.data.ChatMessage
 fun ChatTopBar(
     onBack: () -> Unit,
     onClearHistory: () -> Unit,
-    gemmaAvailable: Boolean,
     profileName: String? = null,
     modifier: Modifier = Modifier
 ) {
@@ -49,15 +48,8 @@ fun ChatTopBar(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = "Personal Bot",
+                        text = "Domande sui tuoi dati",
                         style = MaterialTheme.typography.titleLarge
-                    )
-                    // Indicatore stato Gemma
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .clip(CircleShape)
-                            .background(if (gemmaAvailable) AccentGreen else AccentOrange)
                     )
                 }
                 // Mostra profilo attivo se presente
@@ -349,51 +341,6 @@ fun SuggestionChip(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
             maxLines = 1
         )
-    }
-}
-
-/**
- * Banner informativo sullo stato di Gemma.
- */
-@Composable
-fun GemmaStatusBanner(
-    isAvailable: Boolean,
-    isReady: Boolean,
-    modifier: Modifier = Modifier
-) {
-    AnimatedVisibility(
-        visible = !isAvailable || !isReady,
-        enter = fadeIn(),
-        exit = fadeOut(),
-        modifier = modifier
-    ) {
-        Surface(
-            color = if (!isAvailable) AccentOrange.copy(alpha = 0.2f) else AccentBlue.copy(alpha = 0.2f),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Row(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .clip(CircleShape)
-                        .background(if (!isAvailable) AccentOrange else AccentBlue)
-                )
-                Text(
-                    text = if (!isAvailable) {
-                        "Gemma non disponibile - Risposte semplificate"
-                    } else {
-                        "Caricamento AI in corso..."
-                    },
-                    color = TextSecondary,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-        }
     }
 }
 

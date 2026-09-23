@@ -5,7 +5,6 @@ import com.app.fityo.data_layer.db.EsserciziEntity
 import com.app.fityo.data_layer.db.SchedeEntity
 import com.app.fityo.data_layer.db.UserProfileEntity
 import com.app.fityo.dominio.GruppoMuscolarePercentuale
-import java.io.File
 
 data class WorkoutModelState(
     val lastUpdatedEpochDay: Long,
@@ -85,31 +84,8 @@ interface WorkoutAnalyticsEngine {
     ): WorkoutInsights
 }
 
-class TfliteWorkoutAnalyzer(
-    private val modelFile: File,
-    private val fallback: WorkoutAnalyticsEngine
-) : WorkoutAnalyticsEngine {
-    override fun analyze(
-        schede: List<SchedeEntity>,
-        esercizi: List<EsserciziEntity>,
-        profile: UserProfileEntity?,
-        muscleDistribution: List<GruppoMuscolarePercentuale>
-    ): WorkoutInsights {
-        if (!modelFile.exists()) {
-            return fallback.analyze(schede, esercizi, profile, muscleDistribution)
-        }
-        // TODO: replace with TFLite inference when the model is available.
-        return fallback.analyze(schede, esercizi, profile, muscleDistribution)
-    }
-}
-
 object AnalyticsEngineProvider {
-    private const val MODEL_FILE_NAME = "analytics_model.tflite"
-
-    fun create(context: Context): WorkoutAnalyticsEngine {
-        val modelStore = SharedPrefsWorkoutModelStateStore(context)
-        val fallback = TensorWorkoutAnalyzer(modelStore)
-        val modelFile = File(context.filesDir, MODEL_FILE_NAME)
-        return TfliteWorkoutAnalyzer(modelFile, fallback)
-    }
+    /** Nessun modello: le analytics sono statistica deterministica sui dati del DB. */
+    fun create(context: Context): WorkoutAnalyticsEngine =
+        TensorWorkoutAnalyzer(SharedPrefsWorkoutModelStateStore(context))
 }

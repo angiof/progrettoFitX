@@ -6,29 +6,27 @@ import com.app.fityo.chat.data.PredefinedQuestion
 import com.app.fityo.chat.data.PredefinedQueries
 import com.app.fityo.chat.engine.QueryExecutor
 import com.app.fityo.data_layer.db.DB.DbFit
-import com.app.fityo.import_scheda.GemmaLlmHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * Helper per gestire le conversazioni del chatbot fitness.
+ * Helper per le conversazioni del chatbot fitness.
  *
- * ARCHITETTURA SEMPLIFICATA:
+ * ARCHITETTURA:
  * 1. L'utente seleziona SOLO domande predefinite (niente input libero)
  * 2. QueryExecutor esegue query dirette sul DB
- * 3. Gemma NON viene usato per generare risposte (solo frasi motivazionali predefinite)
+ * 3. Nessun modello linguistico: le frasi motivazionali sono una lista fissa
  *
- * Questo approccio garantisce che le risposte siano SEMPRE basate sui dati reali.
+ * Cosi' ogni risposta e' sempre un dato reale letto dal database.
  */
-class GemmaChatHelper(
+class QueryChatHelper(
     private val context: Context,
     private val db: DbFit
 ) {
-    private val gemma = GemmaLlmHelper.getInstance(context)
     private val queryExecutor = QueryExecutor(db)
 
     companion object {
-        private const val TAG = "GemmaChatHelper"
+        private const val TAG = "QueryChatHelper"
 
         // Frasi motivazionali predefinite (niente generazione AI)
         private val MOTIVATIONAL_PHRASES = listOf(
@@ -108,27 +106,6 @@ class GemmaChatHelper(
     }
 
     /**
-     * Genera una risposta senza Gemma (per retrocompatibilita).
-     */
-    suspend fun processQuestionWithoutGemma(
-        questionText: String,
-        profileId: Int?
-    ): String = withContext(Dispatchers.IO) {
-        val result = processQuestion(questionText, profileId)
-        result.getOrElse { "Si e verificato un errore. Riprova!" }
-    }
-
-    /**
-     * Verifica se Gemma e disponibile.
-     */
-    fun isGemmaAvailable(): Boolean = gemma.isModelAvailable()
-
-    /**
-     * Verifica se Gemma e pronto (gia caricato).
-     */
-    fun isGemmaReady(): Boolean = gemma.isReady()
-
-    /**
      * Aggiorna la cache dei profili nel QueryExecutor.
      */
     suspend fun refreshProfilesCache() {
@@ -175,8 +152,7 @@ class GemmaChatHelper(
     }
 
     /**
-     * Aggiunge una frase motivazionale alla risposta.
-     * USA SOLO frasi predefinite, niente generazione AI.
+     * Aggiunge una frase motivazionale alla risposta, presa da una lista fissa.
      *
      * NON aggiunge la frase quando la risposta segnala assenza di dati:
      * incoraggiare l'utente su "0 allenamenti" sembra fuori luogo.

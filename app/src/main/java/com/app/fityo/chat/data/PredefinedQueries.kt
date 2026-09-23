@@ -8,7 +8,6 @@ package com.app.fityo.chat.data
  * ARCHITETTURA:
  * - Ogni QueryType mappa a una specifica operazione sul DB
  * - Le risposte sono SEMPRE basate sui dati reali
- * - Gemma viene usato SOLO per suggerimenti personalizzati (opzionale)
  */
 
 /**
