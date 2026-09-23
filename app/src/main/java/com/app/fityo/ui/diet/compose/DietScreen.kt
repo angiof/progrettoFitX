@@ -116,12 +116,15 @@ fun DietScreen(
                         isLoading = uiState.isLoading
                     )
 
-                    // Consiglio Gemma
+                    // === IA temporaneamente disabilitata ===
+                    // Consiglio Gemma (riabilitare quando il modello sarà stabile)
+                    /*
                     AdviceCard(
                         advice = uiState.advice,
                         isLoading = uiState.isAdviceLoading,
                         onGenerateAdvice = { viewModel.generateAdvice() }
                     )
+                    */
 
                     // Storico pasti
                     HistorySection(items = uiState.items, onDelete = { item -> item.id?.let { viewModel.deleteItem(it) } })
@@ -234,11 +237,14 @@ fun DietScreenContent(
                         isLoading = isLoading
                     )
 
-//                    AdviceCard(
-//                        advice = advice,
-//                        isLoading = isAdviceLoading,
-//                        onGenerateAdvice = onGenerateAdvice
-//                    )
+                    // === IA temporaneamente disabilitata ===
+                    /*
+                    AdviceCard(
+                        advice = advice,
+                        isLoading = isAdviceLoading,
+                        onGenerateAdvice = onGenerateAdvice
+                    )
+                    */
 
                     HistorySection(items = items, onDelete = onDeleteItem)
 

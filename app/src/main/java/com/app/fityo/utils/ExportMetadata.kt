@@ -6,6 +6,8 @@ data class ExportMetadata(
     val athleteName: String = "",
     val startDate: String = "",
     val endDate: String = "",
-    val pdfFormat: String = "CLASSIC" // "CLASSIC" o "MODERN"
+    val pdfFormat: String = "CLASSIC", // "CLASSIC" o "MODERN"
+    val logoUri: String? = null,       // URI (content://...) del logo scelto dall'utente
+    val logoPosition: String = "LEFT"  // "LEFT" | "CENTER" | "RIGHT" nell'header PDF
 )
 

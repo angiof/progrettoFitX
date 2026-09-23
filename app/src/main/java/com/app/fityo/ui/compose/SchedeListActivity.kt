@@ -43,6 +43,7 @@ import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.CreateNewFolder
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.CheckCircle
@@ -58,6 +59,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
@@ -97,6 +100,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -511,6 +515,22 @@ private fun SchedeListRoute(
                         }
                     }
                 }
+            },
+            onShareFitx = {
+                scope.launch {
+                    val result = FitxImportExport.exportScheda(context, currentScheda, exercises)
+                    withContext(Dispatchers.Main) {
+                        result.onSuccess { file ->
+                            ShareUtils.shareFitx(context, file)
+                        }.onFailure {
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.toast_export_error),
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    }
+                }
             }
         )
     }
@@ -539,6 +559,7 @@ private fun SchedaDetailDialog(
     onSaveLogoPlacement: () -> Unit,
     onSharePdf: (ExportMetadata) -> Unit,
     onExportFitx: () -> Unit = {},
+    onShareFitx: () -> Unit = {},
     onEditScheda: () -> Unit = {},
     onDuplicateScheda: () -> Unit = {}
 ) {
@@ -552,6 +573,7 @@ private fun SchedaDetailDialog(
     var startDate by remember(scheda.id) { mutableStateOf(formatDateForDisplay(scheda.data)) }
     var endDate by remember(scheda.id) { mutableStateOf(formatDateForDisplay(scheda.data)) }
     var metadataAction by remember(scheda.id) { mutableStateOf<MetadataAction?>(null) }
+    var showShareSheet by remember(scheda.id) { mutableStateOf(false) }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -724,20 +746,10 @@ private fun SchedaDetailDialog(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         DetailActionIcon(
-                            icon = Icons.Filled.PictureAsPdf,
-                            label = "PDF",
-                            onClick = { metadataAction = MetadataAction.EXPORT }
-                        )
-                        DetailActionIcon(
                             icon = Icons.Filled.Share,
                             label = stringResource(id = R.string.share_pdf).take(8),
-                            onClick = { metadataAction = MetadataAction.SHARE }
-                        )
-                        DetailActionIcon(
-                            icon = Icons.Filled.FileDownload,
-                            label = "FitX",
                             tint = accent,
-                            onClick = onExportFitx
+                            onClick = { showShareSheet = true }
                         )
                         DetailActionIcon(
                             icon = Icons.Filled.ContentCopy,
@@ -848,6 +860,144 @@ private fun SchedaDetailDialog(
             exerciseId = id,
             onDismiss = { infoExerciseId = null }
         )
+    }
+
+    if (showShareSheet) {
+        ShareBottomSheet(
+            onDismiss = { showShareSheet = false },
+            onExportPdf = {
+                showShareSheet = false
+                metadataAction = MetadataAction.EXPORT
+            },
+            onSharePdf = {
+                showShareSheet = false
+                metadataAction = MetadataAction.SHARE
+            },
+            onExportFitx = {
+                showShareSheet = false
+                onExportFitx()
+            },
+            onShareFitx = {
+                showShareSheet = false
+                onShareFitx()
+            }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ShareBottomSheet(
+    onDismiss: () -> Unit,
+    onExportPdf: () -> Unit,
+    onSharePdf: () -> Unit,
+    onExportFitx: () -> Unit,
+    onShareFitx: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val accent = Color(0xFF40C4FF)
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = DarkSurface
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 8.dp)
+                .padding(bottom = 24.dp)
+        ) {
+            Text(
+                text = stringResource(id = R.string.share_sheet_title),
+                style = MaterialTheme.typography.titleLarge.copy(
+                    color = TextPrimary,
+                    fontWeight = FontWeight.Bold
+                )
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = stringResource(id = R.string.share_sheet_subtitle),
+                style = MaterialTheme.typography.bodyMedium.copy(color = TextSecondary)
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+
+            ShareSheetOption(
+                icon = Icons.Filled.PictureAsPdf,
+                iconTint = Color(0xFFE57373),
+                title = stringResource(id = R.string.share_action_export_pdf),
+                subtitle = stringResource(id = R.string.share_action_export_pdf_desc),
+                onClick = onExportPdf
+            )
+            ShareSheetOption(
+                icon = Icons.Filled.Share,
+                iconTint = accent,
+                title = stringResource(id = R.string.share_action_share_pdf),
+                subtitle = stringResource(id = R.string.share_action_share_pdf_desc),
+                onClick = onSharePdf
+            )
+            ShareSheetOption(
+                icon = Icons.Filled.FileDownload,
+                iconTint = Color(0xFF81C784),
+                title = stringResource(id = R.string.share_action_export_fitx),
+                subtitle = stringResource(id = R.string.share_action_export_fitx_desc),
+                onClick = onExportFitx
+            )
+            ShareSheetOption(
+                icon = Icons.Filled.FileUpload,
+                iconTint = Color(0xFFFFB74D),
+                title = stringResource(id = R.string.share_action_share_fitx),
+                subtitle = stringResource(id = R.string.share_action_share_fitx_desc),
+                onClick = onShareFitx
+            )
+        }
+    }
+}
+
+@Composable
+private fun ShareSheetOption(
+    icon: ImageVector,
+    iconTint: Color,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+            .padding(vertical = 12.dp, horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(44.dp)
+                .clip(CircleShape)
+                .background(iconTint.copy(alpha = 0.15f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = iconTint,
+                modifier = Modifier.size(22.dp)
+            )
+        }
+        Spacer(modifier = Modifier.width(16.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    color = TextPrimary,
+                    fontWeight = FontWeight.SemiBold
+                )
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall.copy(color = TextSecondary)
+            )
+        }
     }
 }
 
@@ -1441,6 +1591,128 @@ enum class PdfFormat(
 ) {
     CLASSIC(R.string.pdf_format_classic, R.drawable.pdf_format_classic_preview),
     MODERN(R.string.pdf_format_modern, R.drawable.pdf_format_modern_preview)
+}
+
+enum class LogoPosition(val labelRes: Int) {
+    LEFT(R.string.pdf_logo_position_left),
+    CENTER(R.string.pdf_logo_position_center),
+    RIGHT(R.string.pdf_logo_position_right)
+}
+
+@Composable
+private fun LogoPickerSection(
+    logoPreview: androidx.compose.ui.graphics.ImageBitmap?,
+    position: LogoPosition,
+    errorMessage: String?,
+    onPickClick: () -> Unit,
+    onRemove: () -> Unit,
+    onPositionChange: (LogoPosition) -> Unit
+) {
+    val accent = Color(0xFF40C4FF)
+    val error = Color(0xFFE57373)
+
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            text = stringResource(id = R.string.pdf_logo_title),
+            style = MaterialTheme.typography.titleSmall.copy(color = TextPrimary)
+        )
+        Text(
+            text = stringResource(id = R.string.pdf_logo_subtitle),
+            style = MaterialTheme.typography.bodySmall.copy(color = TextSecondary)
+        )
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(72.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(DarkCard)
+                    .border(1.dp, TextSecondary.copy(alpha = 0.3f), RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                if (logoPreview != null) {
+                    Image(
+                        bitmap = logoPreview,
+                        contentDescription = null,
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier.fillMaxSize().padding(6.dp)
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Filled.Image,
+                        contentDescription = null,
+                        tint = TextSecondary,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+            }
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Button(
+                    onClick = onPickClick,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = accent)
+                ) {
+                    Text(
+                        text = stringResource(
+                            id = if (logoPreview == null) R.string.pdf_logo_pick else R.string.pdf_logo_replace
+                        )
+                    )
+                }
+                if (logoPreview != null) {
+                    OutlinedButton(
+                        onClick = onRemove,
+                        modifier = Modifier.fillMaxWidth(),
+                        border = BorderStroke(1.dp, error)
+                    ) {
+                        Text(stringResource(id = R.string.pdf_logo_remove), color = error)
+                    }
+                }
+            }
+        }
+
+        if (errorMessage != null) {
+            Text(
+                text = errorMessage,
+                style = MaterialTheme.typography.bodySmall.copy(color = error)
+            )
+        }
+
+        if (logoPreview != null) {
+            Text(
+                text = stringResource(id = R.string.pdf_logo_position),
+                style = MaterialTheme.typography.bodyMedium.copy(color = TextPrimary)
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                LogoPosition.values().forEach { pos ->
+                    val selected = pos == position
+                    OutlinedButton(
+                        onClick = { onPositionChange(pos) },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = if (selected) accent.copy(alpha = 0.15f) else Color.Transparent,
+                            contentColor = if (selected) accent else TextPrimary
+                        ),
+                        border = BorderStroke(
+                            1.dp,
+                            if (selected) accent else TextSecondary.copy(alpha = 0.4f)
+                        )
+                    ) {
+                        Text(
+                            text = stringResource(id = pos.labelRes),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+            }
+        }
+    }
 }
 
 @Composable

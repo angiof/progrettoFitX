@@ -264,12 +264,18 @@ class ImportSchedaActivity : ComponentActivity() {
                 )
                 showProfileDialog = true
             }.onFailure { error ->
+                val message = if (error is FitxImportExport.WrongFormatException) {
+                    error.message ?: getString(R.string.toast_import_wrong_format)
+                } else {
+                    getString(R.string.toast_import_error, error.message ?: "")
+                }
                 Toast.makeText(
                     this@ImportSchedaActivity,
-                    getString(R.string.toast_import_error, error.message ?: ""),
+                    message,
                     Toast.LENGTH_LONG
                 ).show()
-                finish()
+                showOptionsDialog = true
+                currentImportType = null
             }
         }
     }

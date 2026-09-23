@@ -53,6 +53,9 @@ object FitxImportExport {
         }
     }
 
+    /** Il file scelto non è un .fitx (es. PDF, xlsx, immagine). */
+    class WrongFormatException(message: String) : Exception(message)
+
     /**
      * Importa una scheda da file .fitx (JSON)
      * Restituisce FitxFormat parsed
@@ -66,10 +69,18 @@ object FitxImportExport {
                 ?: throw Exception("Impossibile aprire il file")
 
             val jsonString = inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
-            inputStream.close()
+
+            val trimmed = jsonString.trimStart()
+            if (!trimmed.startsWith("{")) {
+                throw WrongFormatException(
+                    context.getString(R.string.toast_import_wrong_format)
+                )
+            }
 
             val fitxFormat = FitxFormat.fromJson(jsonString)
-                ?: throw Exception("Formato file non valido")
+                ?: throw WrongFormatException(
+                    context.getString(R.string.toast_import_wrong_format)
+                )
 
             fitxFormat
         }

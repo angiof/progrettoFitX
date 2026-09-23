@@ -26,18 +26,26 @@ object ShareUtils {
     }
 
     fun sharePdf(context: Context, file: File) {
+        shareFile(context, file, "application/pdf", R.string.share_pdf_title)
+    }
+
+    fun shareFitx(context: Context, file: File) {
+        shareFile(context, file, "application/json", R.string.share_fitx_title)
+    }
+
+    private fun shareFile(context: Context, file: File, mimeType: String, chooserTitleRes: Int) {
         val uri = FileProvider.getUriForFile(
             context,
             "${context.packageName}.fileprovider",
             file
         )
         val sendIntent = Intent(Intent.ACTION_SEND).apply {
-            type = "application/pdf"
+            type = mimeType
             putExtra(Intent.EXTRA_STREAM, uri)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         context.startActivity(
-            Intent.createChooser(sendIntent, context.getString(R.string.share_pdf_title))
+            Intent.createChooser(sendIntent, context.getString(chooserTitleRes))
         )
     }
 }

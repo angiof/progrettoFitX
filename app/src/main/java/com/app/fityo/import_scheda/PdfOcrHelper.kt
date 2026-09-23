@@ -53,7 +53,7 @@ class PdfOcrHelper(
     }
 
     /**
-     * Verifica se Gemma Ã¨ pronto
+     * Verifica se Gemma è pronto
      */
     fun isGemmaReady(): Boolean = gemmaHelper?.isReady() == true
 
@@ -104,7 +104,25 @@ class PdfOcrHelper(
                         errorMessage = "Impossibile aprire il file PDF"
                     )
 
-                renderer = PdfRenderer(pfd)
+                renderer = try {
+                    PdfRenderer(pfd)
+                } catch (e: SecurityException) {
+                    return@withContext PdfImportResult(
+                        success = false,
+                        pageCount = 0,
+                        allParsedRows = emptyList(),
+                        pageResults = emptyList(),
+                        errorMessage = "Il PDF è protetto da password: rimuovila e riprova."
+                    )
+                } catch (e: java.io.IOException) {
+                    return@withContext PdfImportResult(
+                        success = false,
+                        pageCount = 0,
+                        allParsedRows = emptyList(),
+                        pageResults = emptyList(),
+                        errorMessage = "PDF non valido o corrotto."
+                    )
+                }
                 val pageCount = renderer.pageCount
 
                 Log.d(TAG, "PDF aperto con $pageCount pagine")
@@ -154,7 +172,7 @@ class PdfOcrHelper(
             page = renderer.openPage(pageIndex)
 
             // Calcola dimensioni ad alta risoluzione per OCR
-            val scale = PDF_RENDER_DPI / 72f // 72 DPI Ã¨ la risoluzione base PDF
+            val scale = PDF_RENDER_DPI / 72f // 72 DPI è la risoluzione base PDF
             val width = (page.width * scale).toInt()
             val height = (page.height * scale).toInt()
 
@@ -210,7 +228,7 @@ class PdfOcrHelper(
      * Usa Gemma AI se disponibile per parsing intelligente.
      */
     private suspend fun parseTextToExercises(text: Text?, rawText: String): List<ParsedExerciseRow> {
-        // Se Gemma Ã¨ pronto, usa AI per parsing intelligente
+        // Se Gemma è pronto, usa AI per parsing intelligente
         if (isGemmaReady() && rawText.isNotBlank()) {
             Log.d(TAG, "Using Gemma AI for PDF parsing...")
             val gemmaResult = gemmaHelper?.analyzeOcrText(rawText)
@@ -381,11 +399,12 @@ class PdfOcrHelper(
 
     /**
      * Pulisce le risorse.
+     * NON chiudere gemmaHelper: è un singleton condiviso, viene gestito altrove.
+     * exerciseParser.close() a sua volta chiude il recognizer di ML Kit ma non il gemma singleton.
      */
     fun close() {
         recognizer.close()
         exerciseParser.close()
-        gemmaHelper?.close()
         gemmaHelper = null
     }
 }

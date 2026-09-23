@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
     <external-files-path name="external_files" path="." />
-    <!-- PdfExporter e FitxImportExport ripiegano su filesDir quando la memoria esterna non
-         e disponibile: senza questa radice la condivisione di quei file va in eccezione. -->
+    <!-- Fallback di PdfExporter/FitxImportExport quando lo storage esterno non è disponibile -->
     <files-path name="internal_files" path="." />
 </paths>

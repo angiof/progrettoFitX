@@ -177,8 +177,13 @@ class GemmaChatHelper(
     /**
      * Aggiunge una frase motivazionale alla risposta.
      * USA SOLO frasi predefinite, niente generazione AI.
+     *
+     * NON aggiunge la frase quando la risposta segnala assenza di dati:
+     * incoraggiare l'utente su "0 allenamenti" sembra fuori luogo.
      */
     private fun addMotivationalPhrase(response: String): String {
+        if (isEmptyDataResponse(response)) return response
+
         // 40% di probabilita di aggiungere frase motivazionale
         if (Math.random() > 0.4) {
             return response
@@ -188,5 +193,29 @@ class GemmaChatHelper(
         val phrase = MOTIVATIONAL_PHRASES.random()
 
         return "$response\n\n$emoji $phrase"
+    }
+
+    /**
+     * Riconosce le risposte che indicano assenza di dati o dati insufficienti.
+     * Serve a evitare frasi come "0 allenamenti - Continua cosi!".
+     */
+    private fun isEmptyDataResponse(response: String): Boolean {
+        val lower = response.lowercase()
+        val emptyMarkers = listOf(
+            "non ci sono ancora",
+            "non ho trovato",
+            "non ho dati",
+            "non ho abbastanza dati",
+            "nessun dato",
+            "nessun allenamento",
+            "nessun appuntamento",
+            "nessuna",
+            "seleziona un profilo",
+            "servono almeno",
+            "inizia a tracciare",
+            "inizia oggi",
+            "inizia con calma"
+        )
+        return emptyMarkers.any { lower.contains(it) }
     }
 }

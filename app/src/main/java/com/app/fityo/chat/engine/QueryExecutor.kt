@@ -203,18 +203,20 @@ class QueryExecutor(private val db: DbFit) {
         val maxWeight = dataProvider.getMaxWeight(exercise, profileId)
         val lastDetails = dataProvider.getLastExerciseDetails(exercise, profileId)
 
+        if (maxWeight == null && lastDetails == null) {
+            return "Non ho trovato dati per $exercise nello storico."
+        }
+
         return buildString {
             append("🏆 Record $possessive in $exercise:\n\n")
             if (maxWeight != null) {
                 append("• Peso massimo: ${maxWeight}kg\n")
-            } else {
-                append("• Peso massimo: nessun dato\n")
             }
             if (lastDetails != null) {
                 append("• Ultimo allenamento: ${lastDetails.nSerie}x${lastDetails.nRipetizione}")
                 lastDetails.peso?.let { append(" @ ${it}kg") }
             }
-        }
+        }.trimEnd()
     }
 
     private suspend fun executeLastExerciseDetails(exercise: String, profileId: Int?, possessive: String): String {
@@ -320,16 +322,17 @@ class QueryExecutor(private val db: DbFit) {
             db.schedeDao().getAllSchede()
         }
         val total = schede.size
+        if (total == 0) {
+            return "Non ci sono ancora allenamenti registrati."
+        }
         val completed = schede.count { it.completed }
 
         return buildString {
             append("📊 Totale allenamenti $possessive:\n\n")
             append("• Allenamenti totali: $total\n")
             append("• Completati: $completed\n")
-            if (total > 0) {
-                val rate = (completed * 100) / total
-                append("• Tasso completamento: $rate%")
-            }
+            val rate = (completed * 100) / total
+            append("• Tasso completamento: $rate%")
         }
     }
 
@@ -423,6 +426,9 @@ class QueryExecutor(private val db: DbFit) {
         } else {
             db.schedeDao().getAllSchede()
         }
+        if (schede.isEmpty()) {
+            return "Non ci sono ancora allenamenti registrati per calcolare il volume."
+        }
 
         var totalVolume = 0f
         var totalReps = 0
@@ -440,14 +446,20 @@ class QueryExecutor(private val db: DbFit) {
             }
         }
 
+        if (totalReps == 0) {
+            return "Non ho abbastanza dati sugli esercizi per calcolare il volume."
+        }
+
         return buildString {
             append("🏋️ Volume totale $possessive:\n\n")
-            append("• Peso totale sollevato: ${String.format("%.0f", totalVolume)}kg\n")
+            if (totalVolume > 0) {
+                append("• Peso totale sollevato: ${String.format("%.0f", totalVolume)}kg\n")
+            }
             append("• Ripetizioni totali: $totalReps\n")
-            if (schede.isNotEmpty()) {
+            if (totalVolume > 0) {
                 append("• Media per allenamento: ${String.format("%.0f", totalVolume / schede.size)}kg")
             }
-        }
+        }.trimEnd()
     }
 
     private suspend fun executeConsistencyScore(profileId: Int?, possessive: String): String {
@@ -458,8 +470,11 @@ class QueryExecutor(private val db: DbFit) {
         }
 
         val total = schede.size
+        if (total == 0) {
+            return "Non ci sono ancora allenamenti per calcolare la consistenza."
+        }
         val completed = schede.count { it.completed }
-        val score = if (total > 0) (completed * 100) / total else 0
+        val score = (completed * 100) / total
 
         val rating = when {
             score >= 90 -> "🏆 Eccezionale!"
@@ -504,6 +519,9 @@ class QueryExecutor(private val db: DbFit) {
             db.schedeDao().getSchedeByCoachProfile(profileId)
         } else {
             db.schedeDao().getAllSchede()
+        }
+        if (schede.isEmpty()) {
+            return "Non ci sono ancora allenamenti registrati."
         }
 
         // Conta giorni con allenamento negli ultimi 7 giorni
@@ -884,19 +902,21 @@ class QueryExecutor(private val db: DbFit) {
             db.coachAppointmentDao()?.getAllAppointmentsInRange(monthStart, monthEnd) ?: emptyList()
         }
 
+        val header = if (profileName != null) "📊 Riepilogo mese per $profileName:" else "📊 Riepilogo appuntamenti mese:"
+
+        if (appointments.isEmpty()) {
+            return "$header\n\nNessun appuntamento questo mese."
+        }
+
         val completed = appointments.count { it.isCompleted }
         val pending = appointments.size - completed
-
-        val header = if (profileName != null) "📊 Riepilogo mese per $profileName:" else "📊 Riepilogo appuntamenti mese:"
 
         return buildString {
             append("$header\n\n")
             append("• Totale appuntamenti: ${appointments.size}\n")
             append("• Completati: $completed ✅\n")
             append("• Da completare: $pending ⏳\n")
-            if (appointments.isNotEmpty()) {
-                append("• Tasso completamento: ${(completed * 100) / appointments.size}%")
-            }
+            append("• Tasso completamento: ${(completed * 100) / appointments.size}%")
         }
     }
 

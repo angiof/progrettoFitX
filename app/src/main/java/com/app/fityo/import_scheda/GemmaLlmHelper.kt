@@ -626,7 +626,9 @@ $ocrText
         llmInference?.close()
         llmInference = null
         _modelState.value = ModelState.NotLoaded
-        INSTANCE = null
+        // NON azzerare INSTANCE: il singleton deve sopravvivere ai close() dei consumer
+        // (Camera OCR / PDF import), altrimenti il modello da 1.35 GB viene ricaricato
+        // ogni volta che l'utente riapre lo scanner.
     }
 
     fun getModelInfo(): String {

@@ -142,7 +142,9 @@ fun DashboardScreen(
             Spacer(modifier = Modifier.height(80.dp))
         }
 
-        // Chat FAB
+        // === IA temporaneamente disabilitata ===
+        // Chat FAB (riabilitare quando la chat IA sarà pronta)
+        /*
         FloatingActionButton(
             onClick = onOpenChat,
             modifier = Modifier
@@ -156,6 +158,7 @@ fun DashboardScreen(
                 contentDescription = "AI Chat"
             )
         }
+        */
     }
 
     // Profile selection dialog

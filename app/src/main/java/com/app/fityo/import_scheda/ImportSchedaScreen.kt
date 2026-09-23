@@ -1101,7 +1101,7 @@ fun ProfileAssignmentDialog(
                     title = stringResource(R.string.import_assign_personal),
                     subtitle = stringResource(R.string.import_assign_personal_desc),
                     accentColor = AccentBlue,
-                    onClick = onSelectPersonal // Salva prima, poi finish() verrÃ  chiamato in saveScheda
+                    onClick = onSelectPersonal // Salva prima, poi finish() verrà chiamato in saveScheda
                 )
 
                 // Lista profili coach
@@ -1120,7 +1120,7 @@ fun ProfileAssignmentDialog(
                             title = profile.name,
                             subtitle = profile.notes ?: "",
                             accentColor = Color(profile.avatarColor),
-                            onClick = { onSelectProfile(profile.id) } // NON chiamare onDismiss, saveScheda chiamerÃ  finish()
+                            onClick = { onSelectProfile(profile.id) } // NON chiamare onDismiss, saveScheda chiamerà finish()
                         )
                     }
                 }
